@@ -4,6 +4,7 @@
 import uuid
 from functools import total_ordering
 import json
+from json import JSONEncoder
 
 @total_ordering
 class Anchor:
@@ -22,6 +23,10 @@ class Anchor:
         
     def __str__(self):
         return str(self.identifier)
+        
+class AnchorEncoder(JSONEncoder):
+    def default(self, o):
+        return o.__dict__         
     
 class SegmentedText:    
     def __init__(self):
@@ -90,5 +95,6 @@ class SegmentedText:
     def __str__(self):
         return str(self._ordered_segments)
         
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=2)
+class SegmentEncoder(JSONEncoder):
+    def default(self, o):
+        return o.__dict__ 

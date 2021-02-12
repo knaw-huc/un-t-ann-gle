@@ -1,7 +1,12 @@
+import sys
+sys.path.append('../packages')
+
 from flask import Flask
 from flask import jsonify
 from flask import request
+from flask import make_response
 import json
+from annotation import asearch
 
 app = Flask(__name__)
 
@@ -15,8 +20,12 @@ quarks = [{'name': 'up', 'charge': '+2/3'},
 @app.route('/annotations', methods=['GET', 'PUT'])
 def get_annotations():
     if request.method == 'PUT':
+        global annotations
         content = request.get_json()
-        annotations = json.loads(content)
+        annotations = content
+        res = make_response(jsonify({"message": "Annotations replaced"}), 200)
+        return res
+        
     return jsonify({'annotations': annotations})
     
 @app.route('/annotations/<int:index>', methods=['GET'])
@@ -24,20 +33,13 @@ def get_annotation(index):
     return jsonify({'annotations': annotations[index]})
 
 @app.route('/', methods=['GET'])
-def hello_world():
-    return jsonify({'message' : 'Hello, World!'})
+def identify_yourself():
+    return jsonify({'message' : 'un-t-ann-gle Flask annotation service'})
 
-@app.route('/quarks', methods=['GET'])
-def returnAll():
-    return jsonify({'quarks' : quarks})
-
-@app.route('/quarks/<string:name>', methods=['GET'])
-def returnOne(name):
-    theOne = quarks[0]
-    for i,q in enumerate(quarks):
-      if q['name'] == name:
-        theOne = quarks[i]
-    return jsonify({'quarks' : theOne})
+@app.route('/annotations/<string:type>', methods=['GET'])
+def returnAnnotationsOfType(type):
+    annots = list(asearch.get_annotations_of_type(type,annotations))
+    return jsonify({'annotations' : annots})
 
 @app.route('/quarks', methods=['POST'])
 def addOne():
@@ -60,6 +62,10 @@ def deleteOne(name):
       if q['name'] == name:
         del quarks[i]  
     return jsonify({'quarks' : quarks})
+    
+@app.errorhandler(404)
+def not_found(error):
+    return make_response(jsonify({'error': 'Not found'}), 404)
 
 if __name__ == "__main__":
     app.run(debug=True)
