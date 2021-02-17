@@ -15,18 +15,6 @@ def get_annotations_of_type(type,annotations):
     '''
     return (a for a in annotations if a['label'] == type)
     
-def annots_of_type_handler(environ, start_response):
-    # retrieve type from environ
-    params = environ['params']
-    type = params.get('type')
-    
-    # retrieve annotations: list of annotations managed by this service
-    # question: how is this simple service connected to backend in-memory storage?
-    
-    
-    start_response('200 OK', [('Content-type', 'application/json')])
-    yield type.encode('utf-8') 
-    
 def get_annotations_overlapping_with(begin_anchor,end_anchor,annotations):
     '''
     Returns all annotations that overlap with a specific text interval.

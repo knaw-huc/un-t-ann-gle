@@ -7,6 +7,7 @@ from flask import request
 from flask import make_response
 import json
 from annotation import asearch
+from segmentedtext import tservice
 
 app = Flask(__name__)
 
@@ -37,23 +38,20 @@ def identify_yourself():
     return jsonify({'message' : 'un-t-ann-gle Flask annotation service'})
 
 @app.route('/annotations/<string:type>', methods=['GET'])
+# REMARK: this is probably very inefficient because of copying of large lists
 def returnAnnotationsOfType(type):
     annots = list(asearch.get_annotations_of_type(type,annotations))
+    return jsonify({'annotations' : annots})
+    
+@app.route('/annotations/<string:begin_anchor>,<string:end_anchor>', methods=['GET'])
+def returnAnnotationsOverlappingWith(begin_anchor, end_anchor):
+    annots = list(asearch.get_annotations_overlapping_with(begin_anchor,end_anchor,annotations))
     return jsonify({'annotations' : annots})
 
 @app.route('/quarks', methods=['POST'])
 def addOne():
     new_quark = request.get_json()
     quarks.append(new_quark)
-    return jsonify({'quarks' : quarks})
-
-@app.route('/quarks/<string:name>', methods=['PUT'])
-def editOne(name):
-    new_quark = request.get_json()
-    for i,q in enumerate(quarks):
-      if q['name'] == name:
-        quarks[i] = new_quark    
-    qs = request.get_json()
     return jsonify({'quarks' : quarks})
 
 @app.route('/quarks/<string:name>', methods=['DELETE'])
