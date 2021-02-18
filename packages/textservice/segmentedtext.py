@@ -5,6 +5,7 @@ import uuid
 from functools import total_ordering
 import json
 from json import JSONEncoder
+from abc import ABCMeta, abstractmethod
 
 @total_ordering
 class Anchor:
@@ -27,8 +28,37 @@ class Anchor:
 class AnchorEncoder(JSONEncoder):
     def default(self, o):
         return o.__dict__         
+
+class SegmentedText(metaclass=ABCMeta):
+    @abstractmethod
+    def append(self, text_element):
+        pass
+        
+    @abstractmethod
+    def extend(self, textelement_list):
+        pass
+        
+    @abstractmethod
+    def len(self):
+        pass
+        
+    @abstractmethod
+    def element_at(self, anchor):
+        pass
+        
+    @abstractmethod
+    def slice(self, from_anchor, to_anchor):
+        pass
+        
+    @abstractmethod
+    def __repr__(self):
+        pass
+        
+    @abstractmethod
+    def __str__(self):
+        pass
     
-class SegmentedText:    
+class SplittableSegmentedText(SegmentedText):    
     def __init__(self):
         self._ordered_segments = []
         self._anchors = []
@@ -98,3 +128,33 @@ class SegmentedText:
 class SegmentEncoder(JSONEncoder):
     def default(self, o):
         return o.__dict__ 
+        
+class IndexedSegmentedText(SegmentedText):    
+    def __init__(self):
+        self._ordered_segments = []
+        
+    def append(self, text_element):        
+        self._ordered_segments.append(text_element)
+        return
+        
+    def extend(self, textelement_list):
+        self._ordered_segments.extend(textelement_list._ordered_segments)
+        return
+    
+    def len(self):
+        return len(self._ordered_segments)
+        
+    def element_at(self, index):
+        return self._ordered_segments[index]
+    
+    # so far, only one variation of slicing is supported, add other flavours as well (search for sample code)
+    # remark: may go wrong at end of lists, not tested yet
+    def slice(self, from_index, to_index):
+        return self._ordered_segments[from_index:to_index+1]
+        
+    def __repr__(self):
+        return str(self._ordered_segments)
+        
+    def __str__(self):
+        return str(self._ordered_segments)
+        

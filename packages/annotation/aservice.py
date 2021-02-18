@@ -7,7 +7,6 @@ from flask import request
 from flask import make_response
 import json
 from annotation import asearch
-from segmentedtext import tservice
 
 app = Flask(__name__)
 
@@ -43,9 +42,9 @@ def returnAnnotationsOfType(type):
     annots = list(asearch.get_annotations_of_type(type,annotations))
     return jsonify({'annotations' : annots})
     
-@app.route('/annotations/<string:begin_anchor>,<string:end_anchor>', methods=['GET'])
-def returnAnnotationsOverlappingWith(begin_anchor, end_anchor):
-    annots = list(asearch.get_annotations_overlapping_with(begin_anchor,end_anchor,annotations))
+@app.route('/annotations/<string:begin_anchor_id>,<string:end_anchor_id>', methods=['GET'])
+def returnAnnotationsOverlappingWith(begin_anchor_id, end_anchor_id):
+    annots = list(asearch.get_annotations_overlapping_with(begin_anchor_id,end_anchor_id,annotations))
     return jsonify({'annotations' : annots})
 
 @app.route('/quarks', methods=['POST'])

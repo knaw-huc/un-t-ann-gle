@@ -6,6 +6,10 @@ that are connected to a segmented text object.
 # managed list of annotations. For the moment set by a POST operation
 managed_annotations = []
 
+def get_annotations_at_anchor(anchor, annotations, label=None):
+    annots_at_anchor = [ann_info for ann_info in annotations if ann_info['begin_anchor'] <= anchor <= ann_info['end_anchor']]  
+    return annots_at_anchor
+
 def get_annotations_of_type(type,annotations):
     '''
 	Returns a generator for annotations of a specific type.
@@ -42,3 +46,6 @@ def get_annotations_of_types_overlapping(types,begin,end,annotations):
     Return all annotations of the given types that overlap with a specific text interval.
     '''
     return get_annotations_of_types(types,(get_annotations_overlapping_with(begin,end,annotations)))
+    
+def get_annotation_by_id(id, annotations):
+    return next(ann for ann in annotations if 'id' in ann.keys() and ann['id'] == id)
