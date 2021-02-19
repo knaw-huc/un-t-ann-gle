@@ -2,10 +2,10 @@
 # to have performance O(log n) instead of O(n) for insert operations.
 
 import uuid
-from functools import total_ordering
-import json
-from json import JSONEncoder
 from abc import ABCMeta, abstractmethod
+from functools import total_ordering
+from json import JSONEncoder
+
 
 @total_ordering
 class Anchor:

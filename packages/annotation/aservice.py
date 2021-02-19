@@ -5,7 +5,6 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 from flask import make_response
-import json
 from annotation import asearch
 
 app = Flask(__name__)
