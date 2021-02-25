@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('../packages')
 
 from flask import Flask
@@ -16,6 +17,7 @@ quarks = [{'name': 'up', 'charge': '+2/3'},
           {'name': 'charm', 'charge': '+2/3'},
           {'name': 'strange', 'charge': '-1/3'}]
 
+
 @app.route('/annotations', methods=['GET', 'PUT'])
 def get_annotations():
     if request.method == 'PUT':
@@ -24,44 +26,52 @@ def get_annotations():
         annotations = content
         res = make_response(jsonify({"message": "Annotations replaced"}), 200)
         return res
-        
+
     return jsonify({'annotations': annotations})
-    
+
+
 @app.route('/annotations/<int:index>', methods=['GET'])
 def get_annotation(index):
     return jsonify({'annotations': annotations[index]})
 
+
 @app.route('/', methods=['GET'])
 def identify_yourself():
-    return jsonify({'message' : 'un-t-ann-gle Flask annotation service'})
+    return jsonify({'message': 'un-t-ann-gle Flask annotation service'})
+
 
 @app.route('/annotations/<string:type>', methods=['GET'])
 # REMARK: this is probably very inefficient because of copying of large lists
 def returnAnnotationsOfType(type):
-    annots = list(asearch.get_annotations_of_type(type,annotations))
-    return jsonify({'annotations' : annots})
-    
+    annots = list(asearch.get_annotations_of_type(type, annotations))
+    return jsonify({'annotations': annots})
+
+
 @app.route('/annotations/<string:begin_anchor_id>,<string:end_anchor_id>', methods=['GET'])
 def returnAnnotationsOverlappingWith(begin_anchor_id, end_anchor_id):
-    annots = list(asearch.get_annotations_overlapping_with(begin_anchor_id,end_anchor_id,annotations))
-    return jsonify({'annotations' : annots})
+    annots = list(asearch.get_annotations_overlapping_with(begin_anchor_id, end_anchor_id, annotations))
+    return jsonify({'annotations': annots})
+
 
 @app.route('/quarks', methods=['POST'])
 def addOne():
     new_quark = request.get_json()
     quarks.append(new_quark)
-    return jsonify({'quarks' : quarks})
+    return jsonify({'quarks': quarks})
+
 
 @app.route('/quarks/<string:name>', methods=['DELETE'])
 def deleteOne(name):
-    for i,q in enumerate(quarks):
-      if q['name'] == name:
-        del quarks[i]  
-    return jsonify({'quarks' : quarks})
-    
+    for i, q in enumerate(quarks):
+        if q['name'] == name:
+            del quarks[i]
+    return jsonify({'quarks': quarks})
+
+
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -37,13 +37,10 @@ def main():
     parser.add_argument('sourcefile_path')
     args = parser.parse_args()
     source_filename = args.sourcefile_path
-    source_file = open(source_filename, 'r')
-    source = source_file.read()
-    source_file.close()
-    if (source_filename.lower().endswith('.xml')):
+    if source_filename.lower().endswith('.xml'):
         do_tei_extract(source_filename)
-    elif (source_filename.lower().endswith('.json')):
-        do_json_extract(source)
+    elif source_filename.lower().endswith('.json'):
+        do_json_extract(source_filename)
     else:
         raise Exception("Sorry, I don't know how to parse {}".format(source_filename))
 

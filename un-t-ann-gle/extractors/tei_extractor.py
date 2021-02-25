@@ -117,4 +117,4 @@ def process(sourcefile_path: str) -> (list, list):
 
     all_text_elements.extend(text_segments)
     all_annotations.extend(annotation_array)
-    return (all_text_elements, all_annotations)
+    return all_text_elements, all_annotations

@@ -119,7 +119,8 @@ class SplittableSegmentedText(SegmentedText):
 
         return new_anchor
 
-    def _new_anchor_id(self):
+    @staticmethod
+    def _new_anchor_id():
         return 'anchor_' + str(uuid.uuid4())
 
     def __repr__(self):

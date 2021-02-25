@@ -30,7 +30,7 @@ def traverse(node, node_label, text, annotations):
     children = []
     label_of_children = ''
     for key, val in node.items():
-        if (type(val) == list):
+        if type(val) == list:
             children = val
             label_of_children = key
             break
@@ -68,9 +68,9 @@ def traverse(node, node_label, text, annotations):
 
         # if node contains iiif_url, create extra annotation_info for 'scanpage'
         if 'iiif_url' in node['metadata']:
-            scan_annot_info = {'label': 'scanpage', 'iiif_url': node['metadata']['iiif_url'], \
-                               'begin_anchor': begin_index, 'end_anchor': end_index}
-            scan_annot_info['scan_num'] = node['metadata']['scan_num']
+            scan_annot_info = {'label': 'scanpage', 'iiif_url': node['metadata']['iiif_url'],
+                               'begin_anchor': begin_index, 'end_anchor': end_index,
+                               'scan_num': node['metadata']['scan_num']}
             annotations.append(scan_annot_info)
 
     annotations.append(annotation_info)
@@ -177,4 +177,4 @@ def process(sourcefile_path: str) -> (list, list):
 
     all_text_lines.extend(text_array)
     all_annotations.extend(annotation_array)
-    return (all_text_lines, all_annotations)
+    return all_text_lines, all_annotations
