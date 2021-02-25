@@ -139,3 +139,16 @@ cython_debug/
 
 .DS_Store
 .idea
+/un-t-ann-gle/annotations.json
+/un-t-ann-gle/text_segments.json
+/notebooks/Untitled.ipynb
+/notebooks/simple_website_diagram.png
+/notebooks/bak/01. republic extract text coordinates from session json.ipynb
+/notebooks/bak/02. republic  combine split and search a number of session days.ipynb
+/notebooks/bak/03. refactor - republic  combine split and search a number of session days.ipynb
+/notebooks/bak/04.  analoge exercitie voor een DBNL TEI document.ipynb
+/notebooks/bak/05. generalise - republic  combine split and search a number of session days.ipynb
+/notebooks/bak/06. resolutions - retrieve resolutions from Marijns' resolution json.ipynb
+/notebooks/bak/07. merge sheet 5 and 6 - resolutions from Marijn iso manually created.ipynb
+/notebooks/bak/08.  TEI experiment-add text slot indirection.ipynb
+/notebooks/bak/09.  TEI experiment-implement API's for anchors and isolate them in seperate package.ipynb

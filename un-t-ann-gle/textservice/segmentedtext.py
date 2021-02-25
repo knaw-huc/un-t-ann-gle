@@ -11,89 +11,92 @@ from json import JSONEncoder
 class Anchor:
     def __init__(self, identifier, sequence_number):
         self.identifier = identifier
-        self.sequence_number = sequence_number # used to compare anchors in their SegmentedText context
-    
+        self.sequence_number = sequence_number  # used to compare anchors in their SegmentedText context
+
     def __eq__(self, other):
         return self.sequence_number == other.sequence_number
-    
+
     def __lt__(self, other):
         return self.sequence_number < other.sequence_number
-    
+
     def __repr__(self):
         return str(self.identifier)
-        
+
     def __str__(self):
         return str(self.identifier)
-        
+
+
 class AnchorEncoder(JSONEncoder):
     def default(self, o):
-        return o.__dict__         
+        return o.__dict__
+
 
 class SegmentedText(metaclass=ABCMeta):
     @abstractmethod
     def append(self, text_element):
         pass
-        
+
     @abstractmethod
-    def extend(self, textelement_list):
+    def extend(self, text_element_list):
         pass
-        
+
     @abstractmethod
     def len(self):
         pass
-        
+
     @abstractmethod
     def element_at(self, anchor):
         pass
-        
+
     @abstractmethod
     def slice(self, from_anchor, to_anchor):
         pass
-        
+
     @abstractmethod
     def __repr__(self):
         pass
-        
+
     @abstractmethod
     def __str__(self):
         pass
-    
-class SplittableSegmentedText(SegmentedText):    
+
+
+class SplittableSegmentedText(SegmentedText):
     def __init__(self):
         self._ordered_segments = []
         self._anchors = []
-        
-    def append(self, text_element):        
-     #   self._anchors[self._new_anchor_id()] = len(self._ordered_segments)
+
+    def append(self, text_element):
+        #   self._anchors[self._new_anchor_id()] = len(self._ordered_segments)
         self._anchors.append(Anchor(self._new_anchor_id(), len(self._anchors)))
         self._ordered_segments.append(text_element)
         return
-        
-    def extend(self, textelement_list):
-        if isinstance(textelement_list, list):
+
+    def extend(self, text_element_list):
+        if isinstance(text_element_list, list):
             # add a number of new text segment to self
-            for te in textelement_list:
+            for te in text_element_list:
                 self.append(te)
         else:
             # textelement_list is a SegmentedText object
-            self._ordered_segments.extend(textelement_list._ordered_segments)
-            self._anchors.extend(textelement_list._anchors)
+            self._ordered_segments.extend(text_element_list._ordered_segments)
+            self._anchors.extend(text_element_list._anchors)
         return
-    
+
     def len(self):
         return len(self._ordered_segments)
-        
+
     def element_at(self, anchor):
         # return self._ordered_segments[self._anchors[anchor]]
         return self._ordered_segments[self._anchors.index(anchor)]
-    
+
     # so far, only one variation of slicing is supported, add other flavours as well (search for sample code)
     # remark: may go wrong at end of lists, not tested yet
     def slice(self, from_anchor, to_anchor):
         from_index = self._anchors.index(from_anchor)
         to_index = self._anchors.index(to_anchor)
-        return self._ordered_segments[from_index:to_index+1]
-    
+        return self._ordered_segments[from_index:to_index + 1]
+
     # remark: split a list element is potentially an expensive operation: the complete list might be recreated.
     def split(self, after_anchor, at_char_offset):
         index_at_after_anchor = self._anchors.index(after_anchor)
@@ -107,54 +110,55 @@ class SplittableSegmentedText(SegmentedText):
 
         # determine sequence_number: should be a homogeneously increasing series. Use float value
         # between the sequence_numbers of this anchor and the next one (if it exists)
-        
+
         sn1 = after_anchor.sequence_number
         sn2 = self._anchors[index_at_after_anchor + 1].sequence_number
-        
-        new_anchor = Anchor(self._new_anchor_id(), (sn1+sn2)/2)
+
+        new_anchor = Anchor(self._new_anchor_id(), (sn1 + sn2) / 2)
         self._anchors.insert(index_at_after_anchor + 1, new_anchor)
-        
+
         return new_anchor
-    
+
     def _new_anchor_id(self):
         return 'anchor_' + str(uuid.uuid4())
-        
+
     def __repr__(self):
         return str(self._anchors)
-        
+
     def __str__(self):
         return str(self._ordered_segments)
-        
+
+
 class SegmentEncoder(JSONEncoder):
     def default(self, o):
-        return o.__dict__ 
-        
-class IndexedSegmentedText(SegmentedText):    
+        return o.__dict__
+
+
+class IndexedSegmentedText(SegmentedText):
     def __init__(self):
         self._ordered_segments = []
-        
-    def append(self, text_element):        
+
+    def append(self, text_element):
         self._ordered_segments.append(text_element)
         return
-        
-    def extend(self, textelement_list):
-        self._ordered_segments.extend(textelement_list._ordered_segments)
+
+    def extend(self, text_element_list):
+        self._ordered_segments.extend(text_element_list._ordered_segments)
         return
-    
+
     def len(self):
         return len(self._ordered_segments)
-        
+
     def element_at(self, index):
         return self._ordered_segments[index]
-    
+
     # so far, only one variation of slicing is supported, add other flavours as well (search for sample code)
     # remark: may go wrong at end of lists, not tested yet
     def slice(self, from_index, to_index):
-        return self._ordered_segments[from_index:to_index+1]
-        
+        return self._ordered_segments[from_index:to_index + 1]
+
     def __repr__(self):
         return str(self._ordered_segments)
-        
+
     def __str__(self):
         return str(self._ordered_segments)
-        
