@@ -1,5 +1,5 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 
@@ -152,3 +152,4 @@ cython_debug/
 /notebooks/bak/07. merge sheet 5 and 6 - resolutions from Marijn iso manually created.ipynb
 /notebooks/bak/08.  TEI experiment-add text slot indirection.ipynb
 /notebooks/bak/09.  TEI experiment-implement API's for anchors and isolate them in seperate package.ipynb
+**.pyc

@@ -102,19 +102,21 @@ def traverse(node, node_label, text, annotations):
 
 
 # Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
-def process(sourcefile_path: str) -> (list, list):
+def process(sourcefile_paths: list) -> (list, list):
     text_segments = segmentedtext.SplittableSegmentedText()
     annotation_array = []
 
-    source_data = get_root_tree_element(sourcefile_path)
+    for path in sourcefile_paths:
+        source_data = get_root_tree_element(path)
 
-    traverse(source_data, '', text_segments, annotation_array)
+        traverse(source_data, '', text_segments, annotation_array)
 
-    # properly concatenate annotation info taking ongoing line indexes into account - trivial, do not apply in this case
-    #    for ai in annotation_array:
-    #        ai['begin_index'] += len(all_textlines)
-    #        ai['end_index'] += len(all_textlines)
+        # properly concatenate annotation info taking ongoing line indexes into account - trivial, do not apply in this case
+        #    for ai in annotation_array:
+        #        ai['begin_index'] += len(all_textlines)
+        #        ai['end_index'] += len(all_textlines)
 
-    all_text_elements.extend(text_segments)
-    all_annotations.extend(annotation_array)
+        all_text_elements.extend(text_segments)
+        all_annotations.extend(annotation_array)
+
     return all_text_elements, all_annotations

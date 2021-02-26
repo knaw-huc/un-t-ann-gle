@@ -157,24 +157,26 @@ def add_page_annotations(source_data, ann_array):
 
 
 # Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
-def process(sourcefile_path: str) -> (list, list):
+def process(sourcefile_paths: list) -> (list, list):
     text_array = segmentedtext.IndexedSegmentedText()
     annotation_array = []
 
-    source_data = get_root_tree_element(sourcefile_path)
+    for path in sourcefile_paths:
+        source_data = get_root_tree_element(path)
 
-    traverse(source_data, 'sessions', text_array, annotation_array)
+        traverse(source_data, 'sessions', text_array, annotation_array)
 
-    scanpages = deduplicate_scanpage_annotations(annotation_array)
-    correct_scanpage_imageurls(annotation_array)
+        scanpages = deduplicate_scanpage_annotations(annotation_array)
+        correct_scanpage_imageurls(annotation_array)
 
-    add_page_annotations(source_data, annotation_array)
+        add_page_annotations(source_data, annotation_array)
 
-    # properly concatenate annotation info taking ongoing line indexes into account
-    for ai in annotation_array:
-        ai['begin_anchor'] += all_text_lines.len()
-        ai['end_anchor'] += all_text_lines.len()
+        # properly concatenate annotation info taking ongoing line indexes into account
+        for ai in annotation_array:
+            ai['begin_anchor'] += all_text_lines.len()
+            ai['end_anchor'] += all_text_lines.len()
 
-    all_text_lines.extend(text_array)
-    all_annotations.extend(annotation_array)
+        all_text_lines.extend(text_array)
+        all_annotations.extend(annotation_array)
+
     return all_text_lines, all_annotations

@@ -5,6 +5,9 @@ import json
 
 from extractors import tei_extractor, json_extractor
 
+TEI = 'tei'
+REPUBLIC = 'republic'
+
 
 def export(text_segments: list, annotations: list):
     text_file = open('text_segments.json', 'w')
@@ -18,31 +21,24 @@ def export(text_segments: list, annotations: list):
     ann_file.close()
 
 
-def do_tei_extract(sourcefile_path: str):
-    print('parsing tei...')
-    (text_segments, annotations) = tei_extractor.process(sourcefile_path)
-    export(text_segments, annotations)
-
-
-def do_json_extract(sourcefile_path: str):
-    print('parsing json...')
-    (text_segments, annotations) = json_extractor.process(sourcefile_path)
-    export(text_segments, annotations)
-
-
 def main():
     print("Welcome to un-t-ann-gle!")
     parser = argparse.ArgumentParser(
-        description='un-t-ann-gle splits rich text files (json/xml) into bare text segments and annotations.')
-    parser.add_argument('sourcefile_path')
+        description='untanngle splits rich text files (json/xml) into bare text segments and annotations.')
+    parser.add_argument('sourcefile_path', nargs='+', help='the path(s) to the source file(s)')
+    parser.add_argument('-t', '--type', required=True, choices=[REPUBLIC, TEI], dest='source_type',
+                        help='the type of the source file(s)')
     args = parser.parse_args()
-    source_filename = args.sourcefile_path
-    if source_filename.lower().endswith('.xml'):
-        do_tei_extract(source_filename)
-    elif source_filename.lower().endswith('.json'):
-        do_json_extract(source_filename)
-    else:
-        raise Exception("Sorry, I don't know how to parse {}".format(source_filename))
+    source_paths = args.sourcefile_path
+    source_type = args.source_type
+    if source_type == TEI:
+        print('parsing tei...')
+        (text_segments, annotations) = tei_extractor.process(source_paths)
+        export(text_segments, annotations)
+    elif source_type == REPUBLIC:
+        print('parsing REPUBLIC json...')
+        (text_segments, annotations) = json_extractor.process(source_paths)
+        export(text_segments, annotations)
 
 
 if __name__ == '__main__':
