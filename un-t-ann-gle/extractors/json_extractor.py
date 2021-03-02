@@ -1,4 +1,3 @@
-import glob
 import json
 import re
 
@@ -15,10 +14,10 @@ all_annotations = []
 # (corresponding with all scans in a book or volume). This functions returns all component files IN TEXT ORDER.
 # Examples: sorted list of files, part of IIIF manifest.
 
-def get_file_sequence_for_container(text_container):
-    path = "../data/sessions/meeting-1705*"
-    session_file_names = (f for f in glob.glob(path))
-    return sorted(session_file_names)
+# def get_file_sequence_for_container(text_container):
+#     path = "../data/sessions/meeting-1705*"
+#     session_file_names = (f for f in glob.glob(path))
+#     return sorted(session_file_names)
 
 
 # Many file types contain a hierarchy of ordered text and/or annotation elements of different types. Some form of
