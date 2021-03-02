@@ -139,6 +139,12 @@ class IndexedSegmentedText(SegmentedText):
     def __init__(self):
         self._ordered_segments = []
 
+    def __iter__(self):
+        return self._ordered_segments.__iter__()
+
+    def __getitem__(self, item):
+        return self._ordered_segments[item]
+
     def append(self, text_element):
         self._ordered_segments.append(text_element)
         return
