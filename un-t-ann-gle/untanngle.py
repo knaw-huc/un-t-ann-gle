@@ -4,6 +4,7 @@ import argparse
 import json
 
 from extractors import tei_extractor, json_extractor
+from textservice import segmentedtext
 
 TEI = 'tei'
 REPUBLIC = 'republic'
@@ -11,12 +12,12 @@ REPUBLIC = 'republic'
 
 def export(text_segments: list, annotations: list):
     text_file = open('text_segments.json', 'w')
-    text_file.write(json.dumps(text_segments._ordered_segments))
+    text_file.write(json.dumps(text_segments, indent=4, cls=segmentedtext.SegmentEncoder))
     text_file.write("\n")
     text_file.close()
 
     ann_file = open('annotations.json', 'w')
-    ann_file.write(json.dumps(annotations))
+    ann_file.write(json.dumps(annotations, indent=4, cls=segmentedtext.AnchorEncoder))
     ann_file.write("\n")
     ann_file.close()
 
