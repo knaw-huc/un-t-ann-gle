@@ -1,2 +1,4 @@
 setuptools~=28.8.0
 lxml~=4.6.2
+flask-restplus~=0.13.0
+#git+https://github.com/knaw-huc/textrepo-client-python.git

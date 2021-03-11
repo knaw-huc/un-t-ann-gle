@@ -10,7 +10,10 @@ TEI = 'tei'
 REPUBLIC = 'republic'
 
 
-def export(text_segments: list, annotations: list):
+def export1(text_segments: list, annotations: list):
+    """
+    export the text segment list and annotation list to 2 separate json files
+    """
     text_file = open('text_segments.json', 'w')
     text_file.write(json.dumps(text_segments, indent=4, cls=segmentedtext.SegmentEncoder))
     text_file.write("\n")
@@ -20,6 +23,19 @@ def export(text_segments: list, annotations: list):
     ann_file.write(json.dumps(annotations, indent=4, cls=segmentedtext.AnchorEncoder))
     ann_file.write("\n")
     ann_file.close()
+
+
+def export_to_text_repo(text_segments: list):
+    pass
+
+
+def export_to_annotation_server(annotations: list):
+    pass
+
+
+def export(text_segments: list, annotations: list):
+    export_to_text_repo(text_segments)
+    export_to_annotation_server(annotations)
 
 
 def main():
@@ -35,11 +51,10 @@ def main():
     if source_type == TEI:
         print('parsing tei...')
         (text_segments, annotations) = tei_extractor.process(source_paths)
-        export(text_segments, annotations)
     elif source_type == REPUBLIC:
         print('parsing REPUBLIC json...')
         (text_segments, annotations) = json_extractor.process(source_paths)
-        export(text_segments, annotations)
+    export(text_segments, annotations)
 
 
 if __name__ == '__main__':
