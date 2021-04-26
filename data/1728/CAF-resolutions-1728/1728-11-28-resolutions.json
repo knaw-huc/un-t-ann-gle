@@ -1,0 +1,163 @@
+{
+    "took": 1,
+    "timed_out": false,
+    "_shards": {
+        "total": 1,
+        "successful": 1,
+        "skipped": 0,
+        "failed": 0
+    },
+    "hits": {
+        "total": {
+            "value": 1,
+            "relation": "eq"
+        },
+        "max_score": 1.0,
+        "hits": [
+            {
+                "_index": "pagexml_resolutions",
+                "_type": "_doc",
+                "_id": "meeting-1728-11-28-session-1-resolution-1",
+                "_score": 1.0,
+                "_source": {
+                    "metadata": {
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-11-28-session-1",
+                        "doc_type": "resolution",
+                        "id": "meeting-1728-11-28-session-1-resolution-1",
+                        "proposition_type": "missive",
+                        "proposer": null,
+                        "decision": null,
+                        "meeting_date": "1728-11-28",
+                        "session_id": "meeting-1728-11-28-session-1",
+                        "session": null,
+                        "president": null,
+                        "num_paragraphs": 1,
+                        "num_columns": 1,
+                        "num_lines": 1,
+                        "num_words": 7,
+                        "index_timestamp": "2021-01-14T17:30:14.791349"
+                    },
+                    "paragraphs": [
+                        {
+                            "metadata": {
+                                "inventory_num": 3783,
+                                "doc_id": "meeting-1728-11-28-session-1",
+                                "doc_type": "resolution_paragraph",
+                                "id": "meeting-1728-11-28-session-1-para-7",
+                                "num_columns": 0,
+                                "num_lines": 0,
+                                "type": "resolution_paragraph",
+                                "num_words": 7,
+                                "paragraph_index": 0
+                            },
+                            "column_ids": [
+                                "meeting-1728-11-28-session-1-column-1"
+                            ],
+                            "text": "2 Ntf\u00e1aneen een Mifive van den Heere",
+                            "line_ranges": [
+                                {
+                                    "start": 0,
+                                    "end": 36,
+                                    "line_id": "NL-HaNA_1.01.02_3783_0495-page-989-column-0-tr-2-line-0"
+                                }
+                            ],
+                            "scan_versions": null
+                        }
+                    ],
+                    "evidence": [
+                        {
+                            "type": "PhraseMatch",
+                            "phrase": "ONtfangen een Missive van",
+                            "variant": "ONtfangen een Missive van",
+                            "string": "Ntf\u00e1aneen een Mifive van",
+                            "offset": 2,
+                            "label": [
+                                "proposition_opening",
+                                "proposition_from_correspondence",
+                                "proposition_type:missive"
+                            ],
+                            "text_id": "meeting-1728-11-28-session-1-para-7",
+                            "match_scores": {
+                                "char_match": 0.84,
+                                "ngram_match": 0.6923076923076923,
+                                "levenshtein_similarity": 0.8
+                            }
+                        }
+                    ],
+                    "columns": [
+                        {
+                            "metadata": {
+                                "id": "meeting-1728-11-28-session-1-column-1",
+                                "scan_id": "NL-HaNA_1.01.02_3783_0495",
+                                "doc_id": "meeting-1728-11-28-session-1",
+                                "page_column_id": "NL-HaNA_1.01.02_3783_0495-page-989-column-0"
+                            },
+                            "coords": {
+                                "left": 2558,
+                                "right": 3359,
+                                "top": 1355,
+                                "bottom": 1416,
+                                "height": 61,
+                                "width": 801
+                            },
+                            "textregions": [
+                                {
+                                    "metadata": {
+                                        "textregion_id": "NL-HaNA_1.01.02_3783_0495-page-989-column-0-tr-2"
+                                    },
+                                    "coords": {
+                                        "left": 2558,
+                                        "right": 3359,
+                                        "top": 1355,
+                                        "bottom": 1416,
+                                        "height": 61,
+                                        "width": 801
+                                    },
+                                    "lines": [
+                                        {
+                                            "coords": {
+                                                "left": 2558,
+                                                "right": 3359,
+                                                "top": 1355,
+                                                "bottom": 1416,
+                                                "height": 61,
+                                                "width": 801
+                                            },
+                                            "xheight": 24,
+                                            "baseline": {
+                                                "start_x": 2558,
+                                                "start_y": 1418,
+                                                "end_x": 3359,
+                                                "end_y": 1399,
+                                                "min": 1397,
+                                                "max": 1418,
+                                                "mean": 1405,
+                                                "median": 1406
+                                            },
+                                            "text": "2 Ntf\u00e1aneen een Mifive van den Heere",
+                                            "metadata": {
+                                                "id": "NL-HaNA_1.01.02_3783_0495-page-989-column-0-tr-2-line-0",
+                                                "left_alignment": "column",
+                                                "right_alignment": "column",
+                                                "scan_id": "NL-HaNA_1.01.02_3783_0495",
+                                                "inventory_num": 3783,
+                                                "doc_id": "meeting-1728-11-28-session-1",
+                                                "column_index": 1,
+                                                "column_id": "meeting-1728-11-28-session-1-column-1",
+                                                "textregion_index": 2,
+                                                "textregion_id": "NL-HaNA_1.01.02_3783_0495-page-989-column-0-tr-2",
+                                                "is_bleed_through": false,
+                                                "page_column_id": "NL-HaNA_1.01.02_3783_0495-page-989-column-0"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

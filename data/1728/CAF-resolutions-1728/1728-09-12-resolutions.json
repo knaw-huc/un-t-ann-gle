@@ -1,0 +1,163 @@
+{
+    "took": 1,
+    "timed_out": false,
+    "_shards": {
+        "total": 1,
+        "successful": 1,
+        "skipped": 0,
+        "failed": 0
+    },
+    "hits": {
+        "total": {
+            "value": 1,
+            "relation": "eq"
+        },
+        "max_score": 1.0,
+        "hits": [
+            {
+                "_index": "pagexml_resolutions",
+                "_type": "_doc",
+                "_id": "meeting-1728-09-12-session-1-resolution-1",
+                "_score": 1.0,
+                "_source": {
+                    "metadata": {
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-09-12-session-1",
+                        "doc_type": "resolution",
+                        "id": "meeting-1728-09-12-session-1-resolution-1",
+                        "proposition_type": "missive",
+                        "proposer": null,
+                        "decision": null,
+                        "meeting_date": "1728-09-12",
+                        "session_id": "meeting-1728-09-12-session-1",
+                        "session": null,
+                        "president": null,
+                        "num_paragraphs": 1,
+                        "num_columns": 1,
+                        "num_lines": 1,
+                        "num_words": 7,
+                        "index_timestamp": "2021-01-14T17:26:14.711335"
+                    },
+                    "paragraphs": [
+                        {
+                            "metadata": {
+                                "inventory_num": 3783,
+                                "doc_id": "meeting-1728-09-12-session-1",
+                                "doc_type": "resolution_paragraph",
+                                "id": "meeting-1728-09-12-session-1-para-6",
+                                "num_columns": 0,
+                                "num_lines": 0,
+                                "type": "resolution_paragraph",
+                                "num_words": 7,
+                                "paragraph_index": 0
+                            },
+                            "column_ids": [
+                                "meeting-1728-09-12-session-1-column-0"
+                            ],
+                            "text": "A Ntfangen een Missive van den Heere",
+                            "line_ranges": [
+                                {
+                                    "start": 0,
+                                    "end": 36,
+                                    "line_id": "NL-HaNA_1.01.02_3783_0409-page-816-column-0-tr-4-line-0"
+                                }
+                            ],
+                            "scan_versions": null
+                        }
+                    ],
+                    "evidence": [
+                        {
+                            "type": "PhraseMatch",
+                            "phrase": "ONtfangen een Missive van",
+                            "variant": "ONtfangen een Missive van",
+                            "string": "Ntfangen een Missive van",
+                            "offset": 2,
+                            "label": [
+                                "proposition_opening",
+                                "proposition_from_correspondence",
+                                "proposition_type:missive"
+                            ],
+                            "text_id": "meeting-1728-09-12-session-1-para-6",
+                            "match_scores": {
+                                "char_match": 0.96,
+                                "ngram_match": 0.9230769230769231,
+                                "levenshtein_similarity": 0.96
+                            }
+                        }
+                    ],
+                    "columns": [
+                        {
+                            "metadata": {
+                                "id": "meeting-1728-09-12-session-1-column-0",
+                                "scan_id": "NL-HaNA_1.01.02_3783_0409",
+                                "doc_id": "meeting-1728-09-12-session-1",
+                                "page_column_id": "NL-HaNA_1.01.02_3783_0409-page-816-column-0"
+                            },
+                            "coords": {
+                                "left": 473,
+                                "right": 1293,
+                                "top": 2829,
+                                "bottom": 2890,
+                                "height": 61,
+                                "width": 820
+                            },
+                            "textregions": [
+                                {
+                                    "metadata": {
+                                        "textregion_id": "NL-HaNA_1.01.02_3783_0409-page-816-column-0-tr-4"
+                                    },
+                                    "coords": {
+                                        "left": 473,
+                                        "right": 1293,
+                                        "top": 2829,
+                                        "bottom": 2890,
+                                        "height": 61,
+                                        "width": 820
+                                    },
+                                    "lines": [
+                                        {
+                                            "coords": {
+                                                "left": 473,
+                                                "right": 1293,
+                                                "top": 2829,
+                                                "bottom": 2890,
+                                                "height": 61,
+                                                "width": 820
+                                            },
+                                            "xheight": 24,
+                                            "baseline": {
+                                                "start_x": 473,
+                                                "start_y": 2882,
+                                                "end_x": 1293,
+                                                "end_y": 2872,
+                                                "min": 2872,
+                                                "max": 2882,
+                                                "mean": 2873,
+                                                "median": 2872
+                                            },
+                                            "text": "A Ntfangen een Missive van den Heere",
+                                            "metadata": {
+                                                "id": "NL-HaNA_1.01.02_3783_0409-page-816-column-0-tr-4-line-0",
+                                                "left_alignment": "column",
+                                                "right_alignment": "column",
+                                                "scan_id": "NL-HaNA_1.01.02_3783_0409",
+                                                "inventory_num": 3783,
+                                                "doc_id": "meeting-1728-09-12-session-1",
+                                                "column_index": 0,
+                                                "column_id": "meeting-1728-09-12-session-1-column-0",
+                                                "textregion_index": 2,
+                                                "textregion_id": "NL-HaNA_1.01.02_3783_0409-page-816-column-0-tr-4",
+                                                "is_bleed_through": false,
+                                                "page_column_id": "NL-HaNA_1.01.02_3783_0409-page-816-column-0"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

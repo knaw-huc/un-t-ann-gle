@@ -3,7 +3,6 @@
 
 import uuid
 from functools import total_ordering
-import json
 from json import JSONEncoder
 from abc import ABCMeta, abstractmethod
 
@@ -12,7 +11,7 @@ class Anchor:
     def __init__(self, identifier, sequence_number):
         self.identifier = identifier
         self.sequence_number = sequence_number # used to compare anchors in their SegmentedText context
-    
+            
     def __eq__(self, other):
         return self.sequence_number == other.sequence_number
     
@@ -49,7 +48,11 @@ class SegmentedText(metaclass=ABCMeta):
     @abstractmethod
     def slice(self, from_anchor, to_anchor):
         pass
-        
+ 
+    @abstractmethod
+    def slice_grid(self, from_anchor, to_anchor):
+        pass
+       
     @abstractmethod
     def __repr__(self):
         pass
@@ -59,10 +62,20 @@ class SegmentedText(metaclass=ABCMeta):
         pass
     
 class SplittableSegmentedText(SegmentedText):    
-    def __init__(self):
+    def __init__(self, resource_id=None, begin_offset_in_resource=None, end_offset_in_resource=None):
+        self.resource_id = resource_id
+        self.text_grid_spec = {'begin_offset_in_resource':begin_offset_in_resource, \
+        		'end_offset_in_resource':end_offset_in_resource, 'anchor_type':'anchor_obj'}
         self._ordered_segments = []
         self._anchors = []
         
+    # secondary constructor
+    @classmethod
+    def from_json(cls, json_data):
+        instance = cls()
+        instance._initialize_from_json(json_data)
+        return instance
+     
     def append(self, text_element):        
      #   self._anchors[self._new_anchor_id()] = len(self._ordered_segments)
         self._anchors.append(Anchor(self._new_anchor_id(), len(self._anchors)))
@@ -84,16 +97,36 @@ class SplittableSegmentedText(SegmentedText):
         return len(self._ordered_segments)
         
     def element_at(self, anchor):
+        if isinstance(anchor, str):
+        	anchor = self._get_anchor_by_id(anchor)   
         # return self._ordered_segments[self._anchors[anchor]]
         return self._ordered_segments[self._anchors.index(anchor)]
     
     # so far, only one variation of slicing is supported, add other flavours as well (search for sample code)
     # remark: may go wrong at end of lists, not tested yet
     def slice(self, from_anchor, to_anchor):
+        if isinstance(from_anchor, str):
+        	from_anchor = self._get_anchor_by_id(from_anchor)
+        if isinstance(to_anchor, str):
+        	to_anchor = self._get_anchor_by_id(to_anchor)        
         from_index = self._anchors.index(from_anchor)
         to_index = self._anchors.index(to_anchor)
         return self._ordered_segments[from_index:to_index+1]
-    
+
+    def slice_grid(self, from_anchor, to_anchor):
+        if isinstance(from_anchor, str):
+            	from_anchor = self._get_anchor_by_id(from_anchor)
+        if isinstance(to_anchor, str):
+            	to_anchor = self._get_anchor_by_id(to_anchor)        
+        from_index = self._anchors.index(from_anchor)
+        to_index = self._anchors.index(to_anchor)
+        
+        st_slice = SplittableSegmentedText(self.resource_id, from_anchor, to_anchor)
+        st_slice._ordered_segments = self._ordered_segments[from_index:to_index+1]
+        st_slice._anchors = self._anchors[from_index:to_index+2]
+        
+        return st_slice
+            
     # remark: split a list element is potentially an expensive operation: the complete list might be recreated.
     def split(self, after_anchor, at_char_offset):
         index_at_after_anchor = self._anchors.index(after_anchor)
@@ -115,9 +148,26 @@ class SplittableSegmentedText(SegmentedText):
         self._anchors.insert(index_at_after_anchor + 1, new_anchor)
         
         return new_anchor
+        
+    def _initialize_from_json(self, json_data):
+        self.resource_id = json_data['resource_id']
+        self._ordered_segments = json_data['_ordered_segments']
+        
+        if 'text_grid_spec' in json_data:
+        	self.text_grid_spec = json_data['text_grid_spec']
+        else:
+        	self.text_grid_spec = {'begin_offset_in_resource':None, \
+        		'end_offset_in_resource':None, 'anchor_type':'anchor_obj'}
+        
+        for a in json_data['_anchors']:
+        	anchor = Anchor(a['identifier'], a['sequence_number'])
+        	self._anchors.append(anchor)
     
     def _new_anchor_id(self):
         return 'anchor_' + str(uuid.uuid4())
+        
+    def _get_anchor_by_id(self, anchor_id):
+        return [a for a in self._anchors if a.identifier == anchor_id][0]
         
     def __repr__(self):
         return str(self._anchors)
@@ -130,9 +180,19 @@ class SegmentEncoder(JSONEncoder):
         return o.__dict__ 
         
 class IndexedSegmentedText(SegmentedText):    
-    def __init__(self):
+    def __init__(self, resource_id=None, begin_offset_in_resource=None, end_offset_in_resource=None):
+        self.resource_id = resource_id
+        self.text_grid_spec = {'begin_offset_in_resource':begin_offset_in_resource, \
+        		'end_offset_in_resource':end_offset_in_resource, 'anchor_type':'index_int'}
         self._ordered_segments = []
         
+    # secondary constructor
+    @classmethod
+    def from_json(cls, json_data):
+        instance = cls()
+        instance._initialize_from_json(json_data)
+        return instance
+                
     def append(self, text_element):        
         self._ordered_segments.append(text_element)
         return
@@ -151,7 +211,22 @@ class IndexedSegmentedText(SegmentedText):
     # remark: may go wrong at end of lists, not tested yet
     def slice(self, from_index, to_index):
         return self._ordered_segments[from_index:to_index+1]
+
+    def slice_grid(self, from_index, to_index):
+        st_slice = IndexedSegmentedText(self.resource_id, from_index, to_index)
+        st_slice._ordered_segments = self._ordered_segments[from_index:to_index+1]
         
+        return st_slice
+        
+    def _initialize_from_json(self, json_data):
+        self.resource_id = json_data['resource_id']
+        self._ordered_segments = json_data['_ordered_segments']
+        if 'text_grid_spec' in json_data:
+        	self.text_grid_spec = json_data['text_grid_spec']
+        else:
+        	self.text_grid_spec = {'begin_offset_in_resource':None, \
+        		'end_offset_in_resource':None, 'anchor_type':'index_int'}
+               
     def __repr__(self):
         return str(self._ordered_segments)
         
