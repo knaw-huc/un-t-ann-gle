@@ -1,0 +1,2019 @@
+{
+  "took": 1,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 3,
+      "relation": "eq"
+    },
+    "max_score": 1.0,
+    "hits": [
+      {
+        "_index": "pagexml_resolutions",
+        "_type": "_doc",
+        "_id": "meeting-1728-10-11-session-1-resolution-1",
+        "_score": 1.0,
+        "_source": {
+          "metadata": {
+            "inventory_num": 3783,
+            "doc_id": "meeting-1728-10-11-session-1",
+            "doc_type": "resolution",
+            "id": "meeting-1728-10-11-session-1-resolution-1",
+            "proposition_type": "missive",
+            "proposer": null,
+            "decision": null,
+            "meeting_date": "1728-10-11",
+            "session_id": "meeting-1728-10-11-session-1",
+            "session": 1,
+            "president": "",
+            "num_paragraphs": 3,
+            "num_columns": 2,
+            "num_lines": 16,
+            "num_words": 84,
+            "index_timestamp": "2021-01-14T17:27:25.930647"
+          },
+          "paragraphs": [
+            {
+              "metadata": {
+                "inventory_num": 3783,
+                "doc_id": "meeting-1728-10-11-session-1",
+                "doc_type": "resolution_paragraph",
+                "id": "meeting-1728-10-11-session-1-para-6",
+                "num_columns": 0,
+                "num_lines": 0,
+                "type": "resolution_paragraph",
+                "num_words": 29,
+                "paragraph_index": 0
+              },
+              "column_ids": [
+                "meeting-1728-10-11-session-1-column-0"
+              ],
+              "text": "Nt anoen een Missive van den Resi) j den  Callterss vi ges chreven te Regensov den Vierden deeser loopende aandr Houdende advertentie. W AAR on veen resolutie is gevallen.",
+              "line_ranges": [
+                {
+                  "start": 0,
+                  "end": 33,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5-line-0"
+                },
+                {
+                  "start": 33,
+                  "end": 76,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5-line-1"
+                },
+                {
+                  "start": 76,
+                  "end": 107,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5-line-2"
+                },
+                {
+                  "start": 107,
+                  "end": 141,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5-line-3"
+                },
+                {
+                  "start": 141,
+                  "end": 171,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5-line-4"
+                }
+              ],
+              "scan_versions": null
+            },
+            {
+              "metadata": {
+                "inventory_num": 3783,
+                "doc_id": "meeting-1728-10-11-session-1",
+                "doc_type": "resolution_paragraph",
+                "id": "meeting-1728-10-11-session-1-para-7",
+                "num_columns": 0,
+                "num_lines": 0,
+                "type": "resolution_paragraph",
+                "num_words": 26,
+                "paragraph_index": 1
+              },
+              "column_ids": [
+                "meeting-1728-10-11-session-1-column-0"
+              ],
+              "text": "Ne sin0en een Missive van den R esiVa 7 in veschreven - te Franckor det sevende, deser loopende maandt, houdende advertentie. WAAR op veen resolutie is gevallen.",
+              "line_ranges": [
+                {
+                  "start": 0,
+                  "end": 35,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-0"
+                },
+                {
+                  "start": 35,
+                  "end": 65,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-1"
+                },
+                {
+                  "start": 65,
+                  "end": 104,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-2"
+                },
+                {
+                  "start": 104,
+                  "end": 126,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-4"
+                },
+                {
+                  "start": 126,
+                  "end": 134,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-3"
+                },
+                {
+                  "start": 134,
+                  "end": 161,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-5"
+                }
+              ],
+              "scan_versions": null
+            },
+            {
+              "metadata": {
+                "inventory_num": 3783,
+                "doc_id": "meeting-1728-10-11-session-1",
+                "doc_type": "resolution_paragraph",
+                "id": "meeting-1728-10-11-session-1-para-8",
+                "num_columns": 0,
+                "num_lines": 0,
+                "type": "resolution_paragraph",
+                "num_words": 29,
+                "paragraph_index": 2
+              },
+              "column_ids": [
+                "meeting-1728-10-11-session-1-column-1",
+                "meeting-1728-10-11-session-1-column-0"
+              ],
+              "text": "N01 een Mise van den ComeVI 8 on Rp ley uych geschreven 1e N40 den negen en twintighsten der voorlede maandt , houdende advertentie. WAAR op geen resolutie is gevallen.",
+              "line_ranges": [
+                {
+                  "start": 0,
+                  "end": 25,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-7-line-0"
+                },
+                {
+                  "start": 25,
+                  "end": 59,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-7-line-1"
+                },
+                {
+                  "start": 59,
+                  "end": 93,
+                  "line_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-7-line-2"
+                },
+                {
+                  "start": 93,
+                  "end": 133,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-0-line-0"
+                },
+                {
+                  "start": 133,
+                  "end": 168,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-0-line-1"
+                }
+              ],
+              "scan_versions": null
+            }
+          ],
+          "evidence": [
+            {
+              "type": "PhraseMatch",
+              "phrase": "ONtfangen een Missive van",
+              "variant": "ONtfangen een Missive van",
+              "string": "Nt anoen een Missive van",
+              "offset": 0,
+              "label": [
+                "proposition_opening",
+                "proposition_from_correspondence",
+                "proposition_type:missive"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-6",
+              "match_scores": {
+                "char_match": 0.88,
+                "ngram_match": 0.7692307692307693,
+                "levenshtein_similarity": 0.88
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "houdende",
+              "variant": "houdende",
+              "string": "Houdende",
+              "offset": 113,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-6",
+              "match_scores": {
+                "char_match": 0.875,
+                "ngram_match": 0.7777777777777778,
+                "levenshtein_similarity": 0.875
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "houdende advertentie.",
+              "variant": "houdende advertentie.",
+              "string": "Houdende advertentie. ",
+              "offset": 113,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-6",
+              "match_scores": {
+                "char_match": 0.9523809523809523,
+                "ngram_match": 0.8636363636363636,
+                "levenshtein_similarity": 0.9090909090909091
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "sendende",
+              "variant": "sendende",
+              "string": "sevende",
+              "offset": 72,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-7",
+              "match_scores": {
+                "char_match": 0.75,
+                "ngram_match": 0.6666666666666666,
+                "levenshtein_similarity": 0.75
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "houdende",
+              "variant": "houdende",
+              "string": "houdende",
+              "offset": 104,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-7",
+              "match_scores": {
+                "char_match": 1.0,
+                "ngram_match": 1.0,
+                "levenshtein_similarity": 1.0
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "houdende advertentie.",
+              "variant": "houdende advertentie.",
+              "string": "houdende advertentie.",
+              "offset": 104,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-7",
+              "match_scores": {
+                "char_match": 1.0,
+                "ngram_match": 1.0,
+                "levenshtein_similarity": 1.0
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "houdende",
+              "variant": "houdende",
+              "string": "houdende",
+              "offset": 111,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-8",
+              "match_scores": {
+                "char_match": 1.0,
+                "ngram_match": 1.0,
+                "levenshtein_similarity": 1.0
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "houdende advertentie.",
+              "variant": "houdende advertentie.",
+              "string": "houdende advertentie.",
+              "offset": 111,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-8",
+              "match_scores": {
+                "char_match": 1.0,
+                "ngram_match": 1.0,
+                "levenshtein_similarity": 1.0
+              }
+            }
+          ],
+          "columns": [
+            {
+              "metadata": {
+                "id": "meeting-1728-10-11-session-1-column-0",
+                "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                "doc_id": "meeting-1728-10-11-session-1",
+                "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+              },
+              "coords": {
+                "left": 3379,
+                "right": 4267,
+                "top": 2574,
+                "bottom": 2836,
+                "height": 262,
+                "width": 888
+              },
+              "textregions": [
+                {
+                  "metadata": {
+                    "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5"
+                  },
+                  "coords": {
+                    "left": 3379,
+                    "right": 4267,
+                    "top": 2574,
+                    "bottom": 2836,
+                    "height": 262,
+                    "width": 888
+                  },
+                  "lines": [
+                    {
+                      "coords": {
+                        "left": 3442,
+                        "right": 4250,
+                        "top": 2574,
+                        "bottom": 2634,
+                        "height": 60,
+                        "width": 808
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3442,
+                        "start_y": 2632,
+                        "end_x": 4250,
+                        "end_y": 2615,
+                        "min": 2615,
+                        "max": 2634,
+                        "mean": 2628,
+                        "median": 2631
+                      },
+                      "text": "Nt anoen een Missive van den Resi-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5-line-0",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 4,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 3391,
+                        "right": 4255,
+                        "top": 2624,
+                        "bottom": 2687,
+                        "height": 63,
+                        "width": 864
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3391,
+                        "start_y": 2680,
+                        "end_x": 4255,
+                        "end_y": 2665,
+                        "min": 2665,
+                        "max": 2682,
+                        "mean": 2675,
+                        "median": 2678
+                      },
+                      "text": ") j den  Callterss vi ges chreven te Regens-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5-line-1",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 4,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 3490,
+                        "right": 4267,
+                        "top": 2673,
+                        "bottom": 2732,
+                        "height": 59,
+                        "width": 777
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3490,
+                        "start_y": 2729,
+                        "end_x": 4267,
+                        "end_y": 2714,
+                        "min": 2714,
+                        "max": 2730,
+                        "mean": 2723,
+                        "median": 2723
+                      },
+                      "text": "ov den Vierden deeser loopende",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5-line-2",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 4,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 3379,
+                        "right": 4267,
+                        "top": 2722,
+                        "bottom": 2781,
+                        "height": 59,
+                        "width": 888
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3379,
+                        "start_y": 2782,
+                        "end_x": 4267,
+                        "end_y": 2762,
+                        "min": 2762,
+                        "max": 2783,
+                        "mean": 2773,
+                        "median": 2774
+                      },
+                      "text": "aandr Houdende advertentie. W AAR",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5-line-3",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 4,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 3380,
+                        "right": 3967,
+                        "top": 2778,
+                        "bottom": 2836,
+                        "height": 58,
+                        "width": 587
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3380,
+                        "start_y": 2832,
+                        "end_x": 3967,
+                        "end_y": 2819,
+                        "min": 2819,
+                        "max": 2833,
+                        "mean": 2826,
+                        "median": 2827
+                      },
+                      "text": "on veen resolutie is gevallen.",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5-line-4",
+                        "left_alignment": "column",
+                        "right_alignment": "indent",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 4,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-5",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "metadata": {
+                "id": "meeting-1728-10-11-session-1-column-0",
+                "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                "doc_id": "meeting-1728-10-11-session-1",
+                "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+              },
+              "coords": {
+                "left": 3385,
+                "right": 4265,
+                "top": 2863,
+                "bottom": 3130,
+                "height": 267,
+                "width": 880
+              },
+              "textregions": [
+                {
+                  "metadata": {
+                    "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6"
+                  },
+                  "coords": {
+                    "left": 3385,
+                    "right": 4265,
+                    "top": 2863,
+                    "bottom": 3130,
+                    "height": 267,
+                    "width": 880
+                  },
+                  "lines": [
+                    {
+                      "coords": {
+                        "left": 3455,
+                        "right": 4265,
+                        "top": 2863,
+                        "bottom": 2921,
+                        "height": 58,
+                        "width": 810
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3455,
+                        "start_y": 2927,
+                        "end_x": 4265,
+                        "end_y": 2903,
+                        "min": 2903,
+                        "max": 2927,
+                        "mean": 2918,
+                        "median": 2920
+                      },
+                      "text": "Ne sin0en een Missive van den R esi-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-0",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 5,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 3403,
+                        "right": 4255,
+                        "top": 2914,
+                        "bottom": 2973,
+                        "height": 59,
+                        "width": 852
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3403,
+                        "start_y": 2979,
+                        "end_x": 4255,
+                        "end_y": 2955,
+                        "min": 2955,
+                        "max": 2979,
+                        "mean": 2966,
+                        "median": 2969
+                      },
+                      "text": "Va 7 in veschreven - te Franck-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-1",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 5,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 3496,
+                        "right": 4265,
+                        "top": 2964,
+                        "bottom": 3022,
+                        "height": 58,
+                        "width": 769
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3496,
+                        "start_y": 3022,
+                        "end_x": 4265,
+                        "end_y": 3005,
+                        "min": 3005,
+                        "max": 3022,
+                        "mean": 3014,
+                        "median": 3014
+                      },
+                      "text": "or det sevende, deser loopende maandt,",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-2",
+                        "left_alignment": "indent",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 5,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 3385,
+                        "right": 3822,
+                        "top": 3025,
+                        "bottom": 3083,
+                        "height": 58,
+                        "width": 437
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3385,
+                        "start_y": 3072,
+                        "end_x": 3822,
+                        "end_y": 3066,
+                        "min": 3066,
+                        "max": 3072,
+                        "mean": 3069,
+                        "median": 3070
+                      },
+                      "text": "houdende advertentie.",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-4",
+                        "left_alignment": "column",
+                        "right_alignment": "indent",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 5,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 4007,
+                        "right": 4262,
+                        "top": 3013,
+                        "bottom": 3075,
+                        "height": 62,
+                        "width": 255
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 4007,
+                        "start_y": 3054,
+                        "end_x": 4262,
+                        "end_y": 3053,
+                        "min": 3053,
+                        "max": 3058,
+                        "mean": 3056,
+                        "median": 3057
+                      },
+                      "text": "WAAR op",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-3",
+                        "left_alignment": "indent",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 5,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 3389,
+                        "right": 3898,
+                        "top": 3071,
+                        "bottom": 3130,
+                        "height": 59,
+                        "width": 509
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3389,
+                        "start_y": 3122,
+                        "end_x": 3898,
+                        "end_y": 3112,
+                        "min": 3112,
+                        "max": 3123,
+                        "mean": 3118,
+                        "median": 3119
+                      },
+                      "text": "veen resolutie is gevallen.",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6-line-5",
+                        "left_alignment": "column",
+                        "right_alignment": "indent",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 5,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-6",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "metadata": {
+                "id": "meeting-1728-10-11-session-1-column-0",
+                "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                "doc_id": "meeting-1728-10-11-session-1",
+                "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+              },
+              "coords": {
+                "left": 3446,
+                "right": 4274,
+                "top": 3152,
+                "bottom": 3310,
+                "height": 158,
+                "width": 828
+              },
+              "textregions": [
+                {
+                  "metadata": {
+                    "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-7"
+                  },
+                  "coords": {
+                    "left": 3446,
+                    "right": 4274,
+                    "top": 3152,
+                    "bottom": 3310,
+                    "height": 158,
+                    "width": 828
+                  },
+                  "lines": [
+                    {
+                      "coords": {
+                        "left": 3460,
+                        "right": 4266,
+                        "top": 3152,
+                        "bottom": 3210,
+                        "height": 58,
+                        "width": 806
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3460,
+                        "start_y": 3217,
+                        "end_x": 4266,
+                        "end_y": 3193,
+                        "min": 3193,
+                        "max": 3217,
+                        "mean": 3208,
+                        "median": 3209
+                      },
+                      "text": "N01 een Mise van den Come-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-7-line-0",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 6,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-7",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 3446,
+                        "right": 4274,
+                        "top": 3204,
+                        "bottom": 3263,
+                        "height": 59,
+                        "width": 828
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3446,
+                        "start_y": 3269,
+                        "end_x": 4274,
+                        "end_y": 3245,
+                        "min": 3245,
+                        "max": 3269,
+                        "mean": 3257,
+                        "median": 3257
+                      },
+                      "text": "VI 8 on Rp ley uych geschreven 1e",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-7-line-1",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 6,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-7",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 3491,
+                        "right": 4274,
+                        "top": 3252,
+                        "bottom": 3310,
+                        "height": 58,
+                        "width": 783
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 3491,
+                        "start_y": 3317,
+                        "end_x": 4274,
+                        "end_y": 3293,
+                        "min": 3293,
+                        "max": 3317,
+                        "mean": 3305,
+                        "median": 3305
+                      },
+                      "text": "N40 den negen en twintighsten der",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-7-line-2",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0440",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 0,
+                        "column_id": "meeting-1728-10-11-session-1-column-0",
+                        "textregion_index": 6,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1-tr-7",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0440-page-879-column-1"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "metadata": {
+                "id": "meeting-1728-10-11-session-1-column-1",
+                "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                "doc_id": "meeting-1728-10-11-session-1",
+                "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+              },
+              "coords": {
+                "left": 503,
+                "right": 1392,
+                "top": 442,
+                "bottom": 558,
+                "height": 116,
+                "width": 889
+              },
+              "textregions": [
+                {
+                  "metadata": {
+                    "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-0"
+                  },
+                  "coords": {
+                    "left": 503,
+                    "right": 1392,
+                    "top": 442,
+                    "bottom": 558,
+                    "height": 116,
+                    "width": 889
+                  },
+                  "lines": [
+                    {
+                      "coords": {
+                        "left": 503,
+                        "right": 1392,
+                        "top": 442,
+                        "bottom": 508,
+                        "height": 66,
+                        "width": 889
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 503,
+                        "start_y": 483,
+                        "end_x": 1392,
+                        "end_y": 491,
+                        "min": 483,
+                        "max": 491,
+                        "mean": 486,
+                        "median": 486
+                      },
+                      "text": "voorlede maandt , houdende advertentie.",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-0-line-0",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 0,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-0",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 504,
+                        "right": 1319,
+                        "top": 492,
+                        "bottom": 558,
+                        "height": 66,
+                        "width": 815
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 504,
+                        "start_y": 533,
+                        "end_x": 1319,
+                        "end_y": 541,
+                        "min": 533,
+                        "max": 541,
+                        "mean": 536,
+                        "median": 536
+                      },
+                      "text": "WAAR op geen resolutie is gevallen.",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-0-line-1",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 0,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-0",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "_index": "pagexml_resolutions",
+        "_type": "_doc",
+        "_id": "meeting-1728-10-11-session-1-resolution-2",
+        "_score": 1.0,
+        "_source": {
+          "metadata": {
+            "inventory_num": 3783,
+            "doc_id": "meeting-1728-10-11-session-1",
+            "doc_type": "resolution",
+            "id": "meeting-1728-10-11-session-1-resolution-2",
+            "proposition_type": "missive",
+            "proposer": null,
+            "decision": null,
+            "meeting_date": "1728-10-11",
+            "session_id": "meeting-1728-10-11-session-1",
+            "session": 1,
+            "president": "",
+            "num_paragraphs": 1,
+            "num_columns": 1,
+            "num_lines": 7,
+            "num_words": 29,
+            "index_timestamp": "2021-01-14T17:27:26.121345"
+          },
+          "paragraphs": [
+            {
+              "metadata": {
+                "inventory_num": 3783,
+                "doc_id": "meeting-1728-10-11-session-1",
+                "doc_type": "resolution_paragraph",
+                "id": "meeting-1728-10-11-session-1-para-9",
+                "num_columns": 0,
+                "num_lines": 0,
+                "type": "resolution_paragraph",
+                "num_words": 29,
+                "paragraph_index": 0
+              },
+              "column_ids": [
+                "meeting-1728-10-11-session-1-column-1"
+              ],
+              "text": "Ntfangen een Missive van den ResiLJ dent Bitderbeeck , geschreven te Keulen den aghtsten deser loopende maandt, geaddresseert aan den Griffier Fagel, houdende advertentie. WAAR op geen resolutie is gevallen.",
+              "line_ranges": [
+                {
+                  "start": 0,
+                  "end": 33,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-0"
+                },
+                {
+                  "start": 33,
+                  "end": 76,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-1"
+                },
+                {
+                  "start": 76,
+                  "end": 114,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-2"
+                },
+                {
+                  "start": 114,
+                  "end": 156,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-3"
+                },
+                {
+                  "start": 156,
+                  "end": 172,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-4"
+                },
+                {
+                  "start": 172,
+                  "end": 185,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-5"
+                },
+                {
+                  "start": 185,
+                  "end": 207,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-6"
+                }
+              ],
+              "scan_versions": null
+            }
+          ],
+          "evidence": [
+            {
+              "type": "PhraseMatch",
+              "phrase": "ONtfangen een Missive van",
+              "variant": "ONtfangen een Missive van",
+              "string": "Ntfangen een Missive van",
+              "offset": 0,
+              "label": [
+                "proposition_opening",
+                "proposition_from_correspondence",
+                "proposition_type:missive"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-9",
+              "match_scores": {
+                "char_match": 0.96,
+                "ngram_match": 0.9230769230769231,
+                "levenshtein_similarity": 0.96
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "houdende",
+              "variant": "houdende",
+              "string": "houdende",
+              "offset": 150,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-9",
+              "match_scores": {
+                "char_match": 1.0,
+                "ngram_match": 1.0,
+                "levenshtein_similarity": 1.0
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "houdende advertentie.",
+              "variant": "houdende advertentie.",
+              "string": "houdende advertentie.",
+              "offset": 150,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-9",
+              "match_scores": {
+                "char_match": 1.0,
+                "ngram_match": 1.0,
+                "levenshtein_similarity": 1.0
+              }
+            }
+          ],
+          "columns": [
+            {
+              "metadata": {
+                "id": "meeting-1728-10-11-session-1-column-1",
+                "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                "doc_id": "meeting-1728-10-11-session-1",
+                "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+              },
+              "coords": {
+                "left": 497,
+                "right": 1387,
+                "top": 587,
+                "bottom": 888,
+                "height": 301,
+                "width": 890
+              },
+              "textregions": [
+                {
+                  "metadata": {
+                    "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1"
+                  },
+                  "coords": {
+                    "left": 497,
+                    "right": 1387,
+                    "top": 587,
+                    "bottom": 888,
+                    "height": 301,
+                    "width": 890
+                  },
+                  "lines": [
+                    {
+                      "coords": {
+                        "left": 575,
+                        "right": 1383,
+                        "top": 587,
+                        "bottom": 653,
+                        "height": 66,
+                        "width": 808
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 575,
+                        "start_y": 628,
+                        "end_x": 1383,
+                        "end_y": 636,
+                        "min": 628,
+                        "max": 636,
+                        "mean": 630,
+                        "median": 630
+                      },
+                      "text": "Ntfangen een Missive van den Resi-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-0",
+                        "left_alignment": "indent",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 1,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 528,
+                        "right": 1387,
+                        "top": 628,
+                        "bottom": 702,
+                        "height": 74,
+                        "width": 859
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 528,
+                        "start_y": 669,
+                        "end_x": 1387,
+                        "end_y": 686,
+                        "min": 669,
+                        "max": 686,
+                        "mean": 679,
+                        "median": 679
+                      },
+                      "text": "LJ dent Bitderbeeck , geschreven te Keulen",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-1",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 1,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 613,
+                        "right": 1381,
+                        "top": 683,
+                        "bottom": 753,
+                        "height": 70,
+                        "width": 768
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 613,
+                        "start_y": 724,
+                        "end_x": 1381,
+                        "end_y": 734,
+                        "min": 724,
+                        "max": 737,
+                        "mean": 728,
+                        "median": 727
+                      },
+                      "text": "den aghtsten deser loopende maandt, ge-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-2",
+                        "left_alignment": "indent",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 1,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 500,
+                        "right": 1376,
+                        "top": 731,
+                        "bottom": 800,
+                        "height": 69,
+                        "width": 876
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 500,
+                        "start_y": 773,
+                        "end_x": 1376,
+                        "end_y": 783,
+                        "min": 772,
+                        "max": 783,
+                        "mean": 776,
+                        "median": 775
+                      },
+                      "text": "addresseert aan den Griffier Fagel, houden-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-3",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 1,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 497,
+                        "right": 796,
+                        "top": 779,
+                        "bottom": 839,
+                        "height": 60,
+                        "width": 299
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 497,
+                        "start_y": 820,
+                        "end_x": 796,
+                        "end_y": 822,
+                        "min": 820,
+                        "max": 822,
+                        "mean": 820,
+                        "median": 820
+                      },
+                      "text": "de advertentie.",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-4",
+                        "left_alignment": "column",
+                        "right_alignment": "indent",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 1,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 1022,
+                        "right": 1382,
+                        "top": 781,
+                        "bottom": 849,
+                        "height": 68,
+                        "width": 360
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 1022,
+                        "start_y": 822,
+                        "end_x": 1382,
+                        "end_y": 830,
+                        "min": 822,
+                        "max": 832,
+                        "mean": 828,
+                        "median": 830
+                      },
+                      "text": "WAAR op geen",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-5",
+                        "left_alignment": "indent",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 1,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 497,
+                        "right": 915,
+                        "top": 829,
+                        "bottom": 888,
+                        "height": 59,
+                        "width": 418
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 497,
+                        "start_y": 871,
+                        "end_x": 915,
+                        "end_y": 870,
+                        "min": 870,
+                        "max": 871,
+                        "mean": 870,
+                        "median": 871
+                      },
+                      "text": "resolutie is gevallen.",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1-line-6",
+                        "left_alignment": "column",
+                        "right_alignment": "indent",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 1,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-1",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "_index": "pagexml_resolutions",
+        "_type": "_doc",
+        "_id": "meeting-1728-10-11-session-1-resolution-3",
+        "_score": 1.0,
+        "_source": {
+          "metadata": {
+            "inventory_num": 3783,
+            "doc_id": "meeting-1728-10-11-session-1",
+            "doc_type": "resolution",
+            "id": "meeting-1728-10-11-session-1-resolution-3",
+            "proposition_type": "missive",
+            "proposer": null,
+            "decision": null,
+            "meeting_date": "1728-10-11",
+            "session_id": "meeting-1728-10-11-session-1",
+            "session": 1,
+            "president": "",
+            "num_paragraphs": 1,
+            "num_columns": 1,
+            "num_lines": 10,
+            "num_words": 54,
+            "index_timestamp": "2021-01-14T17:27:26.134227"
+          },
+          "paragraphs": [
+            {
+              "metadata": {
+                "inventory_num": 3783,
+                "doc_id": "meeting-1728-10-11-session-1",
+                "doc_type": "resolution_paragraph",
+                "id": "meeting-1728-10-11-session-1-para-10",
+                "num_columns": 0,
+                "num_lines": 0,
+                "type": "resolution_paragraph",
+                "num_words": 54,
+                "paragraph_index": 0
+              },
+              "column_ids": [
+                "meeting-1728-10-11-session-1-column-1"
+              ],
+              "text": "Ntfangen twee Missiven van den Heere LJ Calkoen , haar Hoogh Mog. Ambassadeur aan het Hof van den Turckschen Keyler , geschreven te Bujukdure aan het Canaal van de swarte Zee by Constantinopolen den drie en twintigh sten A ugusti laarstleden, de eene geaddresseert aan den Griffier Fagel, houdende advertentie. WAAR op geen resolutie is gevallen.",
+              "line_ranges": [
+                {
+                  "start": 0,
+                  "end": 37,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-0"
+                },
+                {
+                  "start": 37,
+                  "end": 73,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-1"
+                },
+                {
+                  "start": 73,
+                  "end": 109,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-2"
+                },
+                {
+                  "start": 109,
+                  "end": 150,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-3"
+                },
+                {
+                  "start": 150,
+                  "end": 189,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-4"
+                },
+                {
+                  "start": 189,
+                  "end": 236,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-5"
+                },
+                {
+                  "start": 236,
+                  "end": 282,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-6"
+                },
+                {
+                  "start": 282,
+                  "end": 311,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-7"
+                },
+                {
+                  "start": 311,
+                  "end": 316,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-8"
+                },
+                {
+                  "start": 316,
+                  "end": 346,
+                  "line_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-9"
+                }
+              ],
+              "scan_versions": null
+            }
+          ],
+          "evidence": [
+            {
+              "type": "PhraseMatch",
+              "phrase": "ONtfangen een Missive van",
+              "variant": "ONtfangen een Missive van",
+              "string": "Ntfangen twee Missiven van",
+              "offset": 0,
+              "label": [
+                "proposition_opening",
+                "proposition_from_correspondence",
+                "proposition_type:missive"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-10",
+              "match_scores": {
+                "char_match": 0.96,
+                "ngram_match": 0.8846153846153846,
+                "levenshtein_similarity": 0.8076923076923077
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "houdende",
+              "variant": "houdende",
+              "string": "houdende",
+              "offset": 289,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-10",
+              "match_scores": {
+                "char_match": 1.0,
+                "ngram_match": 1.0,
+                "levenshtein_similarity": 1.0
+              }
+            },
+            {
+              "type": "PhraseMatch",
+              "phrase": "houdende advertentie.",
+              "variant": "houdende advertentie.",
+              "string": "houdende advertentie.",
+              "offset": 289,
+              "label": [
+                "proposition_verb",
+                "proposition_opening_end_verb",
+                "proposition_body"
+              ],
+              "text_id": "meeting-1728-10-11-session-1-para-10",
+              "match_scores": {
+                "char_match": 1.0,
+                "ngram_match": 1.0,
+                "levenshtein_similarity": 1.0
+              }
+            }
+          ],
+          "columns": [
+            {
+              "metadata": {
+                "id": "meeting-1728-10-11-session-1-column-1",
+                "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                "doc_id": "meeting-1728-10-11-session-1",
+                "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+              },
+              "coords": {
+                "left": 497,
+                "right": 1386,
+                "top": 925,
+                "bottom": 1371,
+                "height": 446,
+                "width": 889
+              },
+              "textregions": [
+                {
+                  "metadata": {
+                    "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2"
+                  },
+                  "coords": {
+                    "left": 497,
+                    "right": 1386,
+                    "top": 925,
+                    "bottom": 1371,
+                    "height": 446,
+                    "width": 889
+                  },
+                  "lines": [
+                    {
+                      "coords": {
+                        "left": 573,
+                        "right": 1386,
+                        "top": 925,
+                        "bottom": 990,
+                        "height": 65,
+                        "width": 813
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 573,
+                        "start_y": 967,
+                        "end_x": 1386,
+                        "end_y": 973,
+                        "min": 965,
+                        "max": 973,
+                        "mean": 968,
+                        "median": 968
+                      },
+                      "text": "Ntfangen twee Missiven van den Heere",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-0",
+                        "left_alignment": "indent",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 2,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 526,
+                        "right": 1377,
+                        "top": 968,
+                        "bottom": 1039,
+                        "height": 71,
+                        "width": 851
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 526,
+                        "start_y": 1009,
+                        "end_x": 1377,
+                        "end_y": 1022,
+                        "min": 1009,
+                        "max": 1022,
+                        "mean": 1016,
+                        "median": 1016
+                      },
+                      "text": "LJ Calkoen , haar Hoogh Mog. Ambassa-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-1",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 2,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 617,
+                        "right": 1382,
+                        "top": 1019,
+                        "bottom": 1087,
+                        "height": 68,
+                        "width": 765
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 617,
+                        "start_y": 1060,
+                        "end_x": 1382,
+                        "end_y": 1070,
+                        "min": 1060,
+                        "max": 1070,
+                        "mean": 1063,
+                        "median": 1062
+                      },
+                      "text": "deur aan het Hof van den Turckschen",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-2",
+                        "left_alignment": "indent",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 2,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 498,
+                        "right": 1380,
+                        "top": 1067,
+                        "bottom": 1135,
+                        "height": 68,
+                        "width": 882
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 498,
+                        "start_y": 1108,
+                        "end_x": 1380,
+                        "end_y": 1118,
+                        "min": 1108,
+                        "max": 1118,
+                        "mean": 1112,
+                        "median": 1110
+                      },
+                      "text": "Keyler , geschreven te Bujukdure aan het",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-3",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 2,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 499,
+                        "right": 1371,
+                        "top": 1116,
+                        "bottom": 1182,
+                        "height": 66,
+                        "width": 872
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 499,
+                        "start_y": 1158,
+                        "end_x": 1371,
+                        "end_y": 1165,
+                        "min": 1157,
+                        "max": 1165,
+                        "mean": 1160,
+                        "median": 1160
+                      },
+                      "text": "Canaal van de swarte Zee by Constantino-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-4",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 2,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 498,
+                        "right": 1370,
+                        "top": 1163,
+                        "bottom": 1231,
+                        "height": 68,
+                        "width": 872
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 498,
+                        "start_y": 1205,
+                        "end_x": 1370,
+                        "end_y": 1214,
+                        "min": 1204,
+                        "max": 1214,
+                        "mean": 1209,
+                        "median": 1209
+                      },
+                      "text": "polen den drie en twintigh sten A ugusti laarst-",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-5",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 2,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 499,
+                        "right": 1372,
+                        "top": 1212,
+                        "bottom": 1278,
+                        "height": 66,
+                        "width": 873
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 499,
+                        "start_y": 1254,
+                        "end_x": 1372,
+                        "end_y": 1261,
+                        "min": 1253,
+                        "max": 1261,
+                        "mean": 1257,
+                        "median": 1257
+                      },
+                      "text": "leden, de eene geaddresseert aan den Griffier",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-6",
+                        "left_alignment": "column",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 2,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 497,
+                        "right": 1089,
+                        "top": 1262,
+                        "bottom": 1324,
+                        "height": 62,
+                        "width": 592
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 497,
+                        "start_y": 1303,
+                        "end_x": 1089,
+                        "end_y": 1307,
+                        "min": 1303,
+                        "max": 1307,
+                        "mean": 1304,
+                        "median": 1304
+                      },
+                      "text": "Fagel, houdende advertentie.",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-7",
+                        "left_alignment": "column",
+                        "right_alignment": "indent",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 2,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 1182,
+                        "right": 1374,
+                        "top": 1265,
+                        "bottom": 1329,
+                        "height": 64,
+                        "width": 192
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 1182,
+                        "start_y": 1306,
+                        "end_x": 1374,
+                        "end_y": 1313,
+                        "min": 1306,
+                        "max": 1313,
+                        "mean": 1309,
+                        "median": 1309
+                      },
+                      "text": "WAAR",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-8",
+                        "left_alignment": "indent",
+                        "right_alignment": "column",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 2,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    },
+                    {
+                      "coords": {
+                        "left": 503,
+                        "right": 1066,
+                        "top": 1310,
+                        "bottom": 1371,
+                        "height": 61,
+                        "width": 563
+                      },
+                      "xheight": 23,
+                      "baseline": {
+                        "start_x": 503,
+                        "start_y": 1355,
+                        "end_x": 1066,
+                        "end_y": 1354,
+                        "min": 1351,
+                        "max": 1355,
+                        "mean": 1352,
+                        "median": 1352
+                      },
+                      "text": "op geen resolutie is gevallen.",
+                      "metadata": {
+                        "id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2-line-9",
+                        "left_alignment": "column",
+                        "right_alignment": "indent",
+                        "scan_id": "NL-HaNA_1.01.02_3783_0441",
+                        "inventory_num": 3783,
+                        "doc_id": "meeting-1728-10-11-session-1",
+                        "column_index": 1,
+                        "column_id": "meeting-1728-10-11-session-1-column-1",
+                        "textregion_index": 2,
+                        "textregion_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0-tr-2",
+                        "is_bleed_through": false,
+                        "page_column_id": "NL-HaNA_1.01.02_3783_0441-page-880-column-0"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

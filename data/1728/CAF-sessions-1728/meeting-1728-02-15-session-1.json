@@ -1,0 +1,1380 @@
+{
+  "_index": "pagexml_meeting",
+  "_type": "meeting",
+  "_id": "meeting-1728-02-15-session-1",
+  "_score": 1.0,
+  "_source": {
+    "metadata": {
+      "id": "meeting-1728-02-15-session-1",
+      "doc_type": "meeting",
+      "inventory_num": 3783,
+      "meeting_date": "1728-02-15",
+      "meeting_year": 1728,
+      "meeting_month": 2,
+      "meeting_day": 15,
+      "meeting_weekday": "Dominica",
+      "date_shift_status": "normal",
+      "session": null,
+      "president": null,
+      "attendants_list_id": null,
+      "resolution_ids": [],
+      "is_workday": false,
+      "has_meeting_date_element": true,
+      "lines_include_rest_day": false,
+      "evidence": [
+        {
+          "metadata_field": "meeting_date",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-0",
+          "matches": [
+            {
+              "match_keyword": "Dominica den 15 Februarii",
+              "match_term": "Dominica den 15 Februarii",
+              "match_string": "Dominica den 15. Februari",
+              "match_offset": 0,
+              "levenshtein_distance": 0.92,
+              "char_match": 0.96,
+              "ngram_match": 0.9230769230769231,
+              "searcher": "date_searcher",
+              "match_label": "meeting_date"
+            }
+          ]
+        },
+        {
+          "metadata_field": "meeting_date",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-3",
+          "matches": [
+            {
+              "match_keyword": "Lunae den 16 Februarii",
+              "match_term": "Lunae den 16 Februarii",
+              "match_string": "Lune den 16. Februarij",
+              "match_offset": 0,
+              "levenshtein_distance": 0.8636363636363636,
+              "char_match": 0.9090909090909091,
+              "ngram_match": 0.782608695652174,
+              "searcher": "date_searcher",
+              "match_label": "meeting_date"
+            }
+          ]
+        },
+        {
+          "metadata_field": "meeting_year",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-1",
+          "matches": [
+            {
+              "match_keyword": "1728",
+              "match_term": "1728",
+              "match_string": "1728",
+              "match_offset": 0,
+              "levenshtein_distance": 1.0,
+              "char_match": 1.0,
+              "ngram_match": 1.0,
+              "searcher": "date_searcher",
+              "match_label": "meeting_year"
+            }
+          ]
+        },
+        {
+          "metadata_field": "meeting_year",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-4",
+          "matches": [
+            {
+              "match_keyword": "1728",
+              "match_term": "1728",
+              "match_string": "1728",
+              "match_offset": 0,
+              "levenshtein_distance": 1.0,
+              "char_match": 1.0,
+              "ngram_match": 1.0,
+              "searcher": "date_searcher",
+              "match_label": "meeting_year"
+            }
+          ]
+        },
+        {
+          "metadata_field": "rest_day",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-2",
+          "matches": [
+            {
+              "match_keyword": "Nihil actum est",
+              "match_term": "Nihil actum est",
+              "match_string": "Nihil aftum eft",
+              "match_offset": 0,
+              "levenshtein_distance": 0.8666666666666667,
+              "char_match": 0.8666666666666667,
+              "ngram_match": 0.75,
+              "searcher": "attendance_searcher",
+              "match_label": "rest_day"
+            }
+          ]
+        },
+        {
+          "metadata_field": "president",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-6",
+          "matches": [
+            {
+              "match_keyword": "Den Heere",
+              "match_term": "Den Heere",
+              "match_string": "Den Heere",
+              "match_offset": 0,
+              "levenshtein_distance": 1.0,
+              "char_match": 1.0,
+              "ngram_match": 1.0,
+              "searcher": "attendance_searcher",
+              "match_label": "president"
+            },
+            {
+              "match_keyword": "Den Heere",
+              "match_term": "De Heer",
+              "match_string": "en Heer",
+              "match_offset": 1,
+              "levenshtein_distance": 0.7142857142857143,
+              "char_match": 0.8571428571428571,
+              "ngram_match": 0.625,
+              "searcher": "attendance_searcher",
+              "match_label": "president"
+            }
+          ]
+        },
+        {
+          "metadata_field": "president",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-8",
+          "matches": [
+            {
+              "match_keyword": "Den Heere",
+              "match_term": "De Heer",
+              "match_string": "De Heer",
+              "match_offset": 0,
+              "levenshtein_distance": 1.0,
+              "char_match": 1.0,
+              "ngram_match": 1.0,
+              "searcher": "attendance_searcher",
+              "match_label": "president"
+            }
+          ]
+        },
+        {
+          "metadata_field": "attending",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-7",
+          "matches": [
+            {
+              "match_keyword": "PRAESENTIBUS,",
+              "match_term": "PRAESENTIBUS,",
+              "match_string": "PRA&SENTIBUS,",
+              "match_offset": 0,
+              "levenshtein_distance": 0.9230769230769231,
+              "char_match": 0.9230769230769231,
+              "ngram_match": 0.8571428571428571,
+              "searcher": "attendance_searcher",
+              "match_label": "attending"
+            }
+          ]
+        },
+        {
+          "metadata_field": "attendants",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-6",
+          "matches": [
+            {
+              "match_keyword": "De Heeren",
+              "match_term": "De Heeren",
+              "match_string": "Den Heere",
+              "match_offset": 0,
+              "levenshtein_distance": 0.7777777777777778,
+              "char_match": 1.0,
+              "ngram_match": 0.8,
+              "searcher": "attendance_searcher",
+              "match_label": "attendants"
+            },
+            {
+              "match_keyword": "De Heeren",
+              "match_term": "De Heeren",
+              "match_string": "en Heere ",
+              "match_offset": 1,
+              "levenshtein_distance": 0.6666666666666667,
+              "char_match": 0.8888888888888888,
+              "ngram_match": 0.7,
+              "searcher": "attendance_searcher",
+              "match_label": "attendants"
+            }
+          ]
+        },
+        {
+          "metadata_field": "attendants",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-8",
+          "matches": [
+            {
+              "match_keyword": "De Heeren",
+              "match_term": "De Heeren",
+              "match_string": "De Heeren",
+              "match_offset": 0,
+              "levenshtein_distance": 1.0,
+              "char_match": 1.0,
+              "ngram_match": 1.0,
+              "searcher": "attendance_searcher",
+              "match_label": "attendants"
+            }
+          ]
+        },
+        {
+          "metadata_field": "reviewed",
+          "line_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-2-line-0",
+          "matches": [
+            {
+              "match_keyword": "DE Resolutien gisteren genomen",
+              "match_term": "DE Resolutien gisteren ge-",
+              "match_string": "E Refolutien eergilteren g",
+              "match_offset": 0,
+              "levenshtein_distance": 0.6923076923076923,
+              "char_match": 0.8461538461538461,
+              "ngram_match": 0.6296296296296297,
+              "searcher": "attendance_searcher",
+              "match_label": "reviewed"
+            }
+          ]
+        }
+      ],
+      "num_columns": 1,
+      "num_lines": 25,
+      "num_words": 92,
+      "year": 1728,
+      "index_timestamp": "2021-02-09T23:43:01.242361"
+    },
+    "columns": [
+      {
+        "metadata": {
+          "id": "meeting-1728-02-02-session-1-column-0",
+          "scan_id": "NL-HaNA_1.01.02_3783_0104",
+          "doc_id": "meeting-1728-02-02-session-1",
+          "page_column_id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0",
+          "page_id": "NL-HaNA_1.01.02_3783_0104-page-207",
+          "iiif_url": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0104.jpg/2567,1480,1095,1990/full/0/default.jpg",
+          "num_lines": 34,
+          "num_words": 134,
+          "type": "column",
+          "median_normal_left": 2719,
+          "median_normal_right": 3534,
+          "median_normal_width": 771,
+          "median_normal_length": 37
+        },
+        "coords": {
+          "left": 2716,
+          "right": 3549,
+          "top": 1580,
+          "bottom": 2918,
+          "height": 1338,
+          "width": 833
+        },
+        "textregions": [
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-0"
+            },
+            "coords": {
+              "left": 2782,
+              "right": 3425,
+              "top": 1580,
+              "bottom": 1638,
+              "height": 58,
+              "width": 643
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2782,
+                  "right": 3425,
+                  "top": 1580,
+                  "bottom": 1638,
+                  "height": 58,
+                  "width": 643
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2782,
+                  "start_y": 1628,
+                  "end_x": 3425,
+                  "end_y": 1621,
+                  "min": 1620,
+                  "max": 1628,
+                  "mean": 1623,
+                  "median": 1622
+                },
+                "text": "Dominica den 15. Februarit",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-0",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-1"
+            },
+            "coords": {
+              "left": 3036,
+              "right": 3168,
+              "top": 1636,
+              "bottom": 1695,
+              "height": 59,
+              "width": 132
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 3036,
+                  "right": 3168,
+                  "top": 1636,
+                  "bottom": 1695,
+                  "height": 59,
+                  "width": 132
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 3036,
+                  "start_y": 1678,
+                  "end_x": 3168,
+                  "end_y": 1679,
+                  "min": 1676,
+                  "max": 1679,
+                  "mean": 1677,
+                  "median": 1678
+                },
+                "text": "1728.",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-1",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-2"
+            },
+            "coords": {
+              "left": 2946,
+              "right": 3251,
+              "top": 1692,
+              "bottom": 1751,
+              "height": 59,
+              "width": 305
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2946,
+                  "right": 3251,
+                  "top": 1692,
+                  "bottom": 1751,
+                  "height": 59,
+                  "width": 305
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2946,
+                  "start_y": 1733,
+                  "end_x": 3251,
+                  "end_y": 1734,
+                  "min": 1733,
+                  "max": 1734,
+                  "mean": 1733,
+                  "median": 1734
+                },
+                "text": "Nihil aftum eft.",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-2",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-3"
+            },
+            "coords": {
+              "left": 2827,
+              "right": 3377,
+              "top": 1765,
+              "bottom": 1825,
+              "height": 60,
+              "width": 550
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2827,
+                  "right": 3377,
+                  "top": 1765,
+                  "bottom": 1825,
+                  "height": 60,
+                  "width": 550
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2827,
+                  "start_y": 1806,
+                  "end_x": 3377,
+                  "end_y": 1806,
+                  "min": 1806,
+                  "max": 1808,
+                  "mean": 1806,
+                  "median": 1806
+                },
+                "text": "Lune den 16. Februarij",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-3",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-4"
+            },
+            "coords": {
+              "left": 3033,
+              "right": 3164,
+              "top": 1822,
+              "bottom": 1880,
+              "height": 58,
+              "width": 131
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 3033,
+                  "right": 3164,
+                  "top": 1822,
+                  "bottom": 1880,
+                  "height": 58,
+                  "width": 131
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 3033,
+                  "start_y": 1863,
+                  "end_x": 3164,
+                  "end_y": 1863,
+                  "min": 1862,
+                  "max": 1863,
+                  "mean": 1862,
+                  "median": 1863
+                },
+                "text": "1728,",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-4",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-5"
+            },
+            "coords": {
+              "left": 2876,
+              "right": 3351,
+              "top": 1885,
+              "bottom": 1952,
+              "height": 67,
+              "width": 475
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2876,
+                  "right": 3351,
+                  "top": 1885,
+                  "bottom": 1952,
+                  "height": 67,
+                  "width": 475
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2876,
+                  "start_y": 1926,
+                  "end_x": 3351,
+                  "end_y": 1936,
+                  "min": 1926,
+                  "max": 1936,
+                  "mean": 1927,
+                  "median": 1927
+                },
+                "text": "PRE ST DE,",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-5",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-6"
+            },
+            "coords": {
+              "left": 2716,
+              "right": 3256,
+              "top": 1933,
+              "bottom": 1994,
+              "height": 61,
+              "width": 540
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2716,
+                  "right": 3256,
+                  "top": 1933,
+                  "bottom": 1994,
+                  "height": 61,
+                  "width": 540
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2716,
+                  "start_y": 1982,
+                  "end_x": 3256,
+                  "end_y": 1977,
+                  "min": 1974,
+                  "max": 1982,
+                  "mean": 1976,
+                  "median": 1976
+                },
+                "text": "Den Heere /an Walenaer.",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-6",
+                  "line_width": "short",
+                  "left_alignment": "column",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-7"
+            },
+            "coords": {
+              "left": 2818,
+              "right": 3391,
+              "top": 1981,
+              "bottom": 2044,
+              "height": 63,
+              "width": 573
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2818,
+                  "right": 3391,
+                  "top": 1981,
+                  "bottom": 2044,
+                  "height": 63,
+                  "width": 573
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2818,
+                  "start_y": 2025,
+                  "end_x": 3391,
+                  "end_y": 2027,
+                  "min": 2022,
+                  "max": 2027,
+                  "mean": 2024,
+                  "median": 2025
+                },
+                "text": "PRA&SENTIBUS,",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-7",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-8"
+            },
+            "coords": {
+              "left": 2720,
+              "right": 3540,
+              "top": 2029,
+              "bottom": 2089,
+              "height": 60,
+              "width": 820
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2720,
+                  "right": 3540,
+                  "top": 2029,
+                  "bottom": 2089,
+                  "height": 60,
+                  "width": 820
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2720,
+                  "start_y": 2076,
+                  "end_x": 3540,
+                  "end_y": 2072,
+                  "min": 2070,
+                  "max": 2076,
+                  "mean": 2072,
+                  "median": 2073
+                },
+                "text": "De Heeren Za Lyndcn \u201a van Singendoncks",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-8",
+                  "line_width": "full",
+                  "left_alignment": "column",
+                  "right_alignment": "column",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-9"
+            },
+            "coords": {
+              "left": 2768,
+              "right": 3542,
+              "top": 2074,
+              "bottom": 2133,
+              "height": 59,
+              "width": 774
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2768,
+                  "right": 3542,
+                  "top": 2074,
+                  "bottom": 2133,
+                  "height": 59,
+                  "width": 774
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2768,
+                  "start_y": 2124,
+                  "end_x": 3542,
+                  "end_y": 2115,
+                  "min": 2115,
+                  "max": 2124,
+                  "mean": 2120,
+                  "median": 2120
+                },
+                "text": "van Heuckelom , van Heeckeren tot den",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-9",
+                  "line_width": "full",
+                  "left_alignment": "indent",
+                  "right_alignment": "column",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-10"
+            },
+            "coords": {
+              "left": 2772,
+              "right": 3536,
+              "top": 2123,
+              "bottom": 2182,
+              "height": 59,
+              "width": 764
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2772,
+                  "right": 3536,
+                  "top": 2123,
+                  "bottom": 2182,
+                  "height": 59,
+                  "width": 764
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2772,
+                  "start_y": 2170,
+                  "end_x": 3536,
+                  "end_y": 2164,
+                  "min": 2164,
+                  "max": 2171,
+                  "mean": 2168,
+                  "median": 2168
+                },
+                "text": "Brandtzenboreh \u201e van Wynbersen , met",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-10",
+                  "line_width": "full",
+                  "left_alignment": "indent",
+                  "right_alignment": "column",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-11"
+            },
+            "coords": {
+              "left": 2770,
+              "right": 3538,
+              "top": 2170,
+              "bottom": 2229,
+              "height": 59,
+              "width": 768
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2770,
+                  "right": 3538,
+                  "top": 2170,
+                  "bottom": 2229,
+                  "height": 59,
+                  "width": 768
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2770,
+                  "start_y": 2217,
+                  "end_x": 3538,
+                  "end_y": 2211,
+                  "min": 2211,
+                  "max": 2218,
+                  "mean": 2215,
+                  "median": 2217
+                },
+                "text": "drie extraordinaris Gedeputeerden uyt de",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-11",
+                  "line_width": "full",
+                  "left_alignment": "indent",
+                  "right_alignment": "column",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-12"
+            },
+            "coords": {
+              "left": 2772,
+              "right": 3269,
+              "top": 2222,
+              "bottom": 2282,
+              "height": 60,
+              "width": 497
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2772,
+                  "right": 3269,
+                  "top": 2222,
+                  "bottom": 2282,
+                  "height": 60,
+                  "width": 497
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2772,
+                  "start_y": 2263,
+                  "end_x": 3269,
+                  "end_y": 2264,
+                  "min": 2263,
+                  "max": 2265,
+                  "mean": 2263,
+                  "median": 2264
+                },
+                "text": "Provincie van Gelderlandt.",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-12",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-13"
+            },
+            "coords": {
+              "left": 2721,
+              "right": 3539,
+              "top": 2268,
+              "bottom": 2328,
+              "height": 60,
+              "width": 818
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2721,
+                  "right": 3539,
+                  "top": 2268,
+                  "bottom": 2328,
+                  "height": 60,
+                  "width": 818
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2721,
+                  "start_y": 2314,
+                  "end_x": 3539,
+                  "end_y": 2311,
+                  "min": 2309,
+                  "max": 2314,
+                  "mean": 2311,
+                  "median": 2313
+                },
+                "text": "Panden Boetzelaar, Eelbo , vander Due ;",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-13",
+                  "line_width": "full",
+                  "left_alignment": "column",
+                  "right_alignment": "column",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-14"
+            },
+            "coords": {
+              "left": 2774,
+              "right": 3543,
+              "top": 2311,
+              "bottom": 2369,
+              "height": 58,
+              "width": 769
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2774,
+                  "right": 3543,
+                  "top": 2311,
+                  "bottom": 2369,
+                  "height": 58,
+                  "width": 769
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2774,
+                  "start_y": 2363,
+                  "end_x": 3543,
+                  "end_y": 2353,
+                  "min": 2352,
+                  "max": 2363,
+                  "mean": 2358,
+                  "median": 2360
+                },
+                "text": "Bors van Waveren. Raadiven{ionaris van",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-14",
+                  "line_width": "full",
+                  "left_alignment": "indent",
+                  "right_alignment": "column",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-15"
+            },
+            "coords": {
+              "left": 2776,
+              "right": 2987,
+              "top": 2368,
+              "bottom": 2428,
+              "height": 60,
+              "width": 211
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2776,
+                  "right": 2987,
+                  "top": 2368,
+                  "bottom": 2428,
+                  "height": 60,
+                  "width": 211
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2776,
+                  "start_y": 2411,
+                  "end_x": 2987,
+                  "end_y": 2412,
+                  "min": 2409,
+                  "max": 2412,
+                  "mean": 2410,
+                  "median": 2411
+                },
+                "text": "Slingelandt.",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-15",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-16"
+            },
+            "coords": {
+              "left": 2723,
+              "right": 3540,
+              "top": 2407,
+              "bottom": 2467,
+              "height": 60,
+              "width": 817
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2723,
+                  "right": 3540,
+                  "top": 2407,
+                  "bottom": 2467,
+                  "height": 60,
+                  "width": 817
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2723,
+                  "start_y": 2459,
+                  "end_x": 3540,
+                  "end_y": 2448,
+                  "min": 2448,
+                  "max": 2460,
+                  "mean": 2456,
+                  "median": 2457
+                },
+                "text": "Velters. Bout. van Hoorn, met een extra-",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-16",
+                  "line_width": "full",
+                  "left_alignment": "column",
+                  "right_alignment": "column",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-17"
+            },
+            "coords": {
+              "left": 2773,
+              "right": 3544,
+              "top": 2459,
+              "bottom": 2519,
+              "height": 60,
+              "width": 771
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2773,
+                  "right": 3544,
+                  "top": 2459,
+                  "bottom": 2519,
+                  "height": 60,
+                  "width": 771
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2773,
+                  "start_y": 2507,
+                  "end_x": 3544,
+                  "end_y": 2501,
+                  "min": 2500,
+                  "max": 2509,
+                  "mean": 2505,
+                  "median": 2506
+                },
+                "text": "ordinaris Gedeputeerde uyt de Provincie",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-17",
+                  "line_width": "full",
+                  "left_alignment": "indent",
+                  "right_alignment": "column",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-18"
+            },
+            "coords": {
+              "left": 2774,
+              "right": 3040,
+              "top": 2513,
+              "bottom": 2572,
+              "height": 59,
+              "width": 266
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2774,
+                  "right": 3040,
+                  "top": 2513,
+                  "bottom": 2572,
+                  "height": 59,
+                  "width": 266
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2774,
+                  "start_y": 2554,
+                  "end_x": 3040,
+                  "end_y": 2555,
+                  "min": 2554,
+                  "max": 2555,
+                  "mean": 2554,
+                  "median": 2555
+                },
+                "text": "van Zeelandt.",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-18",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-19"
+            },
+            "coords": {
+              "left": 2719,
+              "right": 3549,
+              "top": 2562,
+              "bottom": 2623,
+              "height": 61,
+              "width": 830
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2719,
+                  "right": 3549,
+                  "top": 2562,
+                  "bottom": 2623,
+                  "height": 61,
+                  "width": 830
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2719,
+                  "start_y": 2606,
+                  "end_x": 3549,
+                  "end_y": 2604,
+                  "min": 2603,
+                  "max": 2607,
+                  "mean": 2604,
+                  "median": 2604
+                },
+                "text": "Taats van Amerongen , van Renswoude",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-19",
+                  "line_width": "full",
+                  "left_alignment": "column",
+                  "right_alignment": "column",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-20"
+            },
+            "coords": {
+              "left": 2779,
+              "right": 2908,
+              "top": 2610,
+              "bottom": 2669,
+              "height": 59,
+              "width": 129
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2779,
+                  "right": 2908,
+                  "top": 2610,
+                  "bottom": 2669,
+                  "height": 59,
+                  "width": 129
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2779,
+                  "start_y": 2652,
+                  "end_x": 2908,
+                  "end_y": 2653,
+                  "min": 2651,
+                  "max": 2653,
+                  "mean": 2651,
+                  "median": 2652
+                },
+                "text": "Quint.",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-20",
+                  "line_width": "short",
+                  "left_alignment": "indent",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-21"
+            },
+            "coords": {
+              "left": 2720,
+              "right": 3317,
+              "top": 2658,
+              "bottom": 2717,
+              "height": 59,
+              "width": 597
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2720,
+                  "right": 3317,
+                  "top": 2658,
+                  "bottom": 2717,
+                  "height": 59,
+                  "width": 597
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2720,
+                  "start_y": 2702,
+                  "end_x": 3317,
+                  "end_y": 2699,
+                  "min": 2699,
+                  "max": 2703,
+                  "mean": 2701,
+                  "median": 2702
+                },
+                "text": "Pan Schwartzenbergh , Pegilin.",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-21",
+                  "line_width": "short",
+                  "left_alignment": "column",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-22"
+            },
+            "coords": {
+              "left": 2719,
+              "right": 3334,
+              "top": 2709,
+              "bottom": 2768,
+              "height": 59,
+              "width": 615
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2719,
+                  "right": 3334,
+                  "top": 2709,
+                  "bottom": 2768,
+                  "height": 59,
+                  "width": 615
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2719,
+                  "start_y": 2751,
+                  "end_x": 3334,
+                  "end_y": 2750,
+                  "min": 2749,
+                  "max": 2752,
+                  "mean": 2750,
+                  "median": 2751
+                },
+                "text": "Van Haar[\u00f2lte \u201a van IJelmaden.",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-22",
+                  "line_width": "short",
+                  "left_alignment": "column",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-23"
+            },
+            "coords": {
+              "left": 2723,
+              "right": 3025,
+              "top": 2758,
+              "bottom": 2816,
+              "height": 58,
+              "width": 302
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2723,
+                  "right": 3025,
+                  "top": 2758,
+                  "bottom": 2816,
+                  "height": 58,
+                  "width": 302
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2723,
+                  "start_y": 2801,
+                  "end_x": 3025,
+                  "end_y": 2799,
+                  "min": 2799,
+                  "max": 2801,
+                  "mean": 2799,
+                  "median": 2800
+                },
+                "text": "Ban Tamminga.",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-1-line-23",
+                  "line_width": "short",
+                  "left_alignment": "column",
+                  "right_alignment": "indent",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-2-line-0"
+            },
+            "coords": {
+              "left": 2817,
+              "right": 3548,
+              "top": 2859,
+              "bottom": 2918,
+              "height": 59,
+              "width": 731
+            },
+            "lines": [
+              {
+                "coords": {
+                  "left": 2817,
+                  "right": 3548,
+                  "top": 2859,
+                  "bottom": 2918,
+                  "height": 59,
+                  "width": 731
+                },
+                "xheight": 23,
+                "baseline": {
+                  "start_x": 2817,
+                  "start_y": 2908,
+                  "end_x": 3548,
+                  "end_y": 2900,
+                  "min": 2900,
+                  "max": 2908,
+                  "mean": 2904,
+                  "median": 2904
+                },
+                "text": "E Refolutien eergilteren ge-",
+                "metadata": {
+                  "id": "NL-HaNA_1.01.02_3783_0104-page-207-column-0-tr-2-line-0",
+                  "line_width": "full",
+                  "left_alignment": "indent",
+                  "right_alignment": "column",
+                  "scan_id": "NL-HaNA_1.01.02_3783_0104"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "scan_versions": [
+      {
+        "id": "79bf32b0-56ef-46d8-91b7-da9236209b86",
+        "fileId": "0bedaa95-5fc6-43b0-97c0-b338e84d595e",
+        "createdAt": "2020-11-24T06:20:41",
+        "contentsSha": "71816759b64c853d5722a2984bcd3ff720eb058375d5fe19aceee905",
+        "doc_id": "NL-HaNA_1.01.02_3783_0104-page-207"
+      }
+    ]
+  }
+}
