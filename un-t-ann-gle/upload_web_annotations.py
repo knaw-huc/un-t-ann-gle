@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
 
+from annotations import LinesAnnotation
+
 
 def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
     body = {
@@ -140,7 +142,8 @@ def columns_as_web_annotation(annotation: dict) -> dict:
 
 
 def lines_as_web_annotation(annotation: dict) -> dict:
-    return classifying_annotation_mapper(annotation, 'lines')
+    lines_annotation = LinesAnnotation.from_dict(annotation)
+    return lines_annotation.as_web_annotation()
 
 
 def resolutions_as_web_annotation(annotation: dict) -> dict:
