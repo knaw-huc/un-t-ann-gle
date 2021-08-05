@@ -1,7 +1,9 @@
 import json
 
+from icecream import ic
+
 from annotations import LinesAnnotation, AttendantsAnnotation, AttendantsListsAnnotation, ColumnsAnnotation, \
-    ResolutionsAnnotation, classifying_annotation_mapper
+    ResolutionsAnnotation, classifying_annotation_mapper, ScanPageAnnotation
 
 
 def attendants_as_web_annotation(annotation: dict) -> dict:
@@ -24,12 +26,14 @@ def lines_as_web_annotation(annotation: dict) -> dict:
 
 
 def resolutions_as_web_annotation(annotation: dict) -> dict:
+    ic(annotation)
     return ResolutionsAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'resolutions')
 
 
 def scanpage_as_web_annotation(annotation: dict) -> dict:
-    return classifying_annotation_mapper(annotation, 'scanpage')
+    return ScanPageAnnotation.from_dict(annotation).as_web_annotation()
+    # return classifying_annotation_mapper(annotation, 'scanpage')
 
 
 def sessions_as_web_annotation(annotation: dict) -> dict:

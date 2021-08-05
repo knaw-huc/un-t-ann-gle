@@ -70,7 +70,7 @@ class ResolutionsAnnotation:
     begin_anchor: int
     end_anchor: int
     resource_id: str
-    proposition_type: str
+    proposition_type: Union[str, None]
     image_range: List[List[Union[List[ImageCoords], str]]]
     region_links: List[str]
 
@@ -94,7 +94,7 @@ class ColumnsAnnotation:
     def as_web_annotation(self) -> dict:
         body = classifying_body('columns', self.id)
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
-                  image_target(self.image_coords)]
+                  image_target(image_coords=self.image_coords)]
         return web_annotation(body=body, target=target)
 
 
@@ -110,7 +110,23 @@ class LinesAnnotation:
     def as_web_annotation(self) -> dict:
         body = classifying_body('lines', self.id)
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
-                  image_target(self.image_coords)]
+                  image_target(image_coords=self.image_coords)]
+        return web_annotation(body=body, target=target)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class ScanPageAnnotation:
+    scan_id: str
+    begin_anchor: int
+    end_anchor: int
+    resource_id: str
+    iiif_url: str
+
+    def as_web_annotation(self) -> dict:
+        body = classifying_body('scanpage', self.scan_id)
+        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
+                  image_target(iiif_url=self.iiif_url)]
         return web_annotation(body=body, target=target)
 
 
@@ -144,19 +160,20 @@ def resource_target(resource_id, begin_anchor, end_anchor):
     }
 
 
-def image_target(image_coords: ImageCoords,
-                 iiif_url: str = "https://example.org/missing-iiif-url",
+def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
+                 image_coords: ImageCoords = None,
                  scan_id: str = None) -> dict:
-    xywh = f"{image_coords.left},{image_coords.top},{image_coords.width},{image_coords.height}"
     image_target = {
         "source": iiif_url,
-        "type": "image",
-        "selector": {
+        "type": "image"
+    }
+    if image_coords:
+        xywh = f"{image_coords.left},{image_coords.top},{image_coords.width},{image_coords.height}"
+        image_target['selector'] = {
             "type": "FragmentSelector",
             "conformsTo": "http://www.w3.org/TR/media-frags/",
             "value": f"xywh={xywh}"
         }
-    }
     if scan_id:
         image_target['id'] = scan_id
     return image_target
