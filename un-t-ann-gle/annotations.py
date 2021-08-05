@@ -55,9 +55,28 @@ class AttendantsListsAnnotation:
     image_range: List[List[Union[List[ImageCoords], str]]]
     region_links: List[str]
 
-    # TODO: add image_range + region_links to target
+    # TODO: add session_id to body, add image_range + region_links to target
     def as_web_annotation(self) -> dict:
         body = [classifying_body('attendantslists', self.id)
+                ]
+        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        return web_annotation(body=body, target=target)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class ResolutionsAnnotation:
+    id: str
+    begin_anchor: int
+    end_anchor: int
+    resource_id: str
+    proposition_type: str
+    image_range: List[List[Union[List[ImageCoords], str]]]
+    region_links: List[str]
+
+    # TODO: add proposition_type to body, image_range + region_links to target
+    def as_web_annotation(self) -> dict:
+        body = [classifying_body('resolutions', self.id)
                 ]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
         return web_annotation(body=body, target=target)

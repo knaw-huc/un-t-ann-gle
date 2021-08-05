@@ -1,7 +1,8 @@
 import json
 from datetime import datetime
 
-from annotations import LinesAnnotation, AttendantsAnnotation, AttendantsListsAnnotation, ColumnsAnnotation
+from annotations import LinesAnnotation, AttendantsAnnotation, AttendantsListsAnnotation, ColumnsAnnotation, \
+    ResolutionsAnnotation
 
 
 def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
@@ -149,7 +150,8 @@ def lines_as_web_annotation(annotation: dict) -> dict:
 
 
 def resolutions_as_web_annotation(annotation: dict) -> dict:
-    return classifying_annotation_mapper(annotation, 'resolutions')
+    return ResolutionsAnnotation.from_dict(annotation).as_web_annotation()
+    # return classifying_annotation_mapper(annotation, 'resolutions')
 
 
 def scanpage_as_web_annotation(annotation: dict) -> dict:
