@@ -62,6 +62,22 @@ class ColumnAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
+class TextRegionAnnotation:
+    id: str
+    begin_anchor: int
+    end_anchor: int
+    resource_id: str
+    image_coords: ImageCoords
+
+    def as_web_annotation(self) -> dict:
+        body = classifying_body('textregion', self.id)
+        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
+                  image_target(image_coords=self.image_coords)]
+        return web_annotation(body=body, target=target)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
 class LineAnnotation:
     id: str
     begin_anchor: int
