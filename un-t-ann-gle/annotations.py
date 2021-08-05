@@ -65,6 +65,22 @@ class AttendantsListsAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
+class ColumnsAnnotation:
+    id: str
+    begin_anchor: int
+    end_anchor: int
+    resource_id: str
+    image_coords: ImageCoords
+
+    def as_web_annotation(self) -> dict:
+        body = classifying_body('columns', self.id)
+        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
+                  image_target(self.image_coords)]
+        return web_annotation(body=body, target=target)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
 class LinesAnnotation:
     id: str
     begin_anchor: int
