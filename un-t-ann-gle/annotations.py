@@ -46,7 +46,7 @@ class ScanPageAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class ColumnsAnnotation:
+class ColumnAnnotation:
     id: str
     begin_anchor: int
     end_anchor: int
@@ -62,7 +62,7 @@ class ColumnsAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class LinesAnnotation:
+class LineAnnotation:
     id: str
     begin_anchor: int
     end_anchor: int
@@ -78,7 +78,7 @@ class LinesAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class SessionsAnnotation:
+class SessionAnnotation:
     id: str
     begin_anchor: int
     end_anchor: int
@@ -102,7 +102,7 @@ class SessionsAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class AttendantsListsAnnotation:
+class AttendantsListAnnotation:
     id: str
     begin_anchor: int
     end_anchor: int
@@ -121,7 +121,7 @@ class AttendantsListsAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class AttendantsAnnotation:
+class AttendantAnnotation:
     id: str
     begin_anchor: int
     end_anchor: int
@@ -137,7 +137,7 @@ class AttendantsAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class ResolutionsAnnotation:
+class ResolutionAnnotation:
     id: str
     begin_anchor: int
     end_anchor: int

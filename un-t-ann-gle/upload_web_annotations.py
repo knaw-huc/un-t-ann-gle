@@ -2,8 +2,8 @@ import json
 
 from icecream import ic
 
-from annotations import LinesAnnotation, AttendantsAnnotation, AttendantsListsAnnotation, ColumnsAnnotation, \
-    ResolutionsAnnotation, classifying_annotation_mapper, ScanPageAnnotation, SessionsAnnotation
+from annotations import LineAnnotation, AttendantAnnotation, AttendantsListAnnotation, ColumnAnnotation, \
+    ResolutionAnnotation, classifying_annotation_mapper, ScanPageAnnotation, SessionAnnotation
 
 
 def scanpage_as_web_annotation(annotation: dict) -> dict:
@@ -12,32 +12,32 @@ def scanpage_as_web_annotation(annotation: dict) -> dict:
 
 
 def columns_as_web_annotation(annotation: dict) -> dict:
-    return ColumnsAnnotation.from_dict(annotation).as_web_annotation()
+    return ColumnAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'columns')
 
 
 def lines_as_web_annotation(annotation: dict) -> dict:
-    return LinesAnnotation.from_dict(annotation).as_web_annotation()
+    return LineAnnotation.from_dict(annotation).as_web_annotation()
 
 
 def sessions_as_web_annotation(annotation: dict) -> dict:
     ic(annotation)
-    return SessionsAnnotation.from_dict(annotation).as_web_annotation()
+    return SessionAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'sessions')
 
 
 def attendantslists_as_web_annotation(annotation: dict) -> dict:
-    return AttendantsListsAnnotation.from_dict(annotation).as_web_annotation()
+    return AttendantsListAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'attendantslists')
 
 
 def attendants_as_web_annotation(annotation: dict) -> dict:
-    return AttendantsAnnotation.from_dict(annotation).as_web_annotation()
+    return AttendantAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'attendants')
 
 
 def resolutions_as_web_annotation(annotation: dict) -> dict:
-    return ResolutionsAnnotation.from_dict(annotation).as_web_annotation()
+    return ResolutionAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'resolutions')
 
 
