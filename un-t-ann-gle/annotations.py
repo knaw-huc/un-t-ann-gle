@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, List, Union
+from typing import Any, List, Union, Dict
 
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json, Undefined, config
@@ -54,7 +54,7 @@ class ColumnsAnnotation:
     image_coords: ImageCoords
 
     def as_web_annotation(self) -> dict:
-        body = classifying_body('columns', self.id)
+        body = classifying_body('column', self.id)
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
                   image_target(image_coords=self.image_coords)]
         return web_annotation(body=body, target=target)
@@ -70,7 +70,31 @@ class LinesAnnotation:
     image_coords: ImageCoords
 
     def as_web_annotation(self) -> dict:
-        body = classifying_body('lines', self.id)
+        body = classifying_body('line', self.id)
+        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
+                  image_target(image_coords=self.image_coords)]
+        return web_annotation(body=body, target=target)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class SessionsAnnotation:
+    id: str
+    begin_anchor: int
+    end_anchor: int
+    resource_id: str
+    image_coords: Union[None, ImageCoords]
+    session_date: str
+    session_year: int
+    session_weekday: str
+    president: str
+
+    def as_web_annotation(self) -> dict:
+        body = [classifying_body('session', self.id),
+                dataset_body({"date": self.session_date,
+                              "year": self.session_year,
+                              "weekday": self.session_weekday,
+                              "president": self.president})]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
                   image_target(image_coords=self.image_coords)]
         return web_annotation(body=body, target=target)
@@ -89,7 +113,7 @@ class AttendantsListsAnnotation:
 
     # TODO: add session_id to body, add image_range + region_links to target
     def as_web_annotation(self) -> dict:
-        body = [classifying_body('attendantslists', self.id)
+        body = [classifying_body('attendantslist', self.id)
                 ]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
         return web_annotation(body=body, target=target)
@@ -105,8 +129,8 @@ class AttendantsAnnotation:
     metadata: Metadata
 
     def as_web_annotation(self) -> dict:
-        body = [classifying_body('attendants', self.id),
-                dataset_body(self.metadata)]
+        body = [classifying_body('attendant', self.id),
+                dataset_body(self.metadata.__dict__)]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
         return web_annotation(body=body, target=target)
 
@@ -124,7 +148,7 @@ class ResolutionsAnnotation:
 
     # TODO: add proposition_type to body, image_range + region_links to target
     def as_web_annotation(self) -> dict:
-        body = [classifying_body('resolutions', self.id)
+        body = [classifying_body('resolution', self.id)
                 ]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
         return web_annotation(body=body, target=target)
@@ -141,10 +165,10 @@ def classifying_body(value: str, id: str):
     return body
 
 
-def dataset_body(metadata: Metadata):
+def dataset_body(metadata: Dict):
     dataset_body = {
         "type": "Dataset",
-        "value": metadata.__dict__
+        "value": metadata
     }
     return dataset_body
 
