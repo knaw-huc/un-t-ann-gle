@@ -176,3 +176,128 @@ def web_annotation(body: Any, target: Any) -> dict:
         "body": body,
         "target": target
     }
+
+
+def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
+    body = {
+        "type": "TextualBody",
+        "purpose": "classifying",
+        "value": value
+    }
+    id = annotation.pop('id', None)
+    if id:
+        body['id'] = id
+    if value == 'sessions':
+        session_date = annotation.pop('session_date')
+        session_year = annotation.pop('session_year')
+        session_weekday = annotation.pop('session_weekday')
+        president = annotation.pop('president')
+        dataset_body = {
+            "type": "Dataset",
+            "value": {
+                "session_date": session_date,
+                "session_year": session_year,
+                "session_weekday": session_weekday,
+                "president": president
+            }
+        }
+        body = [body, dataset_body]
+
+    resource_id = annotation.pop('resource_id')
+    begin_anchor = annotation.pop('begin_anchor')
+    end_anchor = annotation.pop('end_anchor')
+    targets = [{
+        "source": resource_id,
+        "selector": {
+            "type": "TextAnchorSelector",
+            "start": begin_anchor,
+            "end": end_anchor
+        }
+    }]
+    image_coords = annotation.pop('image_coords', None)
+    scan_id = annotation.pop('scan_id', None)
+    if image_coords:
+        iiif_url = annotation.pop('iiif_url', "https://example.org/missing-iiif-url")
+        xywh = f"{image_coords['left']},{image_coords['top']},{image_coords['width']},{image_coords['height']}"
+        image_target = {
+            "source": iiif_url,
+            "type": "image",
+            "selector": {
+                "type": "FragmentSelector",
+                "conformsTo": "http://www.w3.org/TR/media-frags/",
+                "value": f"xywh={xywh}"
+            }
+        }
+        if scan_id:
+            image_target['id'] = scan_id
+        targets.append(image_target)
+    else:
+        if scan_id:
+            iiif_url = annotation.pop('iiif_url')
+            image_target = {
+                "id": scan_id,
+                "source": iiif_url,
+                "type": "image",
+            }
+            targets.append(image_target)
+
+    if len(targets) > 1:
+        target = targets
+    else:
+        target = targets[0]
+
+    web_annotation = {
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "type": "Annotation",
+        "motivation": "classifying",
+        "created": datetime.today().isoformat(),
+        "generator": {
+            "id": "https://github.com/knaw-huc/un-t-ann-gle",
+            "type": "Software",
+            "name": "un-t-ann-gle"
+        },
+        "body": body,
+        "target": target,
+        # "target": [
+        #     {
+        #         "source": f'{scan_urn}:textline={text_line.id}',
+        #         "selector": {
+        #             "type": "TextPositionSelector",
+        #             "start": ner_result['offset']['begin'],
+        #             "end": ner_result['offset']['end']
+        #         }
+        #     },
+        #     {
+        #         "source": f'{scan_urn}:textline={text_line.id}',
+        #         "selector": {
+        #             "type": "FragmentSelector",
+        #             "conformsTo": "http://tools.ietf.org/rfc/rfc5147",
+        #             "value": f"char={ner_result['offset']['begin']},{ner_result['offset']['end']}"
+        #         }
+        #     },
+        #     {
+        #         "source": f'{version_base_uri}/contents',
+        #         "type": "xml",
+        #         "selector": {
+        #             "type": "FragmentSelector",
+        #             "conformsTo": "http://tools.ietf.org/rfc/rfc3023",
+        #             "value": f"xpointer(id({text_line.id})/TextEquiv/Unicode)"
+        #         }
+        #     },
+        #     {
+        #         "source": f"{version_base_uri}/chars/{ner_result['offset']['begin']}/{ner_result['offset']['end']}"
+        #     },
+        #     {
+        #         "source": iiif_url,
+        #         "type": "image",
+        #         "selector": {
+        #             "type": "FragmentSelector",
+        #             "conformsTo": "http://www.w3.org/TR/media-frags/",
+        #             "value": f"xywh={xywh}"
+        #         }
+        #     }
+        # ]
+    }
+    if annotation:
+        web_annotation["_unused_fields_from_original"] = annotation
+    return web_annotation
