@@ -11,49 +11,49 @@ def scanpage_as_web_annotation(annotation: dict) -> dict:
     # return classifying_annotation_mapper(annotation, 'scanpage')
 
 
-def columns_as_web_annotation(annotation: dict) -> dict:
+def column_as_web_annotation(annotation: dict) -> dict:
     return ColumnAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'columns')
 
 
-def lines_as_web_annotation(annotation: dict) -> dict:
+def line_as_web_annotation(annotation: dict) -> dict:
     return LineAnnotation.from_dict(annotation).as_web_annotation()
 
 
-def sessions_as_web_annotation(annotation: dict) -> dict:
+def session_as_web_annotation(annotation: dict) -> dict:
     ic(annotation)
     return SessionAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'sessions')
 
 
-def attendantslists_as_web_annotation(annotation: dict) -> dict:
+def attendantslist_as_web_annotation(annotation: dict) -> dict:
     return AttendantsListAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'attendantslists')
 
 
-def attendants_as_web_annotation(annotation: dict) -> dict:
+def attendant_as_web_annotation(annotation: dict) -> dict:
     return AttendantAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'attendants')
 
 
-def resolutions_as_web_annotation(annotation: dict) -> dict:
+def resolution_as_web_annotation(annotation: dict) -> dict:
     return ResolutionAnnotation.from_dict(annotation).as_web_annotation()
     # return classifying_annotation_mapper(annotation, 'resolutions')
 
 
-def textregions_as_web_annotation(annotation: dict) -> dict:
+def textregion_as_web_annotation(annotation: dict) -> dict:
     return classifying_annotation_mapper(annotation, 'textregions')
 
 
 annotation_mapper = {
-    'attendants': attendants_as_web_annotation,
-    'attendantslists': attendantslists_as_web_annotation,
-    'columns': columns_as_web_annotation,
-    'lines': lines_as_web_annotation,
-    'resolutions': resolutions_as_web_annotation,
+    'attendants': attendant_as_web_annotation,
+    'attendantslists': attendantslist_as_web_annotation,
+    'columns': column_as_web_annotation,
+    'lines': line_as_web_annotation,
+    'resolutions': resolution_as_web_annotation,
     'scanpage': scanpage_as_web_annotation,
-    'sessions': sessions_as_web_annotation,
-    'textregions': textregions_as_web_annotation
+    'sessions': session_as_web_annotation,
+    'textregions': textregion_as_web_annotation
 }
 
 
