@@ -1,7 +1,9 @@
 import json
 from datetime import datetime
 
-from annotations import LinesAnnotation
+from icecream import ic
+
+from annotations import LinesAnnotation, AttendantsAnnotation
 
 
 def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
@@ -130,7 +132,8 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
 
 
 def attendants_as_web_annotation(annotation: dict) -> dict:
-    return classifying_annotation_mapper(annotation, 'attendants')
+    return AttendantsAnnotation.from_dict(annotation).as_web_annotation()
+    # return classifying_annotation_mapper(annotation, 'attendants')
 
 
 def attendantslists_as_web_annotation(annotation: dict) -> dict:
@@ -142,8 +145,7 @@ def columns_as_web_annotation(annotation: dict) -> dict:
 
 
 def lines_as_web_annotation(annotation: dict) -> dict:
-    lines_annotation = LinesAnnotation.from_dict(annotation)
-    return lines_annotation.as_web_annotation()
+    return LinesAnnotation.from_dict(annotation).as_web_annotation()
 
 
 def resolutions_as_web_annotation(annotation: dict) -> dict:
@@ -175,6 +177,7 @@ annotation_mapper = {
 
 
 def as_web_annotation(annotation: dict) -> dict:
+    ic(annotation)
     label = annotation.pop('label')
     return annotation_mapper[label](annotation)
 
