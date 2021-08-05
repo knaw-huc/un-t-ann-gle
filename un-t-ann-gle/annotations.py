@@ -30,55 +30,17 @@ class ImageCoords:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class AttendantsAnnotation:
-    id: str
+class ScanPageAnnotation:
+    scan_id: str
     begin_anchor: int
     end_anchor: int
     resource_id: str
-    metadata: Metadata
+    iiif_url: str
 
     def as_web_annotation(self) -> dict:
-        body = [classifying_body('attendants', self.id),
-                dataset_body(self.metadata)]
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
-        return web_annotation(body=body, target=target)
-
-
-@dataclass_json(undefined=Undefined.RAISE)
-@dataclass
-class AttendantsListsAnnotation:
-    id: str
-    begin_anchor: int
-    end_anchor: int
-    resource_id: str
-    session_id: str
-    image_range: List[List[Union[List[ImageCoords], str]]]
-    region_links: List[str]
-
-    # TODO: add session_id to body, add image_range + region_links to target
-    def as_web_annotation(self) -> dict:
-        body = [classifying_body('attendantslists', self.id)
-                ]
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
-        return web_annotation(body=body, target=target)
-
-
-@dataclass_json(undefined=Undefined.RAISE)
-@dataclass
-class ResolutionsAnnotation:
-    id: str
-    begin_anchor: int
-    end_anchor: int
-    resource_id: str
-    proposition_type: Union[str, None]
-    image_range: List[List[Union[List[ImageCoords], str]]]
-    region_links: List[str]
-
-    # TODO: add proposition_type to body, image_range + region_links to target
-    def as_web_annotation(self) -> dict:
-        body = [classifying_body('resolutions', self.id)
-                ]
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        body = classifying_body('scanpage', self.scan_id)
+        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
+                  image_target(iiif_url=self.iiif_url)]
         return web_annotation(body=body, target=target)
 
 
@@ -116,17 +78,55 @@ class LinesAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class ScanPageAnnotation:
-    scan_id: str
+class AttendantsListsAnnotation:
+    id: str
     begin_anchor: int
     end_anchor: int
     resource_id: str
-    iiif_url: str
+    session_id: str
+    image_range: List[List[Union[List[ImageCoords], str]]]
+    region_links: List[str]
+
+    # TODO: add session_id to body, add image_range + region_links to target
+    def as_web_annotation(self) -> dict:
+        body = [classifying_body('attendantslists', self.id)
+                ]
+        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        return web_annotation(body=body, target=target)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class AttendantsAnnotation:
+    id: str
+    begin_anchor: int
+    end_anchor: int
+    resource_id: str
+    metadata: Metadata
 
     def as_web_annotation(self) -> dict:
-        body = classifying_body('scanpage', self.scan_id)
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
-                  image_target(iiif_url=self.iiif_url)]
+        body = [classifying_body('attendants', self.id),
+                dataset_body(self.metadata)]
+        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        return web_annotation(body=body, target=target)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class ResolutionsAnnotation:
+    id: str
+    begin_anchor: int
+    end_anchor: int
+    resource_id: str
+    proposition_type: Union[str, None]
+    image_range: List[List[Union[List[ImageCoords], str]]]
+    region_links: List[str]
+
+    # TODO: add proposition_type to body, image_range + region_links to target
+    def as_web_annotation(self) -> dict:
+        body = [classifying_body('resolutions', self.id)
+                ]
+        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
         return web_annotation(body=body, target=target)
 
 
