@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, List, Union
 
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json, Undefined, config
@@ -40,6 +40,25 @@ class AttendantsAnnotation:
     def as_web_annotation(self) -> dict:
         body = [classifying_body('attendants', self.id),
                 dataset_body(self.metadata)]
+        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        return web_annotation(body=body, target=target)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class AttendantsListsAnnotation:
+    id: str
+    begin_anchor: int
+    end_anchor: int
+    resource_id: str
+    session_id: str
+    image_range: List[List[Union[List[ImageCoords], str]]]
+    region_links: List[str]
+
+    # TODO: add image_range + region_links to target
+    def as_web_annotation(self) -> dict:
+        body = [classifying_body('attendantslists', self.id)
+                ]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
         return web_annotation(body=body, target=target)
 
