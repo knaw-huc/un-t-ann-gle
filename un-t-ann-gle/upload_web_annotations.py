@@ -11,6 +11,21 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
     id = annotation.pop('id', None)
     if id:
         body['id'] = id
+    if value == 'sessions':
+        session_date = annotation.pop('session_date')
+        session_year = annotation.pop('session_year')
+        session_weekday = annotation.pop('session_weekday')
+        president = annotation.pop('president')
+        dataset_body = {
+            "type": "Dataset",
+            "value": {
+                "session_date": session_date,
+                "session_year": session_year,
+                "session_weekday": session_weekday,
+                "president": president
+            }
+        }
+        body = [body, dataset_body]
 
     resource_id = annotation.pop('resource_id')
     begin_anchor = annotation.pop('begin_anchor')
