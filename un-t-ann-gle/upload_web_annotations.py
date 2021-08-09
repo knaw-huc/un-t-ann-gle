@@ -58,6 +58,18 @@ def as_web_annotation(annotation: dict) -> dict:
     return annotation_mapper[label](annotation)
 
 
+def normalize_annotation(annotation: dict, scanpage_iiif) -> dict:
+    resource_id = annotation.get('resource_id')
+    if resource_id:
+        annotation['resource_id'] = f"https://demorepo.tt.di.huc.knaw.nl/task/find/{resource_id}/contents"
+    if 'image_coords' in annotation and 'iiif_url' not in annotation and annotation['id'].startswith('NL'):
+        prefix = annotation['id'][:25]
+        iiif_url = scanpage_iiif.get(prefix)
+        if iiif_url:
+            annotation['iiif_url'] = iiif_url
+    return annotation
+
+
 def main():
     input = 'data/1728/10mrt-v1/1728-annotationstore.json'
     print(f'> importing {input} ...')
@@ -65,10 +77,14 @@ def main():
         annotations = json.load(f)
     print(f'> {len(annotations)} annotations loaded')
 
-    print_example_conversions(annotations)
+    scanpage_iiif_uri_map = {a['scan_id']: a['iiif_url'] for a in annotations if a['label'] == 'scanpage'}
+    # ic(scanpage_iiif_uri_map)
+
+    print_example_conversions(annotations, scanpage_iiif_uri_map)
 
     print(f'> converting ...')
-    web_annotations = [as_web_annotation(annotation) for annotation in annotations]
+    web_annotations = [as_web_annotation(normalize_annotation(annotation, scanpage_iiif_uri_map)) for annotation in
+                       annotations]
 
     out_file = 'web_annotations.json'
     print(f'> exporting to {out_file} ...')
@@ -78,20 +94,24 @@ def main():
     print('> done!')
 
 
-def print_example_conversions(annotations):
+def print_example_conversions(annotations, scanpage_iiif: dict):
     key_func = lambda a: a['label']
     grouped_annotations = groupby(sorted(annotations, key=key_func), key=key_func)
     for label, group in grouped_annotations:
         print(f"label: *{label}*")
+
         random_annotation = random.choice(list(group))
         print(f"original annotation:\n{{code}}\n{json.dumps(random_annotation, indent=2)}\n{{code}}")
-        web_annotation = as_web_annotation(random_annotation)
+
+        web_annotation = as_web_annotation(normalize_annotation(random_annotation, scanpage_iiif))
         print(f"W3C Web annotation:\n{{code}}\n{json.dumps(web_annotation, indent=2)}\n{{code}}")
+
         jsonld = json.dumps(web_annotation)
         g = Graph()
         g.parse(data=jsonld, format="json-ld")
-        ttl = g.serialize(format="ttl")
+        ttl = g.serialize(format="ttl").strip()
         print(f"W3C Web annotation as turtle:\n{{code}}\n{ttl}\n{{code}}")
+
         print("----")
 
 

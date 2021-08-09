@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, List, Union, Dict
@@ -39,7 +40,7 @@ class ScanPageAnnotation:
     iiif_url: str
 
     def as_web_annotation(self) -> dict:
-        body = classifying_body('scanpage', self.scan_id)
+        body = classifying_body(id=as_urn(self.scan_id), value='scanpage')
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
                   image_target(iiif_url=self.iiif_url)]
         return web_annotation(body=body, target=target)
@@ -56,7 +57,7 @@ class ColumnAnnotation:
     image_coords: ImageCoords
 
     def as_web_annotation(self) -> dict:
-        body = classifying_body('column', self.id)
+        body = classifying_body(as_urn(self.id), 'column')
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
                   image_target(image_coords=self.image_coords)]
         return web_annotation(body=body, target=target)
@@ -71,11 +72,15 @@ class TextRegionAnnotation:
     end_anchor: int
     resource_id: str
     image_coords: ImageCoords
+    iiif_url: Union[str, None]
+
+    def __post_init__(self):
+        self.id = re.sub(r'-line-.*', '', self.id)
 
     def as_web_annotation(self) -> dict:
-        body = classifying_body('textregion', self.id)
+        body = classifying_body(as_urn(self.id), 'textregion')
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
-                  image_target(image_coords=self.image_coords)]
+                  image_target(iiif_url=self.iiif_url, image_coords=self.image_coords)]
         return web_annotation(body=body, target=target)
 
 
@@ -88,11 +93,12 @@ class LineAnnotation:
     end_anchor: int
     resource_id: str
     image_coords: ImageCoords
+    iiif_url: Union[str, None]
 
     def as_web_annotation(self) -> dict:
-        body = classifying_body('line', self.id)
+        body = classifying_body(as_urn(self.id), 'line')
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
-                  image_target(image_coords=self.image_coords)]
+                  image_target(iiif_url=self.iiif_url, image_coords=self.image_coords)]
         return web_annotation(body=body, target=target)
 
 
@@ -111,7 +117,7 @@ class SessionAnnotation:
     president: Union[None, str]
 
     def as_web_annotation(self) -> dict:
-        body = [classifying_body('session', self.id),
+        body = [classifying_body(as_urn(self.id), 'session'),
                 dataset_body({"date": self.session_date,
                               "year": self.session_year,
                               "weekday": self.session_weekday,
@@ -135,8 +141,7 @@ class AttendantsListAnnotation:
 
     # TODO: add session_id to body, add image_range + region_links to target
     def as_web_annotation(self) -> dict:
-        body = [classifying_body('attendantslist', self.id)
-                ]
+        body = [classifying_body(as_urn(self.id), 'attendantslist')]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
         return web_annotation(body=body, target=target)
 
@@ -152,7 +157,7 @@ class AttendantAnnotation:
     metadata: Metadata
 
     def as_web_annotation(self) -> dict:
-        body = [classifying_body('attendant', self.id),
+        body = [classifying_body(as_urn(self.id), 'attendant'),
                 dataset_body(self.metadata.__dict__)]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
         return web_annotation(body=body, target=target)
@@ -172,13 +177,12 @@ class ResolutionAnnotation:
 
     # TODO: add proposition_type to body, image_range + region_links to target
     def as_web_annotation(self) -> dict:
-        body = [classifying_body('resolution', self.id)
-                ]
+        body = [classifying_body(as_urn(self.id), 'resolution')]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
         return web_annotation(body=body, target=target)
 
 
-def classifying_body(value: str, id: str):
+def classifying_body(id: str, value: str):
     body = {
         "type": "TextualBody",
         "purpose": "classifying",
@@ -213,7 +217,7 @@ def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
                  scan_id: str = None) -> dict:
     image_target = {
         "source": iiif_url,
-        "type": "image"
+        "type": "Image"
     }
     if image_coords:
         xywh = f"{image_coords.left},{image_coords.top},{image_coords.width},{image_coords.height}"
@@ -286,7 +290,7 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
         xywh = f"{image_coords['left']},{image_coords['top']},{image_coords['width']},{image_coords['height']}"
         image_target = {
             "source": iiif_url,
-            "type": "image",
+            "type": "Image",
             "selector": {
                 "type": "FragmentSelector",
                 "conformsTo": "http://www.w3.org/TR/media-frags/",
@@ -302,7 +306,7 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
             image_target = {
                 "id": scan_id,
                 "source": iiif_url,
-                "type": "image",
+                "type": "Image",
             }
             targets.append(image_target)
 
@@ -366,3 +370,7 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
     if annotation:
         web_annotation["_unused_fields_from_original"] = annotation
     return web_annotation
+
+
+def as_urn(id: str) -> str:
+    return f"urn:example:republic:{id}"
