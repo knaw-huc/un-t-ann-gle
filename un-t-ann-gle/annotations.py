@@ -1,7 +1,7 @@
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, List, Union, Dict
 
-from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json, Undefined, config
 
 
@@ -31,6 +31,7 @@ class ImageCoords:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class ScanPageAnnotation:
+    label: str
     scan_id: str
     begin_anchor: int
     end_anchor: int
@@ -47,6 +48,7 @@ class ScanPageAnnotation:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class ColumnAnnotation:
+    label: str
     id: str
     begin_anchor: int
     end_anchor: int
@@ -63,6 +65,7 @@ class ColumnAnnotation:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class TextRegionAnnotation:
+    label: str
     id: str
     begin_anchor: int
     end_anchor: int
@@ -79,6 +82,7 @@ class TextRegionAnnotation:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class LineAnnotation:
+    label: str
     id: str
     begin_anchor: int
     end_anchor: int
@@ -95,6 +99,7 @@ class LineAnnotation:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class SessionAnnotation:
+    label: str
     id: str
     begin_anchor: int
     end_anchor: int
@@ -103,7 +108,7 @@ class SessionAnnotation:
     session_date: str
     session_year: int
     session_weekday: str
-    president: str
+    president: Union[None, str]
 
     def as_web_annotation(self) -> dict:
         body = [classifying_body('session', self.id),
@@ -119,6 +124,7 @@ class SessionAnnotation:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class AttendantsListAnnotation:
+    label: str
     id: str
     begin_anchor: int
     end_anchor: int
@@ -138,6 +144,7 @@ class AttendantsListAnnotation:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class AttendantAnnotation:
+    label: str
     id: str
     begin_anchor: int
     end_anchor: int
@@ -154,6 +161,7 @@ class AttendantAnnotation:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class ResolutionAnnotation:
+    label: str
     id: str
     begin_anchor: int
     end_anchor: int
