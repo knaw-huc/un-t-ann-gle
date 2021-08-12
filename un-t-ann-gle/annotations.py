@@ -1,8 +1,10 @@
 import re
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, List, Union, Dict
 
+import uri as uri
 from dataclasses_json import dataclass_json, Undefined, config
 
 
@@ -141,8 +143,18 @@ class AttendantsListAnnotation:
 
     # TODO: add session_id to body, add image_range + region_links to target
     def as_web_annotation(self) -> dict:
-        body = [classifying_body(as_urn(self.id), 'attendantslist')]
+        body = [
+            classifying_body(as_urn(self.id), 'attendantslist'),
+            {"partOf": as_urn(self.session_id)}
+        ]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        for range in self.image_range:
+            url = range[0]
+            image_coords_list = range[1]
+            for ic in image_coords_list:
+                target.append(image_target(url, ImageCoords.from_dict(ic)))
+        for link in self.region_links:
+            target.append(image_target(iiif_url=link))
         return web_annotation(body=body, target=target)
 
 
@@ -178,7 +190,17 @@ class ResolutionAnnotation:
     # TODO: add proposition_type to body, image_range + region_links to target
     def as_web_annotation(self) -> dict:
         body = [classifying_body(as_urn(self.id), 'resolution')]
+        if self.proposition_type:
+            body.append({"proposition_type": self.proposition_type})
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        for range in self.image_range:
+            url = range[0]
+            image_coords_list = range[1]
+            for ic in image_coords_list:
+                target.append(image_target(url, ImageCoords.from_dict(ic)))
+        for link in self.region_links:
+            target.append(image_target(iiif_url=link))
+
         return web_annotation(body=body, target=target)
 
 
@@ -205,7 +227,7 @@ def resource_target(resource_id, begin_anchor, end_anchor):
     return {
         "source": resource_id,
         "selector": {
-            "type": "TextAnchorSelector",
+            "type": as_urn("TextAnchorSelector"),
             "start": begin_anchor,
             "end": end_anchor
         }
@@ -231,9 +253,39 @@ def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
     return image_target
 
 
-def web_annotation(body: Any, target: Any) -> dict:
-    return {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
+roar_context = {
+    "roar": "https://w3id.org/roar#",
+    "Document": "roar:Document",
+    "Entity": "roar:Entity",
+    "Location": "roar:Location",
+    "LocationObservation": "roar:LocationObservation",
+    "LocationReconstruction": "roar:LocationReconstruction",
+    "Observation": "roar:Observation",
+    "Person": "roar:Person",
+    "PersonObservation": "roar:PersonObservation",
+    "PersonReconstruction": "roar:PersonReconstruction",
+    "Reconstruction": "roar:Reconstruction",
+    "documentedIn": "roar:documentedIn",
+    "hasLocation": "roar:hasLocation",
+    "hasPerson": "roar:hasPerson",
+    "hasRelation": "roar:hasRelation",
+    "locationInDocument": "roar:locationInDocument",
+    "onScan": "roar:onScan",
+    "relationType": "roar:relationType",
+    "role": "roar:role"
+}
+
+
+def web_annotation(body: Any,
+                   target: Any,
+                   id: uri = f"urn:example:republic:annotation:{uuid.uuid4()}",
+                   custom: dict = None) -> dict:
+    annotation = {
+        "@context": [
+            "http://www.w3.org/ns/anno.jsonld",
+            # roar_context
+        ],
+        "id": id,
         "type": "Annotation",
         "motivation": "classifying",
         "created": datetime.today().isoformat(),
@@ -245,6 +297,9 @@ def web_annotation(body: Any, target: Any) -> dict:
         "body": body,
         "target": target
     }
+    if custom:
+        annotation.update(custom)
+    return annotation
 
 
 def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
@@ -278,7 +333,7 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
     targets = [{
         "source": resource_id,
         "selector": {
-            "type": "TextAnchorSelector",
+            "type": as_urn("TextAnchorSelector"),
             "start": begin_anchor,
             "end": end_anchor
         }
