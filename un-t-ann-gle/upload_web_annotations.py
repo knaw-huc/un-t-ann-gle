@@ -6,6 +6,7 @@ from rdflib import Graph
 
 from annotations import LineAnnotation, AttendantAnnotation, AttendantsListAnnotation, ColumnAnnotation, \
     ResolutionAnnotation, ScanPageAnnotation, SessionAnnotation, TextRegionAnnotation
+from utils import default_progress_bar
 
 
 def scanpage_as_web_annotation(annotation: dict) -> dict:
@@ -75,23 +76,38 @@ def main():
     print(f'> importing {input} ...')
     with open(input) as f:
         annotations = json.load(f)
-    print(f'> {len(annotations)} annotations loaded')
+    num_annotations = len(annotations)
+    print(f'> {num_annotations} annotations loaded')
 
     scanpage_iiif_uri_map = {a['scan_id']: a['iiif_url'] for a in annotations if a['label'] == 'scanpage'}
     # ic(scanpage_iiif_uri_map)
 
     print_example_conversions(annotations, scanpage_iiif_uri_map)
 
-    print(f'> converting ...')
-    web_annotations = [as_web_annotation(normalize_annotation(annotation, scanpage_iiif_uri_map)) for annotation in
-                       annotations]
+    web_annotations = convert_annotations(annotations, scanpage_iiif_uri_map)
 
+    export_to_file(web_annotations)
+
+    print('> done!')
+
+
+def convert_annotations(annotations, scanpage_iiif_uri_map):
+    num_annotations = len(annotations)
+    print(f'> converting {num_annotations} annotations...')
+    bar = default_progress_bar(num_annotations)
+    web_annotations = []
+    for i, annotation in enumerate(annotations):
+        bar.update(i)
+        web_annotations.append(as_web_annotation(normalize_annotation(annotation, scanpage_iiif_uri_map)))
+    print()
+    return web_annotations
+
+
+def export_to_file(web_annotations):
     out_file = 'web_annotations.json'
     print(f'> exporting to {out_file} ...')
     with open(out_file, 'w') as out:
         json.dump(web_annotations, out, indent=4)
-
-    print('> done!')
 
 
 def print_example_conversions(annotations, scanpage_iiif: dict):
