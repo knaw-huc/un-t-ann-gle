@@ -17,10 +17,10 @@ app = Flask(__name__)
 
 app.json_encoder = segmentedtext.AnchorEncoder
 
-# datadir = '../../data/1728/10mrt-v1/'
-# annotation_repo = '1728-annotationstore.json'
-datadir = '../../data/output/'
-annotation_repo = 'tei_annotationstore.json'
+datadir = '../../data/1728/testset/'
+annotation_repo = '1728-annotationstore.json'
+# datadir = '../../data/output/'
+# annotation_repo = 'tei_annotationstore.json'
 
 annotations = []
 anchors = {}
@@ -66,7 +66,7 @@ def get_annotations():
         return res
         
     return jsonify({'annotations': annotations})
-    
+  
 @app.route('/annotations/<int:index>', methods=['GET'])
 def get_annotation(index):
     return jsonify({'annotations': annotations[index]})
@@ -96,7 +96,9 @@ def returnAnnotationsOfTypeforResource(resource_id,type):
     
 @app.route('/<string:resource_id>/annotations/<int:begin_anchor>,<int:end_anchor>', methods=['GET'])
 def returnAnnotationsOverlappingWithInt(begin_anchor, end_anchor,resource_id):
-    annots = list(asearch.get_annotations_overlapping_with(begin_anchor,end_anchor,annotations,resource_id))
+    args = request.args
+#    annots = list(asearch.get_annotations_of_type_overlapping(args['type'], begin_anchor,end_anchor,annotations,resource_id))
+    annots = list(asearch.get_filtered_annotations_overlapping(args, begin_anchor,end_anchor,annotations,resource_id))
     return jsonify({'annotations' : annots})
         
 @app.route('/<string:resource_id>/annotations/<string:begin_anchor_id>,<string:end_anchor_id>', methods=['GET'])

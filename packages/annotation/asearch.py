@@ -29,7 +29,36 @@ def get_annotations_overlapping_with(begin_anchor,end_anchor,annotations,resourc
     	   ((a['begin_anchor'] >= begin_anchor and a['begin_anchor'] < end_anchor) or\
            (a['end_anchor'] > begin_anchor and a['end_anchor'] <= end_anchor) or\
            (a['begin_anchor'] <= begin_anchor and a['end_anchor'] >= end_anchor)))
-           
+
+def matches_filters(annotation, filters):
+    if filters == None or len(filters) == 0:
+        return True
+
+    if 'type' in filters and annotation['label'] != filters['type']:
+        return False
+        
+    if 'owner' not in filters:
+        return True 
+    
+    if 'owner' not in annotation or annotation['owner'] != filters['owner']:
+        return False
+    
+    return True
+        
+#    if annotation['label'] == filters['type']:
+#    	return True
+    	
+#    if annotation['owner'] == filters['owner']:
+#        return True
+#    else:
+#    	return False
+
+def get_filtered_annotations_overlapping(filters,begin,end,annotations,resource_id):
+    '''
+    Returns all annotations of that overlap with a specific text interval and match the filters.
+    '''
+    return filter(lambda annotation: matches_filters(annotation, filters), (get_annotations_overlapping_with(begin,end,annotations,resource_id)))
+               
 def get_annotations_of_type_overlapping(type,begin,end,annotations,resource_id):
     '''
     Returns all annotations of a specific type that overlap with a specific text interval.
