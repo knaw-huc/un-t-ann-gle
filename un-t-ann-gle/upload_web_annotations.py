@@ -72,7 +72,7 @@ def normalize_annotation(annotation: dict, scanpage_iiif) -> dict:
 
 
 def main():
-    input = 'data/1728/10mrt-v1/1728-annotationstore.json'
+    input = '../../1728-06-19-annotationstore.json'
     print(f'> importing {input} ...')
     with open(input) as f:
         annotations = json.load(f)
@@ -82,7 +82,7 @@ def main():
     scanpage_iiif_uri_map = {a['scan_id']: a['iiif_url'] for a in annotations if a['label'] == 'scanpage'}
     # ic(scanpage_iiif_uri_map)
 
-    print_example_conversions(annotations, scanpage_iiif_uri_map)
+    # print_example_conversions(annotations, scanpage_iiif_uri_map)
 
     web_annotations = convert_annotations(annotations, scanpage_iiif_uri_map)
 
@@ -94,10 +94,10 @@ def main():
 def convert_annotations(annotations, scanpage_iiif_uri_map):
     num_annotations = len(annotations)
     print(f'> converting {num_annotations} annotations...')
-    bar = default_progress_bar(num_annotations)
+#    bar = default_progress_bar(num_annotations)
     web_annotations = []
     for i, annotation in enumerate(annotations):
-        bar.update(i)
+#        bar.update(i)
         web_annotations.append(as_web_annotation(normalize_annotation(annotation, scanpage_iiif_uri_map)))
     print()
     return web_annotations

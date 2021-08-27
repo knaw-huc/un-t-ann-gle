@@ -40,11 +40,20 @@ class ScanPageAnnotation:
     end_anchor: int
     resource_id: str
     iiif_url: str
+    image_range: List[List[Union[List[ImageCoords], str]]]
+    region_links: List[str]
 
     def as_web_annotation(self) -> dict:
         body = classifying_body(id=as_urn(self.scan_id), value='scanpage')
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
                   image_target(iiif_url=self.iiif_url)]
+        for range in self.image_range:
+            url = range[0]
+            image_coords_list = range[1]
+            for ic in image_coords_list:
+                target.append(image_target(url, ImageCoords.from_dict(ic)))
+        for link in self.region_links:
+            target.append(image_target(iiif_url=link))
         return web_annotation(body=body, target=target)
 
 
@@ -57,11 +66,20 @@ class ColumnAnnotation:
     end_anchor: int
     resource_id: str
     image_coords: ImageCoords
+    image_range: List[List[Union[List[ImageCoords], str]]]
+    region_links: List[str]
 
     def as_web_annotation(self) -> dict:
         body = classifying_body(as_urn(self.id), 'column')
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
                   image_target(image_coords=self.image_coords)]
+        for range in self.image_range:
+            url = range[0]
+            image_coords_list = range[1]
+            for ic in image_coords_list:
+                target.append(image_target(url, ImageCoords.from_dict(ic)))
+        for link in self.region_links:
+            target.append(image_target(iiif_url=link))
         return web_annotation(body=body, target=target)
 
 
@@ -75,6 +93,8 @@ class TextRegionAnnotation:
     resource_id: str
     image_coords: ImageCoords
     iiif_url: Union[str, None]
+    image_range: List[List[Union[List[ImageCoords], str]]]
+    region_links: List[str]
 
     def __post_init__(self):
         self.id = re.sub(r'-line-.*', '', self.id)
@@ -83,6 +103,13 @@ class TextRegionAnnotation:
         body = classifying_body(as_urn(self.id), 'textregion')
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
                   image_target(iiif_url=self.iiif_url, image_coords=self.image_coords)]
+        for range in self.image_range:
+            url = range[0]
+            image_coords_list = range[1]
+            for ic in image_coords_list:
+                target.append(image_target(url, ImageCoords.from_dict(ic)))
+        for link in self.region_links:
+            target.append(image_target(iiif_url=link))
         return web_annotation(body=body, target=target)
 
 
@@ -96,11 +123,20 @@ class LineAnnotation:
     resource_id: str
     image_coords: ImageCoords
     iiif_url: Union[str, None]
+    image_range: List[List[Union[List[ImageCoords], str]]]
+    region_links: List[str]
 
     def as_web_annotation(self) -> dict:
         body = classifying_body(as_urn(self.id), 'line')
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
                   image_target(iiif_url=self.iiif_url, image_coords=self.image_coords)]
+        for range in self.image_range:
+            url = range[0]
+            image_coords_list = range[1]
+            for ic in image_coords_list:
+                target.append(image_target(url, ImageCoords.from_dict(ic)))
+        for link in self.region_links:
+            target.append(image_target(iiif_url=link))
         return web_annotation(body=body, target=target)
 
 
@@ -113,6 +149,8 @@ class SessionAnnotation:
     end_anchor: int
     resource_id: str
     image_coords: Union[None, ImageCoords]
+    image_range: List[List[Union[List[ImageCoords], str]]]
+    region_links: List[str]
     session_date: str
     session_year: int
     session_weekday: str
@@ -126,6 +164,13 @@ class SessionAnnotation:
                               "president": self.president})]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
                   image_target(image_coords=self.image_coords)]
+        for range in self.image_range:
+            url = range[0]
+            image_coords_list = range[1]
+            for ic in image_coords_list:
+                target.append(image_target(url, ImageCoords.from_dict(ic)))
+        for link in self.region_links:
+            target.append(image_target(iiif_url=link))
         return web_annotation(body=body, target=target)
 
 
@@ -167,11 +212,20 @@ class AttendantAnnotation:
     end_anchor: int
     resource_id: str
     metadata: Metadata
+    image_range: List[List[Union[List[ImageCoords], str]]]
+    region_links: List[str]
 
     def as_web_annotation(self) -> dict:
         body = [classifying_body(as_urn(self.id), 'attendant'),
                 dataset_body(self.metadata.__dict__)]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        for range in self.image_range:
+            url = range[0]
+            image_coords_list = range[1]
+            for ic in image_coords_list:
+                target.append(image_target(url, ImageCoords.from_dict(ic)))
+        for link in self.region_links:
+            target.append(image_target(iiif_url=link))
         return web_annotation(body=body, target=target)
 
 
