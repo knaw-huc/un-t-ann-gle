@@ -25,6 +25,7 @@ def get_annotations_overlapping_with(begin_anchor,end_anchor,annotations,resourc
     
     This function should work for all indexes or anchors that support comparison operations.
     '''
+    print('blurp')
     return (a for a in annotations if (a['resource_id'] == resource_id) and \
     	   ((a['begin_anchor'] >= begin_anchor and a['begin_anchor'] < end_anchor) or\
            (a['end_anchor'] > begin_anchor and a['end_anchor'] <= end_anchor) or\
