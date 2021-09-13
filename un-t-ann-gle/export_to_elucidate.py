@@ -14,7 +14,7 @@ from utils import default_progress_bar
 
 def main():
     annotations_json = 'web_annotations.json'
-    print(f"- read {annotations_json}...", end='')
+    print(f"- reading {annotations_json}...", end='')
     with open(annotations_json) as f:
         web_annotations = json.load(f)
     print()
@@ -34,7 +34,7 @@ def export_to_elucidate(web_annotations):
     if os.path.exists(uploaded_json):
         with open(uploaded_json) as f:
             last_uploaded = json.load(f)
-        print(f"- resuming upload, starting at annotation {last_uploaded + 1}/{len(web_annotations)}:")
+        print(f"- resuming upload, starting at annotation {last_uploaded + 1} / {len(web_annotations)}:")
     else:
         print(f"- uploading {len(web_annotations)} annotations:")
         last_uploaded = -1

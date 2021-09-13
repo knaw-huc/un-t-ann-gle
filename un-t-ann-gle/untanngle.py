@@ -14,15 +14,12 @@ def export1(text_segments: list, annotations: list):
     """
     export the text segment list and annotation list to 2 separate json files
     """
-    text_file = open('text_segments.json', 'w')
-    text_file.write(json.dumps(text_segments, indent=4, cls=segmentedtext.SegmentEncoder))
-    text_file.write("\n")
-    text_file.close()
-
-    ann_file = open('annotations.json', 'w')
-    ann_file.write(json.dumps(annotations, indent=4, cls=segmentedtext.AnchorEncoder))
-    ann_file.write("\n")
-    ann_file.close()
+    with open('text_segments.json', 'w') as text_file:
+        text_file.write(json.dumps(text_segments, indent=4, cls=segmentedtext.SegmentEncoder))
+        text_file.write("\n")
+    with open('annotations.json', 'w') as ann_file:
+        ann_file.write(json.dumps(annotations, indent=4, cls=segmentedtext.AnchorEncoder))
+        ann_file.write("\n")
 
 
 def export_to_text_repo(text_segments: list):

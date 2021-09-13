@@ -34,11 +34,7 @@ def traverse(node, node_label, text, annotations):
             label_of_children = key
             break
 
-    if 'coords' in node:
-        coords = node['coords']
-    else:
-        coords = None
-
+    coords = node['coords'] if 'coords' in node else None
     begin_index = text.len()
     annotation_info = {'label': node_label, 'image_coords': coords, 'begin_anchor': begin_index}
     if len(children) == 0:  # if no children, do your 'leaf node thing'

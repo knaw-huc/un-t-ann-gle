@@ -270,11 +270,10 @@ def classifying_body(id: str, value: str):
 
 
 def dataset_body(metadata: Dict):
-    dataset_body = {
+    return {
         "type": "Dataset",
         "value": metadata
     }
-    return dataset_body
 
 
 def resource_target(resource_id, begin_anchor, end_anchor):
@@ -409,21 +408,16 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
         if scan_id:
             image_target['id'] = scan_id
         targets.append(image_target)
-    else:
-        if scan_id:
-            iiif_url = annotation.pop('iiif_url')
-            image_target = {
-                "id": scan_id,
-                "source": iiif_url,
-                "type": "Image",
-            }
-            targets.append(image_target)
+    elif scan_id:
+        iiif_url = annotation.pop('iiif_url')
+        image_target = {
+            "id": scan_id,
+            "source": iiif_url,
+            "type": "Image",
+        }
+        targets.append(image_target)
 
-    if len(targets) > 1:
-        target = targets
-    else:
-        target = targets[0]
-
+    target = targets if len(targets) > 1 else targets[0]
     web_annotation = {
         "@context": "http://www.w3.org/ns/anno.jsonld",
         "type": "Annotation",
