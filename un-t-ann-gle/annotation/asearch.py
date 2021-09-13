@@ -5,9 +5,11 @@ that are connected to a segmented text object.
 
 
 def get_annotations_at_anchor(anchor, annotations, label=None):
-    annots_at_anchor = [ann_info for ann_info in annotations if
-                        ann_info['begin_anchor'] <= anchor <= ann_info['end_anchor']]
-    return annots_at_anchor
+    return [
+        ann_info
+        for ann_info in annotations
+        if ann_info['begin_anchor'] <= anchor <= ann_info['end_anchor']
+    ]
 
 
 def get_annotations_of_type(type, annotations, resource_id=None):
