@@ -6,7 +6,6 @@ from rdflib import Graph
 
 from annotations import LineAnnotation, AttendantAnnotation, AttendantsListAnnotation, ColumnAnnotation, \
     ResolutionAnnotation, ScanPageAnnotation, SessionAnnotation, TextRegionAnnotation
-from utils import default_progress_bar
 
 
 def scanpage_as_web_annotation(annotation: dict) -> dict:
