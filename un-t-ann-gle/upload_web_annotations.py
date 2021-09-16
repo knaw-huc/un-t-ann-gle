@@ -71,34 +71,16 @@ def normalize_annotation(annotation: dict, scanpage_iiif) -> dict:
     return annotation
 
 
-def main():
-    input = '../../1728-06-19-annotationstore.json'
-    print(f'> importing {input} ...')
-    with open(input) as f:
-        annotations = json.load(f)
-    num_annotations = len(annotations)
-    print(f'> {num_annotations} annotations loaded')
-
-    scanpage_iiif_uri_map = {a['scan_id']: a['iiif_url'] for a in annotations if a['label'] == 'scanpage'}
-    # ic(scanpage_iiif_uri_map)
-
-    # print_example_conversions(annotations, scanpage_iiif_uri_map)
-
-    web_annotations = convert_annotations(annotations, scanpage_iiif_uri_map)
-
-    export_to_file(web_annotations)
-
-    print('> done!')
-
-
 def convert_annotations(annotations, scanpage_iiif_uri_map):
     num_annotations = len(annotations)
     print(f'> converting {num_annotations} annotations...')
-#    bar = default_progress_bar(num_annotations)
-    web_annotations = []
-    for i, annotation in enumerate(annotations):
-#        bar.update(i)
-        web_annotations.append(as_web_annotation(normalize_annotation(annotation, scanpage_iiif_uri_map)))
+    web_annotations = [
+        as_web_annotation(
+            normalize_annotation(annotation, scanpage_iiif_uri_map)
+        )
+        for i, annotation in enumerate(annotations)
+    ]
+
     print()
     return web_annotations
 
@@ -129,6 +111,26 @@ def print_example_conversions(annotations, scanpage_iiif: dict):
         print(f"W3C Web annotation as turtle:\n{{code}}\n{ttl}\n{{code}}")
 
         print("----")
+
+
+def main():
+    input = '../../1728-06-19-annotationstore.json'
+    print(f'> importing {input} ...')
+    with open(input) as f:
+        annotations = json.load(f)
+    num_annotations = len(annotations)
+    print(f'> {num_annotations} annotations loaded')
+
+    scanpage_iiif_uri_map = {a['scan_id']: a['iiif_url'] for a in annotations if a['label'] == 'scanpage'}
+    # ic(scanpage_iiif_uri_map)
+
+    print_example_conversions(annotations, scanpage_iiif_uri_map)
+
+    web_annotations = convert_annotations(annotations, scanpage_iiif_uri_map)
+
+    export_to_file(web_annotations)
+
+    print('> done!')
 
 
 if __name__ == '__main__':
