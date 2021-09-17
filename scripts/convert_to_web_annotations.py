@@ -7,7 +7,7 @@ from itertools import groupby
 
 from rdflib import Graph
 
-from annotations import LineAnnotation, AttendantAnnotation, AttendantsListAnnotation, ColumnAnnotation, \
+from untanngle.annotations import LineAnnotation, AttendantAnnotation, AttendantsListAnnotation, ColumnAnnotation, \
     ResolutionAnnotation, ScanPageAnnotation, SessionAnnotation, TextRegionAnnotation
 
 
