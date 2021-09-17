@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 app.json_encoder = segmentedtext.AnchorEncoder
 
-datadir = '../../data/1728/10mrt-v1/'
+datadir = '../../data/1728/testset/'
 annotation_repo = '1728-annotationstore.json'
 # datadir = '../../data/output/'
 # annotation_repo = 'tei_annotationstore.json'
