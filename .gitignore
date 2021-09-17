@@ -153,3 +153,4 @@ cython_debug/
 /notebooks/bak/08.  TEI experiment-add text slot indirection.ipynb
 /notebooks/bak/09.  TEI experiment-implement API's for anchors and isolate them in seperate package.ipynb
 **.pyc
+tmp
