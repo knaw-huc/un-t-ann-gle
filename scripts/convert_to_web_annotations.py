@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+
 import json
 import random
+import sys
 from itertools import groupby
 
 from rdflib import Graph
@@ -112,8 +115,7 @@ def print_example_conversions(annotations, scanpage_iiif: dict):
         print("----")
 
 
-def main():
-    input = '../../1728-06-19-annotationstore.json'
+def convert(input: str):
     print(f'> importing {input} ...')
     with open(input) as f:
         annotations = json.load(f)
@@ -133,4 +135,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    convert(sys.argv[1])
