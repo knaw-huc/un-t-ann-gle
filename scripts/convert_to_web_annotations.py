@@ -125,7 +125,7 @@ def convert(input: str):
     scanpage_iiif_uri_map = {a['scan_id']: a['iiif_url'] for a in annotations if a['label'] == 'scanpage'}
     # ic(scanpage_iiif_uri_map)
 
-    print_example_conversions(annotations, scanpage_iiif_uri_map)
+    # print_example_conversions(annotations, scanpage_iiif_uri_map)
 
     web_annotations = convert_annotations(annotations, scanpage_iiif_uri_map)
 
