@@ -9,3 +9,4 @@ progressbar2
 rdflib~=6.0.0
 setuptools~=28.8.0
 uri
+requests
