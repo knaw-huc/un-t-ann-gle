@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python3
 
 import json
 import os
@@ -32,9 +32,9 @@ def export_to_elucidate(web_annotations):
     if os.path.exists(uploaded_json):
         with open(uploaded_json) as f:
             last_uploaded = json.load(f)
-        print(f"- resuming upload, starting at annotation {last_uploaded + 1} / {len(web_annotations)}:")
+        print(f"- resuming upload to {container_id.url}, starting at annotation {last_uploaded + 1} / {len(web_annotations)}:")
     else:
-        print(f"- uploading {len(web_annotations)} annotations:")
+        print(f"- uploading {len(web_annotations)} annotations to {container_id.url}:")
         last_uploaded = -1
     #    bar = default_progress_bar(len(web_annotations) - last_uploaded)
     for i, wa in enumerate(web_annotations):
