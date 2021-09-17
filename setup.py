@@ -11,7 +11,7 @@ setup(
     author_email='hennie.brugman@di.huc.knaw.nl',
     url='https://github.com/knaw-huc/un-t-ann-gle',
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
-    package_dir={'un-t-ann-gle': 'un-t-ann-gle'},
+    package_dir={'un-t-ann-gle': 'untanngle'},
     include_package_data=True,
     install_requires=[],
     license='LICENSE'
