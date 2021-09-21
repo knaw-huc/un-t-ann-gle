@@ -2,8 +2,9 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, List, Union, Dict
+from typing import Any, List, Union, Dict, Set
 
+import requests
 import uri as uri
 from dataclasses_json import dataclass_json, Undefined, config
 
@@ -329,15 +330,47 @@ roar_context = {
 }
 
 
+def recursively_get_fields(dict: dict) -> Set[str]:
+    fields = set()
+    for (key, value) in dict.items():
+        fields.add(key)
+        if isinstance(value, Dict):
+            fields = fields.union(recursively_get_fields(value))
+    return fields
+
+
+def get_custom_fields(body, target, custom) -> Set[str]:
+    fields = set()
+    for part in [body, target, custom]:
+        if isinstance(part, dict):
+            fields = fields.union(recursively_get_fields(part))
+        if isinstance(part, list):
+            for d in part:
+                fields = fields.union(recursively_get_fields(d))
+    return fields.difference(anno_context_fields)
+
+
+custom_context_prefix = "http://example.org/customwebannotationfield#"
+
+
+def create_context(custom_fields: Set[str]) -> Dict[str, str]:
+    return {f: f"{custom_context_prefix}{f}" for f in custom_fields}
+
+
 def web_annotation(body: Any,
                    target: Any,
                    id: uri = f"urn:example:republic:annotation:{uuid.uuid4()}",
                    custom: dict = None) -> dict:
+    contexts = [
+        "http://www.w3.org/ns/anno.jsonld",
+    ]
+    custom_fields = get_custom_fields(body, target, custom)
+    if custom_fields:
+        contexts.append(create_context(custom_fields))
+
+    context = contexts[0] if len(contexts) == 1 else contexts
     annotation = {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            # roar_context
-        ],
+        "@context": context,
         "id": id,
         "type": "Annotation",
         "motivation": "classifying",
@@ -477,3 +510,11 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
 
 def as_urn(id: str) -> str:
     return f"urn:example:republic:{id}"
+
+
+def get_anno_context_fields():
+    anno_context = requests.get('http://www.w3.org/ns/anno.jsonld').json()
+    return set(anno_context['@context'].keys())
+
+
+anno_context_fields = get_anno_context_fields()
