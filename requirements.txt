@@ -1,12 +1,12 @@
+#elucidate-client
 #git+https://github.com/knaw-huc/textrepo-client-python.git
 dataclasses_json
-#elucidate-client
-git+https://github.com/knaw-huc/elucidate-python-client.git
 flask-restplus~=0.13.0
+git+https://github.com/knaw-huc/elucidate-python-client.git
 icecream
 lxml~=4.6.2
 progressbar2
 rdflib~=6.0.0
+requests
 setuptools~=28.8.0
 uri
-requests
