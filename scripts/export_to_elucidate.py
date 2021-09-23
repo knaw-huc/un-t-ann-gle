@@ -5,7 +5,6 @@ import os
 
 import elucidate.tools as et
 from elucidate.client import ElucidateClient
-from icecream import ic
 
 
 def main():
@@ -64,6 +63,8 @@ def export_to_elucidate(web_annotations, elucidate_base_url, container_name):
             with open(uploaded_json, 'w') as f:
                 json.dump(i, f)
     print()
+    if os.path.exists(uploaded_json):
+        os.remove(uploaded_json)
 
 
 if __name__ == '__main__':
