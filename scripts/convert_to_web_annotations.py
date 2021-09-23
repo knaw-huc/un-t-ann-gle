@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-
+import argparse
 import json
 import random
-import sys
 from itertools import groupby
 
 from rdflib import Graph
@@ -61,10 +60,10 @@ def as_web_annotation(annotation: dict) -> dict:
     return annotation_mapper[label](annotation)
 
 
-def normalize_annotation(annotation: dict, scanpage_iiif) -> dict:
+def normalize_annotation(annotation: dict, scanpage_iiif: dict, textrepo_base_url: str) -> dict:
     resource_id = annotation.get('resource_id')
     if resource_id:
-        annotation['resource_id'] = f"https://demorepo.tt.di.huc.knaw.nl/task/find/{resource_id}/contents"
+        annotation['resource_id'] = f"{textrepo_base_url}/task/find/{resource_id}/contents"
     if 'image_coords' in annotation and 'iiif_url' not in annotation and annotation['id'].startswith('NL'):
         prefix = annotation['id'][:25]
         iiif_url = scanpage_iiif.get(prefix)
@@ -73,14 +72,14 @@ def normalize_annotation(annotation: dict, scanpage_iiif) -> dict:
     return annotation
 
 
-def convert_annotations(annotations, scanpage_iiif_uri_map):
+def convert_annotations(annotations, scanpage_iiif_uri_map, textrepo_base_url: str):
     num_annotations = len(annotations)
     print(f'> converting {num_annotations} annotations...')
     web_annotations = [
         as_web_annotation(
-            normalize_annotation(annotation, scanpage_iiif_uri_map)
+            normalize_annotation(annotation, scanpage_iiif_uri_map, textrepo_base_url)
         )
-        for i, annotation in enumerate(annotations)
+        for annotation in annotations
     ]
 
     print()
@@ -94,7 +93,7 @@ def export_to_file(web_annotations):
         json.dump(web_annotations, out, indent=4)
 
 
-def print_example_conversions(annotations, scanpage_iiif: dict):
+def print_example_conversions(annotations, scanpage_iiif: dict, textrepo_base_url: str):
     key_func = lambda a: a['label']
     grouped_annotations = groupby(sorted(annotations, key=key_func), key=key_func)
     for label, group in grouped_annotations:
@@ -103,7 +102,7 @@ def print_example_conversions(annotations, scanpage_iiif: dict):
         random_annotation = random.choice(list(group))
         print(f"original annotation:\n{{code}}\n{json.dumps(random_annotation, indent=2)}\n{{code}}")
 
-        web_annotation = as_web_annotation(normalize_annotation(random_annotation, scanpage_iiif))
+        web_annotation = as_web_annotation(normalize_annotation(random_annotation, scanpage_iiif, textrepo_base_url))
         print(f"W3C Web annotation:\n{{code}}\n{json.dumps(web_annotation, indent=2)}\n{{code}}")
 
         jsonld = json.dumps(web_annotation)
@@ -115,7 +114,7 @@ def print_example_conversions(annotations, scanpage_iiif: dict):
         print("----")
 
 
-def convert(input: str):
+def convert(input: str, textrepo_base_url: str):
     print(f'> importing {input} ...')
     with open(input) as f:
         annotations = json.load(f)
@@ -125,14 +124,38 @@ def convert(input: str):
     scanpage_iiif_uri_map = {a['scan_id']: a['iiif_url'] for a in annotations if a['label'] == 'scanpage'}
     # ic(scanpage_iiif_uri_map)
 
-    # print_example_conversions(annotations, scanpage_iiif_uri_map)
+    print_example_conversions(annotations, scanpage_iiif_uri_map, textrepo_base_url)
 
-    web_annotations = convert_annotations(annotations, scanpage_iiif_uri_map)
+    web_annotations = convert_annotations(annotations, scanpage_iiif_uri_map, textrepo_base_url)
 
     export_to_file(web_annotations)
 
     print('> done!')
 
 
+def main():
+    parser = argparse.ArgumentParser(
+        description="Convert an un-t-ann-gle annotationstore file to a web annotations file.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("inputfile",
+                        help="The un-t-ann-gle annotationstore file to convert",
+                        type=str)
+    parser.add_argument("-t",
+                        "--textrepo-base-url",
+                        help="The base URL for the text repository",
+                        type=str,
+                        default='https://demorepo.tt.di.huc.knaw.nl',
+                        metavar="textrepo_base_url")
+    # parser.add_argument("-v",
+    #                     "--version-id",
+    #                     help="The textrepo version id to be used in te annotation targets",
+    #                     type=str,
+    #                     required=True,
+    #                     metavar="version_id")
+    args = parser.parse_args()
+    convert(args.inputfile, args.textrepo_base_url)
+
+
 if __name__ == '__main__':
-    convert(sys.argv[1])
+    main()
+    # convert('../data/1728-06-19-annotationstore.json')
