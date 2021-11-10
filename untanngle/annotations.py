@@ -280,6 +280,7 @@ def dataset_body(metadata: Dict):
 def resource_target(resource_id, begin_anchor, end_anchor):
     return {
         "source": resource_id,
+        "type": "Text",
         "selector": {
             "type": as_urn("TextAnchorSelector"),
             "start": begin_anchor,
@@ -374,7 +375,7 @@ def web_annotation(body: Any,
         "id": id,
         "type": "Annotation",
         "motivation": "classifying",
-        "created": datetime.today().isoformat(),
+        "generated": datetime.today().isoformat(),
         "generator": {
             "id": "https://github.com/knaw-huc/un-t-ann-gle",
             "type": "Software",
