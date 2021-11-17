@@ -63,7 +63,7 @@ def as_web_annotation(annotation: dict) -> dict:
 def normalize_annotation(annotation: dict, scanpage_iiif: dict, textrepo_base_url: str) -> dict:
     resource_id = annotation.get('resource_id')
     if resource_id:
-        annotation['resource_id'] = f"{textrepo_base_url}/task/find/{resource_id}/contents"
+        annotation['resource_id'] = f"{textrepo_base_url}/task/find/{resource_id}/file/contents?type=anchor"
     if 'image_coords' in annotation and 'iiif_url' not in annotation and annotation['id'].startswith('NL'):
         prefix = annotation['id'][:25]
         iiif_url = scanpage_iiif.get(prefix)
