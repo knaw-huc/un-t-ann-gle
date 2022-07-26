@@ -3,61 +3,41 @@ import argparse
 import json
 import random
 from itertools import groupby
+from typing import List, Dict
 
+from icecream import ic
 from rdflib import Graph
 
-from untanngle.annotations import LineAnnotation, AttendantAnnotation, AttendantsListAnnotation, ColumnAnnotation, \
-    ResolutionAnnotation, ScanPageAnnotation, SessionAnnotation, TextRegionAnnotation
+from untanngle.annotations import AttendantAnnotation, AttendantsListAnnotation, ColumnAnnotation, \
+    LineAnnotation, PageAnnotation, RepublicParagraphAnnotation, ResolutionAnnotation, ReviewedAnnotation, \
+    ScanAnnotation, SessionAnnotation, TextRegionAnnotation
 
-
-def scanpage_as_web_annotation(annotation: dict) -> dict:
-    return ScanPageAnnotation.from_dict(annotation).as_web_annotation()
-
-
-def column_as_web_annotation(annotation: dict) -> dict:
-    return ColumnAnnotation.from_dict(annotation).as_web_annotation()
-
-
-def textregion_as_web_annotation(annotation: dict) -> dict:
-    return TextRegionAnnotation.from_dict(annotation).as_web_annotation()
-
-
-def line_as_web_annotation(annotation: dict) -> dict:
-    return LineAnnotation.from_dict(annotation).as_web_annotation()
-
-
-def session_as_web_annotation(annotation: dict) -> dict:
-    return SessionAnnotation.from_dict(annotation).as_web_annotation()
-
-
-def attendantslist_as_web_annotation(annotation: dict) -> dict:
-    return AttendantsListAnnotation.from_dict(annotation).as_web_annotation()
-
-
-def attendant_as_web_annotation(annotation: dict) -> dict:
-    return AttendantAnnotation.from_dict(annotation).as_web_annotation()
-
-
-def resolution_as_web_annotation(annotation: dict) -> dict:
-    return ResolutionAnnotation.from_dict(annotation).as_web_annotation()
-
-
-annotation_mapper = {
-    'scanpage': scanpage_as_web_annotation,
-    'columns': column_as_web_annotation,
-    'textregions': textregion_as_web_annotation,
-    'lines': line_as_web_annotation,
-    'sessions': session_as_web_annotation,
-    'attendantslists': attendantslist_as_web_annotation,
-    'attendants': attendant_as_web_annotation,
-    'resolutions': resolution_as_web_annotation
-}
+annotation_class_mapper = dict(
+    attendant=AttendantAnnotation,
+    attendance_list=AttendantsListAnnotation,
+    column=ColumnAnnotation,
+    line=LineAnnotation,
+    page=PageAnnotation,
+    republic_paragraph=RepublicParagraphAnnotation,
+    resolution=ResolutionAnnotation,
+    reviewed=ReviewedAnnotation,
+    scan=ScanAnnotation,
+    session=SessionAnnotation,
+    text_region=TextRegionAnnotation
+)
 
 
 def as_web_annotation(annotation: dict) -> dict:
-    # ic(annotation)
-    label = annotation.get('label')
-    return annotation_mapper[label](annotation)
+    try:
+        a_type = annotation.get('type')
+        a_class = annotation_class_mapper[a_type]
+        return a_class.from_dict(annotation).as_web_annotation()
+    except Exception as e:
+        print("failing input json:")
+        print(json.dumps(annotation))
+        ic(annotation)
+        print("failure:")
+        raise e
 
 
 def normalize_annotation(annotation: dict, scanpage_iiif: dict, textrepo_base_url: str) -> dict:
@@ -93,6 +73,25 @@ def export_to_file(web_annotations):
         json.dump(web_annotations, out, indent=4)
 
 
+def get_sample(web_annotations: List[Dict]) -> List[Dict]:
+    sampled_types = set()
+    sample = []
+    random.shuffle(web_annotations)
+    for a in web_annotations:
+        a_type = a["body"]["type"]
+        if a_type not in sampled_types:
+            sampled_types.add(a_type)
+            sample.append(a)
+    return sample
+
+
+def export_sample(web_annotations):
+    out_file = 'sample.json'
+    print(f'> exporting to {out_file} ...')
+    with open(out_file, 'w') as out:
+        json.dump(get_sample(web_annotations), out, indent=4)
+
+
 def print_example_conversions(annotations, scanpage_iiif: dict, textrepo_base_url: str):
     key_func = lambda a: a['label']
     grouped_annotations = groupby(sorted(annotations, key=key_func), key=key_func)
@@ -121,14 +120,10 @@ def convert(input_file: str, textrepo_base_url: str):
     num_annotations = len(annotations)
     print(f'> {num_annotations} annotations loaded')
 
-    scanpage_iiif_uri_map = {a['scan_id']: a['iiif_url'] for a in annotations if a['label'] == 'scanpage'}
-    # ic(scanpage_iiif_uri_map)
-
-    # print_example_conversions(annotations, scanpage_iiif_uri_map, textrepo_base_url)
-
-    web_annotations = convert_annotations(annotations, scanpage_iiif_uri_map, textrepo_base_url)
+    web_annotations = convert_annotations(annotations, "", textrepo_base_url)
 
     export_to_file(web_annotations)
+    export_sample(web_annotations)
 
     print('> done!')
 
@@ -146,16 +141,9 @@ def main():
                         type=str,
                         default='https://demorepo.tt.di.huc.knaw.nl',
                         metavar="textrepo_base_url")
-    # parser.add_argument("-v",
-    #                     "--version-id",
-    #                     help="The textrepo version id to be used in te annotation targets",
-    #                     type=str,
-    #                     required=True,
-    #                     metavar="version_id")
     args = parser.parse_args()
     convert(args.inputfile, args.textrepo_base_url)
 
 
 if __name__ == '__main__':
     main()
-    # convert('../data/1728-06-19-annotationstore.json')

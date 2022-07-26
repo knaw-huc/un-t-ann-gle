@@ -2,11 +2,88 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, List, Union, Dict, Set
+from typing import Any, List, Union, Dict, Set, Optional
 
 import requests
 import uri as uri
 from dataclasses_json import dataclass_json, Undefined, config
+from rfc3987 import parse
+
+from untanngle.camel_casing import keys_to_camel_case
+
+REPUBLIC_CONTEXT = "https://brambg.github.io/ns/republic.jsonld"
+
+
+def exclude_if_none(value):
+    """Do not include field for None values"""
+    return value is None
+
+
+class Annotation:
+    def as_web_annotation(self) -> dict:
+        if hasattr(self, 'iiif_url'):
+            iiif_url = self.iiif_url
+        else:
+            iiif_url = ''
+        target = []
+        if hasattr(self, 'coords') and self.coords:
+            image_coords = to_image_coords(self.coords)
+            target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
+        if hasattr(self, 'begin_anchor'):
+            if hasattr(self, 'end_char_offset'):
+                target.append(
+                    resource_target(self.resource_id, self.begin_anchor, self.end_anchor, self.begin_char_offset,
+                                    self.end_char_offset))
+            else:
+                target.append(resource_target(self.resource_id, self.begin_anchor, self.end_anchor))
+        for link in self.region_links:
+            target.append(image_target(iiif_url=link))
+        body = self.body()
+        if "metadata" in body.keys():
+            if "id" in body["metadata"].keys():
+                body["metadata"].pop("id")
+                body["metadata"].pop("type")
+        return web_annotation(body=body, target=target, provenance=self.provenance)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class Provenance:
+    source: str
+    target: str
+    harvesting_date: str
+    conversion_date: str
+    tool_id: str
+    motivation: str
+    index_timestamp: str
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class Structure:
+    type: str
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class MatchScores:
+    char_match: float
+    ngram_match: float
+    levenshtein_similarity: float
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class Evidence:
+    type: str
+    phrase: str
+    variant: str
+    string: str
+    offset: int
+    label: str
+    ignorecase: bool
+    text_id: str
+    match_scores: MatchScores
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -86,16 +163,57 @@ class ColumnAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class TextRegionAnnotation:
-    label: str
+class TextRegionMetadata:
     id: str
+    type: List[str]
+    parent_type: str
+    parent_id: str
+    scan_id: str
+    page_id: str
+    iiif_url: str
+    page_num: int
+    text_page_num: int
+    median_normal_left: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
+    median_normal_right: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
+    median_normal_width: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
+    median_normal_length: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
+    structure: Optional[Structure] = field(metadata=config(exclude=exclude_if_none), default=None)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class TextRegionAnnotation(Annotation):
+    id: str
+    type: str
+    resource_id: str
+    metadata: TextRegionMetadata
+    begin_anchor: int
+    end_anchor: int
+    coords: List[List[int]]
+    region_links: List[str]
+    provenance: Provenance
+
+    def body(self) -> Dict[str, Any]:
+        return {
+            "@context": REPUBLIC_CONTEXT,
+            "id": self.id,
+            "type": "TextRegion",
+            "metadata": self.metadata.to_dict()
+        }
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class TextRegionAnnotation0:
+    id: str
+    label: str
     begin_anchor: int
     end_anchor: int
     resource_id: str
     image_coords: ImageCoords
-    iiif_url: Union[str, None]
     image_range: List[List[Union[List[ImageCoords], str]]]
     region_links: List[str]
+    iiif_url: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
 
     def __post_init__(self):
         self.id = re.sub(r'-line-.*', '', self.id)
@@ -114,16 +232,65 @@ class TextRegionAnnotation:
         return web_annotation(body=body, target=target)
 
 
+def to_image_coords(coords: List[List[int]]) -> ImageCoords:
+    left = min([c[0] for c in coords])
+    right = max([c[0] for c in coords])
+    top = min([c[1] for c in coords])
+    bottom = max([c[1] for c in coords])
+    width = right - left
+    height = bottom - top
+    return ImageCoords(left=left, right=right, top=top, bottom=bottom, width=width, height=height)
+
+
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class LineAnnotation:
-    label: str
+class LineMetadata:
     id: str
+    type: str
+    parent_type: str
+    parent_id: str
+    scan_id: str
+    page_id: str
+    text_region_id: str
+    column_id: str
+    left_alignment: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+    right_alignment: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+    line_width: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class LineAnnotation(Annotation):
+    id: str
+    type: str
+    resource_id: str
+    metadata: LineMetadata
+    begin_anchor: int
+    end_anchor: int
+    baseline: List[List[int]]
+    coords: List[List[int]]
+    region_links: List[str]
+    provenance: Provenance
+
+    def body(self) -> Dict[str, Any]:
+        return {
+            "@context": REPUBLIC_CONTEXT,
+            "id": self.id,
+            "type": "Line",
+            "metadata": self.metadata.to_dict()
+        }
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class LineAnnotation0:
+    id: str
+    label: str
     begin_anchor: int
     end_anchor: int
     resource_id: str
     image_coords: ImageCoords
-    iiif_url: Union[str, None]
+    iiif_url: Optional[str]
     image_range: List[List[Union[List[ImageCoords], str]]]
     region_links: List[str]
 
@@ -131,9 +298,9 @@ class LineAnnotation:
         body = classifying_body(as_urn(self.id), 'line')
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
                   image_target(iiif_url=self.iiif_url, image_coords=self.image_coords)]
-        for range in self.image_range:
-            url = range[0]
-            image_coords_list = range[1]
+        for i_range in self.image_range:
+            url = i_range[0]
+            image_coords_list = i_range[1]
             for ic in image_coords_list:
                 target.append(image_target(url, ImageCoords.from_dict(ic)))
         for link in self.region_links:
@@ -143,19 +310,74 @@ class LineAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class SessionAnnotation:
-    label: str
+class SessionMetadata:
     id: str
+    type: str
+    date_shift_status: str
+    has_session_date_element: bool
+    index_timestamp: str
+    inventory_num: int
+    is_workday: bool
+    lines_include_rest_day: bool
+    resolution_ids: List[object]
+    session_date: str
+    session_day: int
+    session_month: int
+    session_num: int
+    session_weekday: str
+    session_year: int
+    text_page_num: List[int]
+    attendants_list_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+    iiif_url: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+    num_lines: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
+    parent_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+    parent_type: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+    page_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+    page_num: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
+    president: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+    scan_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+    structure: Optional[Structure] = field(metadata=config(exclude=exclude_if_none), default=None)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class SessionAnnotation(Annotation):
+    id: str
+    type: str
+    resource_id: str
+    begin_anchor: int
+    end_anchor: int
+    evidence: List[Evidence]
+    metadata: SessionMetadata
+    provenance: Provenance
+    region_links: List[str]
+    coords: Optional[List[List[int]]] = field(metadata=config(exclude=exclude_if_none), default=None)
+
+    def body(self) -> Dict[str, Any]:
+        return {
+            "@context": REPUBLIC_CONTEXT,
+            "id": self.id,
+            "type": "Session",
+            "metadata": self.metadata.to_dict(),
+            "evidence": [e.to_dict() for e in self.evidence]
+        }
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class SessionAnnotation0:
+    id: str
+    label: str
     begin_anchor: int
     end_anchor: int
     resource_id: str
-    image_coords: Union[None, ImageCoords]
+    image_coords: Optional[ImageCoords]
     image_range: List[List[Union[List[ImageCoords], str]]]
     region_links: List[str]
     session_date: str
     session_year: int
     session_weekday: str
-    president: Union[None, str]
+    president: Optional[str]
 
     def as_web_annotation(self) -> dict:
         body = [classifying_body(as_urn(self.id), 'session'),
@@ -177,9 +399,63 @@ class SessionAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class AttendantsListAnnotation:
-    label: str
+class AttendantsListMetadata:
     id: str
+    type: str
+    inventory_num: int
+    source_id: str
+    session_date: str
+    session_id: str
+    session_num: int
+    session_year: int
+    session_month: int
+    session_day: int
+    session_weekday: str
+    text_page_num: List[int]
+    index_timestamp: str
+    president: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class AttendanceSpan:
+    offset: int
+    end: int
+    span_class: str = field(metadata=config(field_name="class"))
+    pattern: str
+    delegate_id: int
+    delegate_name: str
+    delegate_score: int
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class AttendantsListAnnotation(Annotation):
+    id: str
+    type: str
+    resource_id: str
+    begin_anchor: int
+    end_anchor: int
+    metadata: AttendantsListMetadata
+    attendance_spans: List[AttendanceSpan]
+    region_links: List[str]
+    provenance: Provenance
+
+    def body(self) -> Dict[str, Any]:
+        return {
+            "@context": REPUBLIC_CONTEXT,
+            "id": self.id,
+            "type": "AttendanceList",
+            "metadata": self.metadata.to_dict(),
+            "attendance_spans": [a.to_dict() for a in self.attendance_spans]
+        }
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class AttendantsListAnnotation0:
+    id: str
+    label: str
     begin_anchor: int
     end_anchor: int
     resource_id: str
@@ -206,9 +482,44 @@ class AttendantsListAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class AttendantAnnotation:
-    label: str
+class AttendantMetadata:
+    offset: int
+    end: int
+    metadata_class: str = field(metadata=config(field_name="class"))
+    pattern: str
+    delegate_id: int
+    delegate_name: str
+    delegate_score: int
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class AttendantAnnotation(Annotation):
     id: str
+    type: str
+    resource_id: str
+    metadata: AttendantMetadata
+    begin_anchor: int
+    end_anchor: int
+    begin_char_offset: int
+    end_char_offset: int
+    region_links: List[str]
+    provenance: Provenance
+
+    def body(self) -> Dict[str, Any]:
+        return {
+            "@context": REPUBLIC_CONTEXT,
+            "id": self.id,
+            "type": "Attendant",
+            "metadata": self.metadata.to_dict()
+        }
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class AttendantAnnotation0:
+    id: str
+    label: str
     begin_anchor: int
     end_anchor: int
     resource_id: str
@@ -218,7 +529,7 @@ class AttendantAnnotation:
 
     def as_web_annotation(self) -> dict:
         body = [classifying_body(as_urn(self.id), 'attendant'),
-                dataset_body(self.metadata.__dict__)]
+                dataset_body(self.metadata.to_dict())]
         target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
         for range in self.image_range:
             url = range[0]
@@ -232,13 +543,54 @@ class AttendantAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
-class ResolutionAnnotation:
-    label: str
+class ResolutionMetadata:
     id: str
+    type: str
+    structure: Structure
+    parent_type: str
+    parent_id: str
+    scan_id: str
+    page_id: str
+    iiif_url: str
+    page_num: int
+    text_page_num: int
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class ResolutionAnnotation(Annotation):
+    id: str
+    type: str
+    resource_id: str
+    begin_anchor: int
+    end_anchor: int
+    region_links: List[str]
+    metadata: dict
+    provenance: Provenance
+    coords: Optional[List[List[int]]] = field(metadata=config(exclude=exclude_if_none), default=None)
+    evidence: Optional[List[Evidence]] = field(metadata=config(exclude=exclude_if_none), default=None)
+
+    def body(self) -> Dict[str, Any]:
+        body = {
+            "@context": REPUBLIC_CONTEXT,
+            "id": self.id,
+            "type": "Resolution",
+            "metadata": self.metadata
+        }
+        if self.evidence:
+            body["evidence"] = [e.to_dict() for e in self.evidence]
+        return body
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class ResolutionAnnotation0:
+    id: str
+    label: str
     begin_anchor: int
     end_anchor: int
     resource_id: str
-    proposition_type: Union[str, None]
+    proposition_type: Optional[str]
     image_range: List[List[Union[List[ImageCoords], str]]]
     region_links: List[str]
 
@@ -259,6 +611,145 @@ class ResolutionAnnotation:
         return web_annotation(body=body, target=target)
 
 
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class RepublicParagraphMetadata:
+    id: str
+    type: str
+    inventory_num: int
+    source_id: str
+    text_page_num: List[int]
+    page_num: List[int]
+    start_offset: int
+    iiif_url: str
+    doc_id: str
+    lang: str
+    paragraph_index: int
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class LineRange:
+    start: int
+    end: int
+    line_id: str
+    text_page_num: int
+    page_num: int
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class RepublicParagraphAnnotation(Annotation):
+    id: str
+    type: str
+    resource_id: str
+    begin_anchor: int
+    end_anchor: int
+    metadata: RepublicParagraphMetadata
+    line_ranges: List[LineRange]
+    text: str
+    region_links: List[str]
+    provenance: Provenance
+
+    def body(self) -> Dict[str, Any]:
+        return {
+            "@context": REPUBLIC_CONTEXT,
+            "id": self.id,
+            "type": "RepublicParagraph",
+            "metadata": self.metadata.to_dict(),
+            "text": self.text
+        }
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class ReviewedMetadata:
+    id: str
+    type: str
+    inventory_num: int
+    source_id: str
+    text_page_num: List[int]
+    page_num: List[int]
+    start_offset: int
+    iiif_url: str
+    doc_id: str
+    lang: str
+    paragraph_index: int
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class ReviewedAnnotation(Annotation):
+    id: str
+    type: str
+    resource_id: str
+    begin_anchor: int
+    end_anchor: int
+    metadata: ReviewedMetadata
+    line_ranges: List[LineRange]
+    text: str
+    region_links: List[str]
+    provenance: Provenance
+
+    def body(self) -> Dict[str, Any]:
+        return {
+            "@context": REPUBLIC_CONTEXT,
+            "id": self.id,
+            "type": "Reviewed",
+            "metadata": self.metadata.to_dict(),
+            "text": self.text
+        }
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class PageMetadata:
+    page_id: str
+    scan_id: str
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class PageAnnotation(Annotation):
+    id: str
+    type: str
+    resource_id: str
+    begin_anchor: int
+    end_anchor: int
+    metadata: PageMetadata
+    coords: List[List[int]]
+    region_links: List[str]
+    provenance: Provenance
+
+    def body(self) -> Dict[str, Any]:
+        return {
+            "@context": REPUBLIC_CONTEXT,
+            "id": self.id,
+            "type": "Page",
+            "metadata": self.metadata.to_dict()
+        }
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class ScanAnnotation(Annotation):
+    id: str
+    type: str
+    resource_id: str
+    iiif_url: str
+    begin_anchor: int
+    end_anchor: int
+    region_links: List[str]
+    provenance: Provenance
+
+    def body(self) -> Dict[str, Any]:
+        return {
+            "@context": REPUBLIC_CONTEXT,
+            "id": self.id,
+            "type": "Scan"
+        }
+
+
 def classifying_body(id: str, value: str):
     body = {
         "type": "TextualBody",
@@ -277,8 +768,12 @@ def dataset_body(metadata: Dict):
     }
 
 
-def resource_target(resource_id, begin_anchor, end_anchor):
-    return {
+def resource_target(resource_id: str,
+                    begin_anchor: int,
+                    end_anchor: int,
+                    begin_char_offset: int = None,
+                    end_char_offset: int = None) -> Dict[str, Any]:
+    target = {
         "source": resource_id,
         "type": "Text",
         "selector": {
@@ -287,53 +782,34 @@ def resource_target(resource_id, begin_anchor, end_anchor):
             "end": end_anchor
         }
     }
+    if begin_char_offset is not None:
+        target["selector"]["begin_char_offset"] = begin_char_offset
+        target["selector"]["end_char_offset"] = end_char_offset
+    return target
 
 
 def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
                  image_coords: ImageCoords = None,
                  scan_id: str = None) -> dict:
-    image_target = {
+    target = {
         "source": iiif_url,
         "type": "Image"
     }
     if image_coords:
         xywh = f"{image_coords.left},{image_coords.top},{image_coords.width},{image_coords.height}"
-        image_target['selector'] = {
+        target['selector'] = {
             "type": "FragmentSelector",
             "conformsTo": "http://www.w3.org/TR/media-frags/",
             "value": f"xywh={xywh}"
         }
     if scan_id:
-        image_target['id'] = scan_id
-    return image_target
+        target['id'] = scan_id
+    return target
 
 
-roar_context = {
-    "roar": "https://w3id.org/roar#",
-    "Document": "roar:Document",
-    "Entity": "roar:Entity",
-    "Location": "roar:Location",
-    "LocationObservation": "roar:LocationObservation",
-    "LocationReconstruction": "roar:LocationReconstruction",
-    "Observation": "roar:Observation",
-    "Person": "roar:Person",
-    "PersonObservation": "roar:PersonObservation",
-    "PersonReconstruction": "roar:PersonReconstruction",
-    "Reconstruction": "roar:Reconstruction",
-    "documentedIn": "roar:documentedIn",
-    "hasLocation": "roar:hasLocation",
-    "hasPerson": "roar:hasPerson",
-    "hasRelation": "roar:hasRelation",
-    "locationInDocument": "roar:locationInDocument",
-    "onScan": "roar:onScan",
-    "relationType": "roar:relationType",
-    "role": "roar:role"
-}
-
-
-def recursively_get_fields(dict: dict) -> Set[str]:
+def recursively_get_fields(d: dict) -> Set[str]:
     fields = set()
-    for (key, value) in dict.items():
+    for (key, value) in d.items():
         fields.add(key)
         if isinstance(value, Dict):
             fields = fields.union(recursively_get_fields(value))
@@ -360,19 +836,20 @@ def create_context(custom_fields: Set[str]) -> Dict[str, str]:
 
 def web_annotation(body: Any,
                    target: Any,
-                   id: uri = f"urn:example:republic:annotation:{uuid.uuid4()}",
+                   anno_id: uri = None,
+                   provenance: Provenance = None,
                    custom: dict = None) -> dict:
+    if not anno_id:
+        anno_id = f"urn:republic:annotation:{uuid.uuid4()}"
     contexts = [
         "http://www.w3.org/ns/anno.jsonld",
+        {"provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"}
     ]
-    custom_fields = get_custom_fields(body, target, custom)
-    if custom_fields:
-        contexts.append(create_context(custom_fields))
 
     context = contexts[0] if len(contexts) == 1 else contexts
     annotation = {
         "@context": context,
-        "id": id,
+        "id": anno_id,
         "type": "Annotation",
         "motivation": "classifying",
         "generated": datetime.today().isoformat(),
@@ -386,7 +863,16 @@ def web_annotation(body: Any,
     }
     if custom:
         annotation.update(custom)
-    return annotation
+    if provenance:
+        annotation["provenance"] = provenance.to_dict()
+        annotation["provenance"]["@context"] = "https://brambg.github.io/ns/provenance.jsonld"
+
+    # ic(annotation)
+    camel_cased = keys_to_camel_case(annotation)
+    return force_iri_values(camel_cased,
+                            {"id", "docId", "lineId", "parentId", "pageId", "resourceId", "scanId", "sessionId",
+                             "textRegionId", "columnId", "sourceId", "textId"},
+                            "urn:republic:")
 
 
 def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
@@ -395,9 +881,9 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
         "purpose": "classifying",
         "value": value
     }
-    id = annotation.pop('id', None)
-    if id:
-        body['id'] = id
+    anno_id = annotation.pop('id', None)
+    if anno_id:
+        body['id'] = anno_id
     if value == 'sessions':
         session_date = annotation.pop('session_date')
         session_year = annotation.pop('session_year')
@@ -510,7 +996,7 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
 
 
 def as_urn(id: str) -> str:
-    return f"urn:example:republic:{id}"
+    return f"urn:republic:{id}"
 
 
 def get_anno_context_fields():
@@ -519,3 +1005,41 @@ def get_anno_context_fields():
 
 
 anno_context_fields = get_anno_context_fields()
+
+
+def is_iri(value: str) -> bool:
+    try:
+        parse(value, rule='IRI')
+        return True
+    except ValueError:
+        return False
+
+
+def as_iri(value: str, prefix: str):
+    if is_iri(value):
+        return value
+    else:
+        return f"{prefix}{value}"
+
+
+def force_iri_values_in_list(l: List, id_fields: Set[str], prefix: str) -> List:
+    new_list = []
+    for e in l:
+        if isinstance(e, dict):
+            new_list.append(force_iri_values(e, id_fields, prefix))
+        elif isinstance(e, list):
+            new_list.append(force_iri_values_in_list(e, id_fields, prefix))
+        else:
+            new_list.append(e)
+    return new_list
+
+
+def force_iri_values(d: dict, id_fields: Set[str], prefix: str) -> dict:
+    for (k, v) in d.items():
+        if k in id_fields:
+            d[k] = as_iri(v, prefix)
+        elif isinstance(v, dict):
+            d[k] = force_iri_values(v, id_fields, prefix)
+        elif isinstance(v, list):
+            d[k] = force_iri_values_in_list(v, id_fields, prefix)
+    return d
