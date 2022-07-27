@@ -20,7 +20,7 @@ def exclude_if_none(value):
 
 
 class Annotation:
-    def as_web_annotation(self) -> dict:
+    def as_web_annotation(self, textrepo_base_url: str, version_id: str) -> dict:
         if hasattr(self, 'iiif_url'):
             iiif_url = self.iiif_url
         else:
@@ -32,10 +32,28 @@ class Annotation:
         if hasattr(self, 'begin_anchor'):
             if hasattr(self, 'end_char_offset'):
                 target.append(
-                    resource_target(self.resource_id, self.begin_anchor, self.end_anchor, self.begin_char_offset,
-                                    self.end_char_offset))
+                    resource_target(
+                        textrepo_base_url=textrepo_base_url,
+                        version_id=version_id,
+                        begin_anchor=self.begin_anchor,
+                        end_anchor=self.end_anchor,
+                        begin_char_offset=self.begin_char_offset,
+                        end_char_offset=self.end_char_offset
+                    )
+                )
+                target.append(
+                    selection_view_target(
+                        textrepo_base_url=textrepo_base_url,
+                        version_id=version_id,
+                        begin_anchor=self.begin_anchor,
+                        end_anchor=self.end_anchor,
+                        begin_char_offset=self.begin_char_offset,
+                        end_char_offset=self.end_char_offset
+                    )
+                )
             else:
-                target.append(resource_target(self.resource_id, self.begin_anchor, self.end_anchor))
+                target.append(resource_target(textrepo_base_url, version_id, self.begin_anchor, self.end_anchor))
+                target.append(selection_view_target(textrepo_base_url, version_id, self.begin_anchor, self.end_anchor))
         for link in self.region_links:
             target.append(image_target(iiif_url=link))
         body = self.body()
@@ -123,7 +141,7 @@ class ScanPageAnnotation:
 
     def as_web_annotation(self) -> dict:
         body = classifying_body(id=as_urn(self.scan_id), value='scanpage')
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
+        target = [resource_target(self.begin_anchor, self.end_anchor),
                   image_target(iiif_url=self.iiif_url)]
         for range in self.image_range:
             url = range[0]
@@ -149,7 +167,7 @@ class ColumnAnnotation:
 
     def as_web_annotation(self) -> dict:
         body = classifying_body(as_urn(self.id), 'column')
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
+        target = [resource_target(self.begin_anchor, self.end_anchor),
                   image_target(image_coords=self.image_coords)]
         for range in self.image_range:
             url = range[0]
@@ -220,7 +238,7 @@ class TextRegionAnnotation0:
 
     def as_web_annotation(self) -> dict:
         body = classifying_body(as_urn(self.id), 'textregion')
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
+        target = [resource_target(self.begin_anchor, self.end_anchor),
                   image_target(iiif_url=self.iiif_url, image_coords=self.image_coords)]
         for range in self.image_range:
             url = range[0]
@@ -296,7 +314,7 @@ class LineAnnotation0:
 
     def as_web_annotation(self) -> dict:
         body = classifying_body(as_urn(self.id), 'line')
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
+        target = [resource_target(self.begin_anchor, self.end_anchor),
                   image_target(iiif_url=self.iiif_url, image_coords=self.image_coords)]
         for i_range in self.image_range:
             url = i_range[0]
@@ -385,7 +403,7 @@ class SessionAnnotation0:
                               "year": self.session_year,
                               "weekday": self.session_weekday,
                               "president": self.president})]
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor),
+        target = [resource_target(self.begin_anchor, self.end_anchor),
                   image_target(image_coords=self.image_coords)]
         for range in self.image_range:
             url = range[0]
@@ -469,7 +487,7 @@ class AttendantsListAnnotation0:
             classifying_body(as_urn(self.id), 'attendantslist'),
             {"partOf": as_urn(self.session_id)}
         ]
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        target = [resource_target(self.begin_anchor, self.end_anchor)]
         for range in self.image_range:
             url = range[0]
             image_coords_list = range[1]
@@ -530,7 +548,7 @@ class AttendantAnnotation0:
     def as_web_annotation(self) -> dict:
         body = [classifying_body(as_urn(self.id), 'attendant'),
                 dataset_body(self.metadata.to_dict())]
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        target = [resource_target(self.begin_anchor, self.end_anchor)]
         for range in self.image_range:
             url = range[0]
             image_coords_list = range[1]
@@ -599,7 +617,7 @@ class ResolutionAnnotation0:
         body = [classifying_body(as_urn(self.id), 'resolution')]
         if self.proposition_type:
             body.append({"proposition_type": self.proposition_type})
-        target = [resource_target(self.resource_id, self.begin_anchor, self.end_anchor)]
+        target = [resource_target(self.begin_anchor, self.end_anchor)]
         for range in self.image_range:
             url = range[0]
             image_coords_list = range[1]
@@ -768,13 +786,16 @@ def dataset_body(metadata: Dict):
     }
 
 
-def resource_target(resource_id: str,
-                    begin_anchor: int,
-                    end_anchor: int,
-                    begin_char_offset: int = None,
-                    end_char_offset: int = None) -> Dict[str, Any]:
+def resource_target(
+        textrepo_base_url: str,
+        version_id: str,
+        begin_anchor: int,
+        end_anchor: int,
+        begin_char_offset: int = None,
+        end_char_offset: int = None
+) -> Dict[str, Any]:
     target = {
-        "source": resource_id,
+        "source": f"{textrepo_base_url}/rest/versions/{version_id}/contents",
         "type": "Text",
         "selector": {
             "type": as_urn("TextAnchorSelector"),
@@ -786,6 +807,24 @@ def resource_target(resource_id: str,
         target["selector"]["begin_char_offset"] = begin_char_offset
         target["selector"]["end_char_offset"] = end_char_offset
     return target
+
+
+def selection_view_target(
+        textrepo_base_url: str,
+        version_id: str,
+        begin_anchor: int,
+        end_anchor: int,
+        begin_char_offset: int = None,
+        end_char_offset: int = None
+) -> Dict[str, Any]:
+    if begin_char_offset is not None:
+        coord_params = f"{begin_anchor}/{begin_char_offset}/{end_anchor}/{end_char_offset}"
+    else:
+        coord_params = f"{begin_anchor}/{end_anchor}"
+    return {
+        "source": f"{textrepo_base_url}/view/versions/{version_id}/segments/index/{coord_params}",
+        "type": "Text"
+    }
 
 
 def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
@@ -916,7 +955,7 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
     if image_coords:
         iiif_url = annotation.pop('iiif_url', "https://example.org/missing-iiif-url")
         xywh = f"{image_coords['left']},{image_coords['top']},{image_coords['width']},{image_coords['height']}"
-        image_target = {
+        target = {
             "source": iiif_url,
             "type": "Image",
             "selector": {
@@ -926,16 +965,16 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
             }
         }
         if scan_id:
-            image_target['id'] = scan_id
-        targets.append(image_target)
+            target['id'] = scan_id
+        targets.append(target)
     elif scan_id:
         iiif_url = annotation.pop('iiif_url')
-        image_target = {
+        target = {
             "id": scan_id,
             "source": iiif_url,
             "type": "Image",
         }
-        targets.append(image_target)
+        targets.append(target)
 
     target = targets if len(targets) > 1 else targets[0]
     web_annotation = {
@@ -949,46 +988,7 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
             "name": "un-t-ann-gle"
         },
         "body": body,
-        "target": target,
-        # "target": [
-        #     {
-        #         "source": f'{scan_urn}:textline={text_line.id}',
-        #         "selector": {
-        #             "type": "TextPositionSelector",
-        #             "start": ner_result['offset']['begin'],
-        #             "end": ner_result['offset']['end']
-        #         }
-        #     },
-        #     {
-        #         "source": f'{scan_urn}:textline={text_line.id}',
-        #         "selector": {
-        #             "type": "FragmentSelector",
-        #             "conformsTo": "http://tools.ietf.org/rfc/rfc5147",
-        #             "value": f"char={ner_result['offset']['begin']},{ner_result['offset']['end']}"
-        #         }
-        #     },
-        #     {
-        #         "source": f'{version_base_uri}/contents',
-        #         "type": "xml",
-        #         "selector": {
-        #             "type": "FragmentSelector",
-        #             "conformsTo": "http://tools.ietf.org/rfc/rfc3023",
-        #             "value": f"xpointer(id({text_line.id})/TextEquiv/Unicode)"
-        #         }
-        #     },
-        #     {
-        #         "source": f"{version_base_uri}/chars/{ner_result['offset']['begin']}/{ner_result['offset']['end']}"
-        #     },
-        #     {
-        #         "source": iiif_url,
-        #         "type": "image",
-        #         "selector": {
-        #             "type": "FragmentSelector",
-        #             "conformsTo": "http://www.w3.org/TR/media-frags/",
-        #             "value": f"xywh={xywh}"
-        #         }
-        #     }
-        # ]
+        "target": target
     }
     if annotation:
         web_annotation["_unused_fields_from_original"] = annotation

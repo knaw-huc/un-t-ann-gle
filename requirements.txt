@@ -10,3 +10,4 @@ rdflib~=6.0.0
 requests
 setuptools~=28.8.0
 uri
+rfc3987

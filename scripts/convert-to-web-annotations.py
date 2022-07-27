@@ -27,11 +27,11 @@ annotation_class_mapper = dict(
 )
 
 
-def as_web_annotation(annotation: dict) -> dict:
+def as_web_annotation(annotation: dict, textrepo_url: str, version_id: str) -> dict:
     try:
         a_type = annotation.get('type')
         a_class = annotation_class_mapper[a_type]
-        return a_class.from_dict(annotation).as_web_annotation()
+        return a_class.from_dict(annotation).as_web_annotation(textrepo_base_url=textrepo_url, version_id=version_id)
     except Exception as e:
         print("failing input json:")
         print(json.dumps(annotation))
@@ -40,10 +40,7 @@ def as_web_annotation(annotation: dict) -> dict:
         raise e
 
 
-def normalize_annotation(annotation: dict, scanpage_iiif: dict, textrepo_base_url: str) -> dict:
-    resource_id = annotation.get('resource_id')
-    if resource_id:
-        annotation['resource_id'] = f"{textrepo_base_url}/task/find/{resource_id}/file/contents?type=anchor"
+def normalize_annotation(annotation: dict, scanpage_iiif: dict) -> dict:
     if 'image_coords' in annotation and 'iiif_url' not in annotation and annotation['id'].startswith('NL'):
         prefix = annotation['id'][:25]
         iiif_url = scanpage_iiif.get(prefix)
@@ -52,16 +49,16 @@ def normalize_annotation(annotation: dict, scanpage_iiif: dict, textrepo_base_ur
     return annotation
 
 
-def convert_annotations(annotations, scanpage_iiif_uri_map, textrepo_base_url: str):
+def convert_annotations(annotations, scanpage_iiif_uri_map, textrepo_url: str, version_id: str):
     num_annotations = len(annotations)
     print(f'> converting {num_annotations} annotations...')
     web_annotations = [
         as_web_annotation(
-            normalize_annotation(annotation, scanpage_iiif_uri_map, textrepo_base_url)
+            normalize_annotation(annotation, scanpage_iiif_uri_map),
+            textrepo_url, version_id
         )
         for annotation in annotations
     ]
-
     print()
     return web_annotations
 
@@ -101,7 +98,7 @@ def print_example_conversions(annotations, scanpage_iiif: dict, textrepo_base_ur
         random_annotation = random.choice(list(group))
         print(f"original annotation:\n{{code}}\n{json.dumps(random_annotation, indent=2)}\n{{code}}")
 
-        web_annotation = as_web_annotation(normalize_annotation(random_annotation, scanpage_iiif, textrepo_base_url))
+        web_annotation = as_web_annotation(normalize_annotation(random_annotation, scanpage_iiif))
         print(f"W3C Web annotation:\n{{code}}\n{json.dumps(web_annotation, indent=2)}\n{{code}}")
 
         jsonld = json.dumps(web_annotation)
@@ -113,14 +110,14 @@ def print_example_conversions(annotations, scanpage_iiif: dict, textrepo_base_ur
         print("----")
 
 
-def convert(input_file: str, textrepo_base_url: str):
+def convert(input_file: str, textrepo_url: str, version_id: str):
     print(f'> importing {input_file} ...')
     with open(input_file) as f:
         annotations = json.load(f)
     num_annotations = len(annotations)
     print(f'> {num_annotations} annotations loaded')
 
-    web_annotations = convert_annotations(annotations, "", textrepo_base_url)
+    web_annotations = convert_annotations(annotations, "", textrepo_url, version_id)
 
     export_to_file(web_annotations)
     export_sample(web_annotations)
@@ -137,12 +134,22 @@ def main():
                         type=str)
     parser.add_argument("-t",
                         "--textrepo-base-url",
-                        help="The base URL for the text repository",
+                        help="The base URL of the TextRepo server containing the text the annotations refer to "
+                             "( example: "
+                             "https://textrepo.republic-caf.diginfra.org/api/ )",
                         type=str,
-                        default='https://demorepo.tt.di.huc.knaw.nl',
                         metavar="textrepo_base_url")
+    parser.add_argument("-v",
+                        "--version-id",
+                        help="The versionId of the text the annotations refer to "
+                             "( example: "
+                             "42df1275-81cd-489c-b28c-345780c3889b )",
+                        type=str,
+                        metavar="version_id")
     args = parser.parse_args()
-    convert(args.inputfile, args.textrepo_base_url)
+    if args.textrepo_base_url.endswith('/'):
+        args.textrepo_base_url = args.textrepo_base_url[0:-1]
+    convert(args.inputfile, args.textrepo_base_url, args.version_id)
 
 
 if __name__ == '__main__':
