@@ -134,6 +134,7 @@ def main():
                         type=str)
     parser.add_argument("-t",
                         "--textrepo-base-url",
+                        required=True,
                         help="The base URL of the TextRepo server containing the text the annotations refer to "
                              "( example: "
                              "https://textrepo.republic-caf.diginfra.org/api/ )",
@@ -141,6 +142,7 @@ def main():
                         metavar="textrepo_base_url")
     parser.add_argument("-v",
                         "--version-id",
+                        required=True,
                         help="The versionId of the text the annotations refer to "
                              "( example: "
                              "42df1275-81cd-489c-b28c-345780c3889b )",
