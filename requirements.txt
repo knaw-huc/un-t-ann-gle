@@ -3,10 +3,10 @@ dataclasses_json
 elucidate-python-client
 flask-restplus~=0.13.0
 icecream
-lxml~=4.6.2
+lxml==4.9.1
 progressbar2
-rdflib~=6.0.0
+rdflib==6.2.0
 requests
 rfc3987
-setuptools~=28.8.0
+setuptools==63.2.0
 uri
