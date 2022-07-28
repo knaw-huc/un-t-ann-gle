@@ -21,12 +21,12 @@ def exclude_if_none(value):
 
 class Annotation:
     def as_web_annotation(self, textrepo_base_url: str, version_id: str) -> dict:
-        if hasattr(self, 'iiif_url'):
-            iiif_url = self.iiif_url
-        else:
-            iiif_url = ''
         target = []
         if hasattr(self, 'coords') and self.coords:
+            if hasattr(self, 'iiif_url'):
+                iiif_url = self.iiif_url
+            else:
+                iiif_url = re.sub(r'jpg/[\d,]+/', 'jpg/full/', self.region_links[0])
             image_coords = to_image_coords(self.coords)
             target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
         if hasattr(self, 'begin_anchor'):
