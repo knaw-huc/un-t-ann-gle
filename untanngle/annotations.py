@@ -38,7 +38,7 @@ class Annotation:
                         begin_anchor=self.begin_anchor,
                         end_anchor=self.end_anchor,
                         begin_char_offset=self.begin_char_offset,
-                        end_char_offset=self.end_char_offset
+                        end_char_offset=self.end_char_offset-1
                     )
                 )
                 target.append(
@@ -48,7 +48,7 @@ class Annotation:
                         begin_anchor=self.begin_anchor,
                         end_anchor=self.end_anchor,
                         begin_char_offset=self.begin_char_offset,
-                        end_char_offset=self.end_char_offset
+                        end_char_offset=self.end_char_offset-1
                     )
                 )
             else:
