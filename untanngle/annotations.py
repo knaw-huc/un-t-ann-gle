@@ -7,6 +7,7 @@ from typing import Any, List, Union, Dict, Set, Optional
 import requests
 import uri as uri
 from dataclasses_json import dataclass_json, Undefined, config
+from icecream import ic
 from rfc3987 import parse
 
 from untanngle.camel_casing import keys_to_camel_case
@@ -26,9 +27,19 @@ class Annotation:
             if hasattr(self, 'iiif_url'):
                 iiif_url = self.iiif_url
             else:
-                iiif_url = re.sub(r'jpg/[\d,]+/', 'jpg/full/', self.region_links[0])
+                first_region_link = self.region_links[0]
+                iiif_url = re.sub(r'jpg/[\d,]+/', 'jpg/full/', first_region_link)
             image_coords = to_image_coords(self.coords)
             target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
+        else:
+            for rl in self.region_links:
+                xywh = rl.split('/')[-4]
+                if "," in xywh:
+                    (x, y, w, h) = xywh.split(',')
+                    image_coords = ImageCoords(left=x, right=x + w, top=y, bottom=y + h, width=w, height=h)
+                    iiif_url = re.sub(r'jpg/[\d,]+/', 'jpg/full/', rl)
+                    target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
+
         if hasattr(self, 'begin_anchor'):
             if hasattr(self, 'end_char_offset'):
                 target.append(
@@ -38,7 +49,7 @@ class Annotation:
                         begin_anchor=self.begin_anchor,
                         end_anchor=self.end_anchor,
                         begin_char_offset=self.begin_char_offset,
-                        end_char_offset=self.end_char_offset-1
+                        end_char_offset=self.end_char_offset - 1
                     )
                 )
                 target.append(
@@ -48,7 +59,7 @@ class Annotation:
                         begin_anchor=self.begin_anchor,
                         end_anchor=self.end_anchor,
                         begin_char_offset=self.begin_char_offset,
-                        end_char_offset=self.end_char_offset-1
+                        end_char_offset=self.end_char_offset - 1
                     )
                 )
             else:
