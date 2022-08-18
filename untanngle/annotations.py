@@ -32,9 +32,7 @@ class Annotation:
             target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
             target.append(
                 image_target_wth_svg_selector(iiif_url=iiif_url,
-                                              coords=self.coords,
-                                              height=image_coords.height,
-                                              width=image_coords.width))
+                                              coords=self.coords))
         else:
             for rl in self.region_links:
                 xywh = rl.split('/')[-4]
@@ -861,20 +859,20 @@ def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
     return target
 
 
-def image_target_wth_svg_selector(iiif_url: str = "https://example.org/missing-iiif-url", coords: List = None,
-                                  scan_id: str = None, height: int = 0, width: int = 0) -> dict:
+def image_target_wth_svg_selector(iiif_url: str,
+                                  coords: List,
+                                  scan_id: str = None) -> dict:
     target = {
         "source": iiif_url,
         "type": "Image"
     }
-    if coords:
-        points = ' '.join([f"{c[0]},{c[1]}" for c in coords])
-        height = max([c[0] for c in coords])
-        width = max([c[1] for c in coords])
-        target['selector'] = {
-            "type": "SvgSelector",
-            "value": f"""<svg height="{height}" width="{width}"><polygon points="{points}"/></svg>"""
-        }
+    points = ' '.join([f"{c[0]},{c[1]}" for c in coords])
+    height = max([c[0] for c in coords])
+    width = max([c[1] for c in coords])
+    target['selector'] = {
+        "type": "SvgSelector",
+        "value": f"""<svg height="{height}" width="{width}"><polygon points="{points}"/></svg>"""
+    }
     if scan_id:
         target['id'] = scan_id
     return target
