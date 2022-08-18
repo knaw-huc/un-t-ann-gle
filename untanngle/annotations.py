@@ -7,7 +7,6 @@ from typing import Any, List, Union, Dict, Set, Optional
 import requests
 import uri as uri
 from dataclasses_json import dataclass_json, Undefined, config
-from icecream import ic
 from rfc3987 import parse
 
 from untanngle.camel_casing import keys_to_camel_case
@@ -31,6 +30,11 @@ class Annotation:
                 iiif_url = re.sub(r'jpg/[\d,]+/', 'jpg/full/', first_region_link)
             image_coords = to_image_coords(self.coords)
             target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
+            target.append(
+                image_target_wth_svg_selector(iiif_url=iiif_url,
+                                              coords=self.coords,
+                                              height=image_coords.height,
+                                              width=image_coords.width))
         else:
             for rl in self.region_links:
                 xywh = rl.split('/')[-4]
@@ -851,6 +855,25 @@ def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
             "type": "FragmentSelector",
             "conformsTo": "http://www.w3.org/TR/media-frags/",
             "value": f"xywh={xywh}"
+        }
+    if scan_id:
+        target['id'] = scan_id
+    return target
+
+
+def image_target_wth_svg_selector(iiif_url: str = "https://example.org/missing-iiif-url", coords: List = None,
+                                  scan_id: str = None, height: int = 0, width: int = 0) -> dict:
+    target = {
+        "source": iiif_url,
+        "type": "Image"
+    }
+    if coords:
+        points = ' '.join([f"{c[0]},{c[1]}" for c in coords])
+        height = max([c[0] for c in coords])
+        width = max([c[1] for c in coords])
+        target['selector'] = {
+            "type": "SvgSelector",
+            "value": f"""<svg height="{height}" width="{width}"><polygon points="{points}"/></svg>"""
         }
     if scan_id:
         target['id'] = scan_id
