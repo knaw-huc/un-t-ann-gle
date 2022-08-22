@@ -38,9 +38,19 @@ class Annotation:
                 xywh = rl.split('/')[-4]
                 if "," in xywh:
                     (x, y, w, h) = xywh.split(',')
-                    image_coords = ImageCoords(left=x, right=x + w, top=y, bottom=y + h, width=w, height=h)
+                    image_coords = ImageCoords(left=int(x), right=int(x) + int(w),
+                                               top=int(y), bottom=int(y) + int(h),
+                                               width=int(w), height=int(h))
+                    coords = [
+                        [image_coords.top, image_coords.left],
+                        [image_coords.top, image_coords.right],
+                        [image_coords.bottom, image_coords.right],
+                        [image_coords.bottom, image_coords.left]
+                    ]
                     iiif_url = re.sub(r'jpg/[\d,]+/', 'jpg/full/', rl)
                     target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
+                    target.append(image_target_wth_svg_selector(iiif_url=iiif_url,
+                                                                coords=coords))
 
         if hasattr(self, 'begin_anchor'):
             if hasattr(self, 'end_char_offset'):
