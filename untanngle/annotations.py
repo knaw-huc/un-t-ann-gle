@@ -42,10 +42,10 @@ class Annotation:
                                                top=int(y), bottom=int(y) + int(h),
                                                width=int(w), height=int(h))
                     coords = [
-                        [image_coords.top, image_coords.left],
-                        [image_coords.top, image_coords.right],
-                        [image_coords.bottom, image_coords.right],
-                        [image_coords.bottom, image_coords.left]
+                        [image_coords.left, image_coords.top],
+                        [image_coords.right, image_coords.top],
+                        [image_coords.right, image_coords.bottom],
+                        [image_coords.left, image_coords.bottom]
                     ]
                     iiif_url = re.sub(r'jpg/[\d,]+/', 'jpg/full/', rl)
                     target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
