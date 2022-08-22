@@ -867,11 +867,15 @@ def image_target_wth_svg_selector(iiif_url: str,
         "type": "Image"
     }
     points = ' '.join([f"{c[0]},{c[1]}" for c in coords])
-    height = max([c[0] for c in coords])
-    width = max([c[1] for c in coords])
+    height = max([c[1] for c in coords])
+    width = max([c[0] for c in coords])
+    polygon = f"""<polygon points="{points}"/>"""
+    path_def = ' '.join([f"L{c[0]} {c[1]}" for c in coords]) + " Z"
+    path_def = 'M' + path_def[1:]
+    path = f"""<path d="{path_def}"/>"""
     target['selector'] = {
         "type": "SvgSelector",
-        "value": f"""<svg height="{height}" width="{width}"><polygon points="{points}"/></svg>"""
+        "value": f"""<svg height="{height}" width="{width}">{path}</svg>"""
     }
     if scan_id:
         target['id'] = scan_id
