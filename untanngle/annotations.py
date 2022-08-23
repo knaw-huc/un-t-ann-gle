@@ -1,5 +1,6 @@
 import re
 import uuid
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, List, Union, Dict, Set, Optional
@@ -32,8 +33,9 @@ class Annotation:
             target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
             target.append(
                 image_target_wth_svg_selector(iiif_url=iiif_url,
-                                              coords=self.coords))
+                                              coords_list=[self.coords]))
         else:
+            image_coords_per_scan = defaultdict(lambda: [])
             for rl in self.region_links:
                 xywh = rl.split('/')[-4]
                 if "," in xywh:
@@ -49,8 +51,11 @@ class Annotation:
                     ]
                     iiif_url = re.sub(r'jpg/[\d,]+/', 'jpg/full/', rl)
                     target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
-                    target.append(image_target_wth_svg_selector(iiif_url=iiif_url,
-                                                                coords=coords))
+                    image_coords_per_scan[iiif_url].append(coords)
+
+            for (iiif_url, coords_list) in image_coords_per_scan.items():
+                target.append(image_target_wth_svg_selector(iiif_url=iiif_url,
+                                                            coords_list=coords_list))
 
         if hasattr(self, 'begin_anchor'):
             if hasattr(self, 'end_char_offset'):
@@ -870,19 +875,22 @@ def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
 
 
 def image_target_wth_svg_selector(iiif_url: str,
-                                  coords: List,
+                                  coords_list: List[List[List[int]]],
                                   scan_id: str = None) -> dict:
     target = {
         "source": iiif_url,
         "type": "Image"
     }
-    points = ' '.join([f"{c[0]},{c[1]}" for c in coords])
-    height = max([c[1] for c in coords])
-    width = max([c[0] for c in coords])
-    polygon = f"""<polygon points="{points}"/>"""
-    path_def = ' '.join([f"L{c[0]} {c[1]}" for c in coords]) + " Z"
-    path_def = 'M' + path_def[1:]
-    path = f"""<path d="{path_def}"/>"""
+    path_defs = []
+    height = 0
+    width = 0
+    for coords in coords_list:
+        height = max(height, max([c[1] for c in coords]))
+        width = max(width, max([c[0] for c in coords]))
+        path_def = ' '.join([f"L{c[0]} {c[1]}" for c in coords]) + " Z"
+        path_def = 'M' + path_def[1:]
+        path_defs.append(path_def)
+    path = f"""<path d="{' '.join(path_defs)}"/>"""
     target['selector'] = {
         "type": "SvgSelector",
         "value": f"""<svg height="{height}" width="{width}">{path}</svg>"""
