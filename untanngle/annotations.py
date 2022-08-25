@@ -82,13 +82,19 @@ class Annotation:
             else:
                 target.append(resource_target(textrepo_base_url, version_id, self.begin_anchor, self.end_anchor))
                 target.append(selection_view_target(textrepo_base_url, version_id, self.begin_anchor, self.end_anchor))
+
+        scan_ids = set()
         for link in self.region_links:
             target.append(image_target(iiif_url=link))
+            scan_id = link.split('/')[6].replace(".jpg","")
+            scan_ids.add(f"urn:republic:{scan_id}")
+
         body = self.body()
         if "metadata" in body.keys():
             if "id" in body["metadata"].keys():
                 body["metadata"].pop("id")
                 body["metadata"].pop("type")
+            body["metadata"]["scan_id"] = sorted(list(scan_ids))
         return web_annotation(body=body, target=target, provenance=self.provenance)
 
 
@@ -963,7 +969,7 @@ def web_annotation(body: Any,
     # ic(annotation)
     camel_cased = keys_to_camel_case(annotation)
     return force_iri_values(camel_cased,
-                            {"id", "docId", "lineId", "parentId", "pageId", "resourceId", "scanId", "sessionId",
+                            {"id", "docId", "lineId", "parentId", "pageId", "resourceId", "sessionId",
                              "textRegionId", "columnId", "sourceId", "textId"},
                             "urn:republic:")
 
@@ -1090,10 +1096,10 @@ def force_iri_values_in_list(l: List, id_fields: Set[str], prefix: str) -> List:
 
 def force_iri_values(d: dict, id_fields: Set[str], prefix: str) -> dict:
     for (k, v) in d.items():
-        if k in id_fields:
-            d[k] = as_iri(v, prefix)
-        elif isinstance(v, dict):
+        if isinstance(v, dict):
             d[k] = force_iri_values(v, id_fields, prefix)
         elif isinstance(v, list):
             d[k] = force_iri_values_in_list(v, id_fields, prefix)
+        elif k in id_fields:
+            d[k] = as_iri(v, prefix)
     return d
