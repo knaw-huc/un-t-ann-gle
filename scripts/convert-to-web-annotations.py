@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import csv
 import json
 import random
 from itertools import groupby
@@ -27,11 +28,12 @@ annotation_class_mapper = dict(
 )
 
 
-def as_web_annotation(annotation: dict, textrepo_url: str, version_id: str) -> dict:
+def as_web_annotation(annotation: dict, textrepo_url: str, version_id: str, canvas_idx: dict) -> dict:
     try:
         a_type = annotation.get('type')
         a_class = annotation_class_mapper[a_type]
-        return a_class.from_dict(annotation).as_web_annotation(textrepo_base_url=textrepo_url, version_id=version_id)
+        return a_class.from_dict(annotation).as_web_annotation(textrepo_base_url=textrepo_url, version_id=version_id,
+                                                               canvas_idx=canvas_idx)
     except Exception as e:
         print("failing input json:")
         print(json.dumps(annotation))
@@ -49,13 +51,13 @@ def normalize_annotation(annotation: dict, scanpage_iiif: dict) -> dict:
     return annotation
 
 
-def convert_annotations(annotations, scanpage_iiif_uri_map, textrepo_url: str, version_id: str):
+def convert_annotations(annotations, scanpage_iiif_uri_map, textrepo_url: str, version_id: str, canvas_idx):
     num_annotations = len(annotations)
     print(f'> converting {num_annotations} annotations...')
     web_annotations = [
         as_web_annotation(
             normalize_annotation(annotation, scanpage_iiif_uri_map),
-            textrepo_url, version_id
+            textrepo_url, version_id, canvas_idx
         )
         for annotation in annotations
     ]
@@ -110,19 +112,28 @@ def print_example_conversions(annotations, scanpage_iiif: dict, textrepo_base_ur
         print("----")
 
 
-def convert(input_file: str, textrepo_url: str, version_id: str):
+def convert(input_file: str, textrepo_url: str, version_id: str, canvas_index_file: str):
     print(f'> importing {input_file} ...')
     with open(input_file) as f:
         annotations = json.load(f)
     num_annotations = len(annotations)
     print(f'> {num_annotations} annotations loaded')
 
-    web_annotations = convert_annotations(annotations, "", textrepo_url, version_id)
+    canvas_idx = read_canvas_idx(canvas_index_file)
+    web_annotations = convert_annotations(annotations, "", textrepo_url, version_id, canvas_idx)
 
     export_to_file(web_annotations)
     export_sample(web_annotations)
 
     print('> done!')
+
+
+def read_canvas_idx(path: str) -> Dict[str, str]:
+    idx = {}
+    with open(path) as f:
+        for line in csv.reader(f):
+            idx[line[0]] = line[1]
+    return idx
 
 
 def main():
@@ -148,10 +159,16 @@ def main():
                              "42df1275-81cd-489c-b28c-345780c3889b )",
                         type=str,
                         metavar="version_id")
+    parser.add_argument("-c",
+                        "--canvas-index",
+                        required=True,
+                        help="A csv file linking image urls to the corresponding canvas url",
+                        type=str,
+                        metavar="canvas_index_file")
     args = parser.parse_args()
     if args.textrepo_base_url.endswith('/'):
         args.textrepo_base_url = args.textrepo_base_url[0:-1]
-    convert(args.inputfile, args.textrepo_base_url, args.version_id)
+    convert(args.inputfile, args.textrepo_base_url, args.version_id, args.canvas_index)
 
 
 if __name__ == '__main__':

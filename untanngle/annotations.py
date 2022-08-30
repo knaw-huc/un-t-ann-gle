@@ -21,22 +21,44 @@ def exclude_if_none(value):
 
 
 class Annotation:
-    def as_web_annotation(self, textrepo_base_url: str, version_id: str) -> dict:
+    def as_web_annotation(self, textrepo_base_url: str, version_id: str, canvas_idx: Dict[str, str]) -> dict:
+        return web_annotation(
+            body=self.annotation_body(),
+            target=self.annotation_target(canvas_idx, textrepo_base_url, version_id),
+            provenance=self.provenance)
+
+    def annotation_body(self):
+        body = self.body()
+        if "metadata" in body.keys():
+            if "id" in body["metadata"].keys():
+                body["metadata"].pop("id")
+                body["metadata"].pop("type")
+        return body
+
+    def annotation_target(self, canvas_idx, textrepo_base_url, version_id) -> List[Any]:
         target = []
+        self.add_canvas_and_image_targets(target, canvas_idx)
+        self.add_text_targets(target, textrepo_base_url, version_id)
+        return target
+
+    def add_canvas_and_image_targets(self, target, canvas_idx):
         if hasattr(self, 'coords') and self.coords:
             if hasattr(self, 'iiif_url'):
                 iiif_url = self.iiif_url
             else:
                 first_region_link = self.region_links[0]
+                target.append(image_target(iiif_url=first_region_link))
                 iiif_url = re.sub(r'jpg/[\d,]+/', 'jpg/full/', first_region_link)
+            img_url = re.sub(".jpg.*", ".jpg", iiif_url)
+            canvas_url = canvas_idx[img_url]
             image_coords = to_image_coords(self.coords)
-            target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
-            target.append(
-                image_target_wth_svg_selector(iiif_url=iiif_url,
-                                              coords_list=[self.coords]))
+            xywh = f"{image_coords.left},{image_coords.top},{image_coords.width},{image_coords.height}"
+            target.append(canvas_target(canvas_url=canvas_url, xywh_list=[xywh], coords_list=[self.coords]))
+            target.append(image_target(iiif_url=iiif_url, image_coords_list=[image_coords], coords_list=[self.coords]))
         else:
-            image_coords_per_scan = defaultdict(lambda: [])
+            regions_per_scan = defaultdict(lambda: [])
             for rl in self.region_links:
+                target.append(image_target(iiif_url=rl))
                 xywh = rl.split('/')[-4]
                 if "," in xywh:
                     (x, y, w, h) = xywh.split(',')
@@ -49,14 +71,20 @@ class Annotation:
                         [image_coords.right, image_coords.bottom],
                         [image_coords.left, image_coords.bottom]
                     ]
-                    iiif_url = re.sub(r'jpg/[\d,]+/', 'jpg/full/', rl)
-                    target.append(image_target(iiif_url=iiif_url, image_coords=image_coords))
-                    image_coords_per_scan[iiif_url].append(coords)
+                    iiif_url = re.sub(r"jpg/[\d,]+/", 'jpg/full/', rl)
+                    regions_per_scan[iiif_url].append(Region(image_coords=image_coords, coords_list=coords, xywh=xywh))
 
-            for (iiif_url, coords_list) in image_coords_per_scan.items():
-                target.append(image_target_wth_svg_selector(iiif_url=iiif_url,
-                                                            coords_list=coords_list))
+            for (iiif_url, regions) in regions_per_scan.items():
+                img_url = re.sub(".jpg.*", ".jpg", iiif_url)
+                canvas_url = canvas_idx[img_url]
+                xywh_list = [r.xywh for r in regions]
+                coords_list = [r.coords_list for r in regions]
+                image_coords_list = [r.image_coords for r in regions]
+                target.append(canvas_target(canvas_url=canvas_url, xywh_list=xywh_list, coords_list=coords_list))
+                target.append(
+                    image_target(iiif_url=iiif_url, image_coords_list=image_coords_list, coords_list=coords_list))
 
+    def add_text_targets(self, target, textrepo_base_url, version_id):
         if hasattr(self, 'begin_anchor'):
             if hasattr(self, 'end_char_offset'):
                 target.append(
@@ -81,21 +109,8 @@ class Annotation:
                 )
             else:
                 target.append(resource_target(textrepo_base_url, version_id, self.begin_anchor, self.end_anchor))
-                target.append(selection_view_target(textrepo_base_url, version_id, self.begin_anchor, self.end_anchor))
-
-        scan_ids = set()
-        for link in self.region_links:
-            target.append(image_target(iiif_url=link))
-            scan_id = link.split('/')[6].replace(".jpg","")
-            scan_ids.add(f"urn:republic:{scan_id}")
-
-        body = self.body()
-        if "metadata" in body.keys():
-            if "id" in body["metadata"].keys():
-                body["metadata"].pop("id")
-                body["metadata"].pop("type")
-            body["metadata"]["scan_id"] = sorted(list(scan_ids))
-        return web_annotation(body=body, target=target, provenance=self.provenance)
+                target.append(
+                    selection_view_target(textrepo_base_url, version_id, self.begin_anchor, self.end_anchor))
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -161,6 +176,13 @@ class ImageCoords:
     width: int
 
 
+@dataclass
+class Region:
+    image_coords: ImageCoords
+    coords_list: List
+    xywh: str
+
+
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class ScanPageAnnotation:
@@ -202,7 +224,7 @@ class ColumnAnnotation:
     def as_web_annotation(self) -> dict:
         body = classifying_body(as_urn(self.id), 'column')
         target = [resource_target(self.begin_anchor, self.end_anchor),
-                  image_target(image_coords=self.image_coords)]
+                  image_target(image_coords_list=self.image_coords)]
         for range in self.image_range:
             url = range[0]
             image_coords_list = range[1]
@@ -273,7 +295,7 @@ class TextRegionAnnotation0:
     def as_web_annotation(self) -> dict:
         body = classifying_body(as_urn(self.id), 'textregion')
         target = [resource_target(self.begin_anchor, self.end_anchor),
-                  image_target(iiif_url=self.iiif_url, image_coords=self.image_coords)]
+                  image_target(iiif_url=self.iiif_url, image_coords_list=self.image_coords)]
         for range in self.image_range:
             url = range[0]
             image_coords_list = range[1]
@@ -349,7 +371,7 @@ class LineAnnotation0:
     def as_web_annotation(self) -> dict:
         body = classifying_body(as_urn(self.id), 'line')
         target = [resource_target(self.begin_anchor, self.end_anchor),
-                  image_target(iiif_url=self.iiif_url, image_coords=self.image_coords)]
+                  image_target(iiif_url=self.iiif_url, image_coords_list=self.image_coords)]
         for i_range in self.image_range:
             url = i_range[0]
             image_coords_list = i_range[1]
@@ -438,7 +460,7 @@ class SessionAnnotation0:
                               "weekday": self.session_weekday,
                               "president": self.president})]
         target = [resource_target(self.begin_anchor, self.end_anchor),
-                  image_target(image_coords=self.image_coords)]
+                  image_target(image_coords_list=self.image_coords)]
         for range in self.image_range:
             url = range[0]
             image_coords_list = range[1]
@@ -829,9 +851,10 @@ def resource_target(
         end_char_offset: int = None
 ) -> Dict[str, Any]:
     target = {
-        "source": f"{textrepo_base_url}/rest/versions/{version_id}/contents",
-        "type": "Text",
+        'source': f"{textrepo_base_url}/rest/versions/{version_id}/contents",
+        'type': "Text",
         "selector": {
+            '@context': REPUBLIC_CONTEXT,
             "type": as_urn("TextAnchorSelector"),
             "start": begin_anchor,
             "end": end_anchor
@@ -861,32 +884,52 @@ def selection_view_target(
     }
 
 
+def canvas_target(canvas_url: str, xywh_list: List[str] = None, coords_list: List[List[List[int]]] = None) -> dict:
+    selectors = []
+    if xywh_list:
+        for xywh in xywh_list:
+            selectors.append({
+                "@context": "http://iiif.io/api/annex/openannotation/context.json",
+                "type": "iiif:ImageApiSelector",
+                "region": xywh
+            })
+    if coords_list:
+        selectors.append(svg_selector(coords_list))
+    return {
+        '@context': REPUBLIC_CONTEXT,
+        'source': canvas_url,
+        'type': "Canvas",
+        'selector': selectors
+    }
+
+
 def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
-                 image_coords: ImageCoords = None,
+                 image_coords_list: List[ImageCoords] = None,
+                 coords_list: List[List[List[int]]] = None,
                  scan_id: str = None) -> dict:
     target = {
         "source": iiif_url,
         "type": "Image"
     }
-    if image_coords:
-        xywh = f"{image_coords.left},{image_coords.top},{image_coords.width},{image_coords.height}"
-        target['selector'] = {
-            "type": "FragmentSelector",
-            "conformsTo": "http://www.w3.org/TR/media-frags/",
-            "value": f"xywh={xywh}"
-        }
     if scan_id:
         target['id'] = scan_id
+    selectors = []
+    if image_coords_list:
+        for image_coords in image_coords_list:
+            xywh = f"{image_coords.left},{image_coords.top},{image_coords.width},{image_coords.height}"
+            selectors.append({
+                "type": "FragmentSelector",
+                "conformsTo": "http://www.w3.org/TR/media-frags/",
+                "value": f"xywh={xywh}"
+            })
+    if coords_list:
+        selectors.append(svg_selector(coords_list))
+    if len(selectors) > 0:
+        target['selector'] = selectors
     return target
 
 
-def image_target_wth_svg_selector(iiif_url: str,
-                                  coords_list: List[List[List[int]]],
-                                  scan_id: str = None) -> dict:
-    target = {
-        "source": iiif_url,
-        "type": "Image"
-    }
+def svg_selector(coords_list):
     path_defs = []
     height = 0
     width = 0
@@ -897,13 +940,7 @@ def image_target_wth_svg_selector(iiif_url: str,
         path_def = 'M' + path_def[1:]
         path_defs.append(path_def)
     path = f"""<path d="{' '.join(path_defs)}"/>"""
-    target['selector'] = {
-        "type": "SvgSelector",
-        "value": f"""<svg height="{height}" width="{width}">{path}</svg>"""
-    }
-    if scan_id:
-        target['id'] = scan_id
-    return target
+    return {'type': "SvgSelector", 'value': f"""<svg height="{height}" width="{width}">{path}</svg>"""}
 
 
 def recursively_get_fields(d: dict) -> Set[str]:
@@ -969,7 +1006,7 @@ def web_annotation(body: Any,
     # ic(annotation)
     camel_cased = keys_to_camel_case(annotation)
     return force_iri_values(camel_cased,
-                            {"id", "docId", "lineId", "parentId", "pageId", "resourceId", "sessionId",
+                            {"id", "docId", "lineId", "parentId", "pageId", "scanId", "resourceId", "sessionId",
                              "textRegionId", "columnId", "sourceId", "textId"},
                             "urn:republic:")
 
