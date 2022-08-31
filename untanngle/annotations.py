@@ -10,7 +10,7 @@ import uri as uri
 from dataclasses_json import dataclass_json, Undefined, config
 from rfc3987 import parse
 
-from untanngle.camel_casing import keys_to_camel_case
+from untanngle.camel_casing import keys_to_camel_case, types_to_camel_case
 
 REPUBLIC_CONTEXT = "https://brambg.github.io/ns/republic.jsonld"
 
@@ -1005,7 +1005,8 @@ def web_annotation(body: Any,
 
     # ic(annotation)
     camel_cased = keys_to_camel_case(annotation)
-    return force_iri_values(camel_cased,
+    with_camel_cased_types = types_to_camel_case(camel_cased)
+    return force_iri_values(with_camel_cased_types,
                             {"id", "docId", "lineId", "parentId", "pageId", "scanId", "resourceId", "sessionId",
                              "textRegionId", "columnId", "sourceId", "textId"},
                             "urn:republic:")
