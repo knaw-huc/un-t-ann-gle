@@ -34,7 +34,7 @@ class TextRepoClient:
     def get_type_id(self, name: str) -> Optional[int]:
         type_dict = self.get_types()
         for k, v in type_dict.items():
-            if (v == name):
+            if v == name:
                 return k
         return None
 

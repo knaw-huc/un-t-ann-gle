@@ -59,7 +59,7 @@ DAO = TextDAO()
 
 @texts_ns.route('/')
 class Texts(Resource):
-    '''Shows a list of all text ids'''
+    """Shows a list of all text ids"""
 
     def get(self):
         return list(texts.keys())
@@ -72,7 +72,7 @@ class Texts(Resource):
 
 @texts_ns.route('/<uuid>')
 class Text(Resource):
-    '''Show a single text item'''
+    """Show a single text item"""
 
     def get(self, uuid):
         return DAO.get(uuid)

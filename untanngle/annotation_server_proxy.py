@@ -54,7 +54,7 @@ dao = AnnotationDAO()
 
 @annotation_ns.route('/')
 class Annotations(Resource):
-    '''Shows a list of all annotation ids'''
+    """Shows a list of all annotation ids"""
 
     def get(self):
         return dao.annotations
@@ -67,7 +67,7 @@ class Annotations(Resource):
 
 @annotation_ns.route('/<uuid>')
 class Annotation(Resource):
-    '''Show a single annotation'''
+    """Show a single annotation"""
 
     def get(self, uuid):
         return dao.get(uuid)

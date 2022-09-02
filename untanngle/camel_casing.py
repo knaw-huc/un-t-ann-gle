@@ -31,7 +31,7 @@ def types_to_camel_case(d: dict) -> dict:
         if k == "type":
             if isinstance(v, list):
                 new_value = [to_camel_case(capitalize_first_letter(e)) for e in v]
-            else:
+            elif ":" not in str(v):
                 new_value = to_camel_case(capitalize_first_letter(v))
         else:
             if isinstance(v, dict):

@@ -68,7 +68,7 @@ class SegmentedText(metaclass=ABCMeta):
 class SplittableSegmentedText(SegmentedText):
     def __init__(self, resource_id=None, begin_offset_in_resource=None, end_offset_in_resource=None):
         self.resource_id = resource_id
-        self.text_grid_spec = {'begin_offset_in_resource': begin_offset_in_resource, \
+        self.text_grid_spec = {'begin_offset_in_resource': begin_offset_in_resource,
                                'end_offset_in_resource': end_offset_in_resource, 'anchor_type': 'anchor_obj'}
         self._ordered_segments = []
         self._anchors = []
@@ -160,7 +160,7 @@ class SplittableSegmentedText(SegmentedText):
         if 'text_grid_spec' in json_data:
             self.text_grid_spec = json_data['text_grid_spec']
         else:
-            self.text_grid_spec = {'begin_offset_in_resource': None, \
+            self.text_grid_spec = {'begin_offset_in_resource': None,
                                    'end_offset_in_resource': None, 'anchor_type': 'anchor_obj'}
 
         for a in json_data['_anchors']:
@@ -188,7 +188,7 @@ class SegmentEncoder(JSONEncoder):
 class IndexedSegmentedText(SegmentedText):
     def __init__(self, resource_id=None, begin_offset_in_resource=None, end_offset_in_resource=None):
         self.resource_id = resource_id
-        self.text_grid_spec = {'begin_offset_in_resource': begin_offset_in_resource, \
+        self.text_grid_spec = {'begin_offset_in_resource': begin_offset_in_resource,
                                'end_offset_in_resource': end_offset_in_resource, 'anchor_type': 'index_int'}
         self._ordered_segments = []
 
@@ -230,7 +230,7 @@ class IndexedSegmentedText(SegmentedText):
         if 'text_grid_spec' in json_data:
             self.text_grid_spec = json_data['text_grid_spec']
         else:
-            self.text_grid_spec = {'begin_offset_in_resource': None, \
+            self.text_grid_spec = {'begin_offset_in_resource': None,
                                    'end_offset_in_resource': None, 'anchor_type': 'index_int'}
 
     def __repr__(self):
