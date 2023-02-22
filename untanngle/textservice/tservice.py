@@ -13,7 +13,6 @@ from textservice import segmentedtext
 
 app.json_encoder = segmentedtext.SegmentEncoder
 
-
 datadir = '../../data/1728/10mrt-v1/'
 text_repo = '1728-textstore.json'
 # datadir = '../../data/output/'

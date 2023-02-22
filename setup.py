@@ -4,7 +4,7 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='un-t-ann-gle',
+    name='untanngle',
     version='0.1',
     description='un-t-ann-gle splits a formatted file into text + annotations',
     author='Hennie Brugman',
