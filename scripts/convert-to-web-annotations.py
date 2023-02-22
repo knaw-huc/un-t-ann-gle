@@ -7,11 +7,12 @@ from itertools import groupby
 from typing import List, Dict
 
 from icecream import ic
+from loguru import logger
 from rdflib import Graph
 
 from untanngle.annotations import AttendantAnnotation, AttendantsListAnnotation, ColumnAnnotation, \
     LineAnnotation, PageAnnotation, RepublicParagraphAnnotation, ResolutionAnnotation, ReviewedAnnotation, \
-    ScanAnnotation, SessionAnnotation, TextRegionAnnotation
+    ScanAnnotation, SessionAnnotation, TextRegionAnnotation, VolumeAnnotation
 
 annotation_class_mapper = dict(
     attendant=AttendantAnnotation,
@@ -48,6 +49,12 @@ def normalize_annotation(annotation: dict, scanpage_iiif: dict) -> dict:
         iiif_url = scanpage_iiif.get(prefix)
         if iiif_url:
             annotation['iiif_url'] = iiif_url
+    if annotation["type"] == "scan":
+        opening = int(annotation["id"].split("_")[-1])
+        annotation["metadata"] = {
+            "volume": "1728",
+            "opening": opening
+        }
     return annotation
 
 
@@ -65,8 +72,8 @@ def convert_annotations(annotations, scanpage_iiif_uri_map, textrepo_url: str, v
     return web_annotations
 
 
-def export_to_file(web_annotations):
-    out_file = 'web_annotations.json'
+def export_to_file(web_annotations, export_path: str):
+    out_file = f"{export_path}/web_annotations.json"
     print(f'> exporting to {out_file} ...')
     with open(out_file, 'w') as out:
         json.dump(web_annotations, out, indent=4)
@@ -84,16 +91,18 @@ def get_sample(web_annotations: List[Dict]) -> List[Dict]:
     return sample
 
 
-def export_sample(web_annotations):
-    out_file = 'sample.json'
+def export_sample(web_annotations, export_path: str):
+    out_file = f'{export_path}/sample.json'
     print(f'> exporting to {out_file} ...')
     with open(out_file, 'w') as out:
         json.dump(get_sample(web_annotations), out, indent=4)
 
 
 def print_example_conversions(annotations, scanpage_iiif: dict, textrepo_base_url: str):
-    key_func = lambda a: a['label']
-    grouped_annotations = groupby(sorted(annotations, key=key_func), key=key_func)
+    def annotation_label(a):
+        return a['label']
+
+    grouped_annotations = groupby(sorted(annotations, key=annotation_label), key=annotation_label)
     for label, group in grouped_annotations:
         print(f"label: *{label}*")
 
@@ -112,18 +121,32 @@ def print_example_conversions(annotations, scanpage_iiif: dict, textrepo_base_ur
         print("----")
 
 
-def convert(input_file: str, textrepo_url: str, version_id: str, canvas_index_file: str):
+def create_document_annotation(end_anchor: int, title: str, textrepo_base_url: str, version_id: str):
+    da = VolumeAnnotation(title=title,
+                          begin_anchor=0, end_anchor=end_anchor,
+                          manifest_url="https://images.diginfra.net/api/pim/imageset/67533019-4ca0-4b08-b87e-fd5590e7a077/manifest")
+    return da.as_web_annotation(textrepo_base_url=textrepo_base_url, version_id=version_id)
+
+
+def convert(input_file: str, textrepo_url: str, version_id: str, canvas_index_file: str, export_path: str) -> None:
     print(f'> importing {input_file} ...')
     with open(input_file) as f:
         annotations = json.load(f)
     num_annotations = len(annotations)
     print(f'> {num_annotations} annotations loaded')
 
+    end_anchor = max(a["end_anchor"] for a in annotations)
+    document_annotation = create_document_annotation(end_anchor=end_anchor, title="1728",
+                                                     textrepo_base_url=textrepo_url,
+                                                     version_id=version_id)
+
     canvas_idx = read_canvas_idx(canvas_index_file)
     web_annotations = convert_annotations(annotations, "", textrepo_url, version_id, canvas_idx)
 
-    export_to_file(web_annotations)
-    export_sample(web_annotations)
+    web_annotations.append(document_annotation)
+
+    export_to_file(web_annotations, export_path)
+    export_sample(web_annotations, export_path)
 
     print('> done!')
 
@@ -136,7 +159,7 @@ def read_canvas_idx(path: str) -> Dict[str, str]:
     return idx
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser(
         description="Convert an un-t-ann-gle annotationstore file to a web annotations file.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -165,10 +188,21 @@ def main():
                         help="A csv file linking image urls to the corresponding canvas url",
                         type=str,
                         metavar="canvas_index_file")
+    parser.add_argument("-o",
+                        "--output-directory",
+                        required=True,
+                        help="The directory to put the output files into",
+                        type=str)
     args = parser.parse_args()
+    return args
+
+
+@logger.catch
+def main():
+    args = parse_args()
     if args.textrepo_base_url.endswith('/'):
         args.textrepo_base_url = args.textrepo_base_url[0:-1]
-    convert(args.inputfile, args.textrepo_base_url, args.version_id, args.canvas_index)
+    convert(args.inputfile, args.textrepo_base_url, args.version_id, args.canvas_index, args.output_directory)
 
 
 if __name__ == '__main__':

@@ -6,8 +6,8 @@ from datetime import datetime
 from typing import Any, List, Union, Dict, Set, Optional
 
 import requests
-import uri as uri
 from dataclasses_json import dataclass_json, Undefined, config
+from loguru import logger
 from rfc3987 import parse
 
 from untanngle.camel_casing import keys_to_camel_case, types_to_camel_case
@@ -181,6 +181,28 @@ class Region:
     image_coords: ImageCoords
     coords_list: List
     xywh: str
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
+class VolumeAnnotation:
+    title: str
+    manifest_url: str
+    begin_anchor: int
+    end_anchor: int
+
+    def as_web_annotation(self, textrepo_base_url: str, version_id: str) -> dict:
+        body = {
+            "@context": REPUBLIC_CONTEXT,
+            "id": as_urn(f"volume:{self.title}"),
+            "type": "Volume",
+            "metadata": {
+                "volume": self.title,
+                "manifest": self.manifest_url
+            }}
+        target = resource_target(textrepo_base_url=textrepo_base_url, version_id=version_id,
+                                 begin_anchor=self.begin_anchor, end_anchor=self.end_anchor)
+        return web_annotation(body=body, target=target)
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -806,6 +828,13 @@ class PageAnnotation(Annotation):
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
+class ScanMetadata:
+    volume: str
+    opening: int
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
 class ScanAnnotation(Annotation):
     id: str
     type: str
@@ -813,6 +842,7 @@ class ScanAnnotation(Annotation):
     iiif_url: str
     begin_anchor: int
     end_anchor: int
+    metadata: ScanMetadata
     region_links: List[str]
     provenance: Provenance
 
@@ -820,7 +850,8 @@ class ScanAnnotation(Annotation):
         return {
             "@context": REPUBLIC_CONTEXT,
             "id": self.id,
-            "type": "Scan"
+            "type": "Scan",
+            "metadata": self.metadata.to_dict()
         }
 
 
@@ -972,7 +1003,7 @@ def create_context(custom_fields: Set[str]) -> Dict[str, str]:
 
 def web_annotation(body: Any,
                    target: Any,
-                   anno_id: uri = None,
+                   anno_id: str = None,
                    provenance: Provenance = None,
                    custom: dict = None) -> dict:
     if not anno_id:
@@ -1007,9 +1038,9 @@ def web_annotation(body: Any,
     camel_cased = keys_to_camel_case(annotation)
     with_camel_cased_types = types_to_camel_case(camel_cased)
     return force_iri_values(with_camel_cased_types,
-                            {"id", "docId", "lineId", "parentId", "pageId", "scanId", "resourceId", "sessionId",
-                             "textRegionId", "columnId", "sourceId", "textId"},
-                            "urn:republic:")
+                            id_fields={"id", "docId", "lineId", "parentId", "pageId", "scanId", "resourceId",
+                                       "sessionId", "textRegionId", "columnId", "sourceId", "textId"},
+                            prefix="urn:republic:")
 
 
 def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
