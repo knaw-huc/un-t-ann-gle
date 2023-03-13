@@ -7,7 +7,6 @@ from typing import Any, List, Union, Dict, Set, Optional
 
 import requests
 from dataclasses_json import dataclass_json, Undefined, config
-from loguru import logger
 from rfc3987 import parse
 
 from untanngle.camel_casing import keys_to_camel_case, types_to_camel_case
@@ -83,6 +82,15 @@ class Annotation:
                 target.append(canvas_target(canvas_url=canvas_url, xywh_list=xywh_list, coords_list=coords_list))
                 target.append(
                     image_target(iiif_url=iiif_url, image_coords_list=image_coords_list, coords_list=coords_list))
+
+            if not regions_per_scan and hasattr(self, 'iiif_url'):
+                img_url = re.sub(".jpg.*", ".jpg", self.iiif_url)
+                canvas_url = canvas_idx[img_url]
+                target.append({
+                    '@context': REPUBLIC_CONTEXT,
+                    'source': canvas_url,
+                    'type': "Canvas",
+                })
 
     def add_text_targets(self, target, textrepo_base_url, version_id):
         if hasattr(self, 'begin_anchor'):
@@ -221,9 +229,9 @@ class ScanPageAnnotation:
         body = classifying_body(id=as_urn(self.scan_id), value='scanpage')
         target = [resource_target(self.begin_anchor, self.end_anchor),
                   image_target(iiif_url=self.iiif_url)]
-        for range in self.image_range:
-            url = range[0]
-            image_coords_list = range[1]
+        for _range in self.image_range:
+            url = _range[0]
+            image_coords_list = _range[1]
             for ic in image_coords_list:
                 target.append(image_target(url, ImageCoords.from_dict(ic)))
         for link in self.region_links:
