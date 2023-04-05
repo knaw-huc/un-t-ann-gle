@@ -5,12 +5,12 @@ from untanngle.mondriaan import TFAnnotation, IAnnotation, as_web_annotation
 
 
 def main():
-    basedir = 'data/'
+    basedir = 'data'
 
-    textfile = basedir + 'mondriaan-text.txt'
+    textfile = f'{basedir}/mondriaan-text.txt'
     tf_tokens = read_tf_tokens(textfile)
 
-    anno_file = basedir + "mondriaan-anno.tsv"
+    anno_file = f"{basedir}/mondriaan-anno.tsv"
     tf_annotations = read_tf_annotations(anno_file)
 
     web_annotations = build_web_annotations(tf_annotations, tf_tokens)
@@ -68,7 +68,12 @@ def build_web_annotations(tf_annotations, tokens):
     ia = sorted(ia_idx.values(),
                 key=lambda anno: (anno.start_anchor * 100_000 + anno.end_anchor) * 100_000 + anno.tf_node)
 
-    return [as_web_annotation(a) for a in ia]
+    # TODO: convert ptr annotations to annotation linking the ptr target to the body.id of the m:Note with the corresponding id
+    # TODO: convert rs annotations to annotation linking the rkd url in metadata.anno to the rd target
+    # TODO: convert pb annotations to page annotations, from the <pb> to the next <pb> or </div>, with link to facs
+    # TODO: convert ref annotations
+    return [as_web_annotation(a, textrepo_url="https://mondriaan.tt.di.huc.knaw.nl/textrepo",
+                              textrepo_version="9db547e7-1249-40f2-99ab-f014edac6cd1") for a in ia]
 
 
 if __name__ == '__main__':

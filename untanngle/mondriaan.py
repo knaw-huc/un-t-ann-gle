@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Any
 
 
 @dataclass
@@ -22,9 +22,7 @@ class IAnnotation:
     metadata: Dict[str, any] = field(default_factory=dict)
 
 
-def as_web_annotation(ia: IAnnotation):
-    textrepo_url = "https://mondriaan-textrepo.tt.di.huc.knaw.nl"
-    textrepo_version = "42df1275-81cd-489c-b28c-345780c3889b"
+def as_web_annotation(ia: IAnnotation, textrepo_url: str, textrepo_version: str) -> Dict[str, Any]:
     return {
         "@context": "http://www.w3.org/ns/anno.jsonld",
         "type": "Annotation",
@@ -38,7 +36,7 @@ def as_web_annotation(ia: IAnnotation):
         },
         "target": [
             {
-                "source": f"{textrepo_url}/api/rest/versions/{textrepo_version}/contents",
+                "source": f"{textrepo_url}/rest/versions/{textrepo_version}/contents",
                 "type": "Text",
                 "selector": {
                     "@context": "https://brambg.github.io/ns/republic.jsonld",
@@ -49,7 +47,7 @@ def as_web_annotation(ia: IAnnotation):
             },
             {
                 "source": (
-                    f"{textrepo_url}/api/view/versions/{textrepo_version}/segments/index/{ia.start_anchor}/{ia.end_anchor}"),
+                    f"{textrepo_url}/view/versions/{textrepo_version}/segments/index/{ia.start_anchor}/{ia.end_anchor}"),
                 "type": "Text"
             }
         ]
