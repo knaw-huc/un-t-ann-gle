@@ -32,6 +32,7 @@ def as_web_annotation(ia: IAnnotation, textrepo_url: str, textrepo_version: str)
             }
         ],
         "type": "Annotation",
+        "purpose": "tagging",
         "generated": datetime.today().isoformat(),
         "body": {
             "id": f"urn:mondriaan:{ia.type}:{ia.tf_node}",
