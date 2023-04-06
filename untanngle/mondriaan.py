@@ -23,25 +23,28 @@ class IAnnotation:
 
 
 def as_web_annotation(ia: IAnnotation, textrepo_url: str, textrepo_version: str) -> Dict[str, Any]:
-    return {
-        "@context": ["http://www.w3.org/ns/anno.jsonld",
-                     {"tt": "https://ns.tt.di.huc.knaw.nl/tt", "tei": "https://ns.tt.di.huc.knaw.nl/tei"}],
+    anno = {
+        "@context": [
+            "http://www.w3.org/ns/anno.jsonld",
+            {
+                "tt": "https://ns.tt.di.huc.knaw.nl/tt",
+                "tei": "https://ns.tt.di.huc.knaw.nl/tei"
+            }
+        ],
         "type": "Annotation",
         "generated": datetime.today().isoformat(),
         "body": {
-            "type": f"tei:{ia.type.capitalize()}",
             "id": f"urn:mondriaan:{ia.type}:{ia.tf_node}",
+            "type": f"tei:{ia.type.capitalize()}",
             "tt:textfabric_node": ia.tf_node,
-            "text": ia.text,
-            "metadata": ia.metadata
+            "text": ia.text
         },
         "target": [
             {
                 "source": f"{textrepo_url}/rest/versions/{textrepo_version}/contents",
                 "type": "Text",
                 "selector": {
-                    "@context": "https://brambg.github.io/ns/republic.jsonld",
-                    "type": "urn:republic:TextAnchorSelector",
+                    "type": "tt:TextAnchorSelector",
                     "start": ia.start_anchor,
                     "end": ia.end_anchor
                 }
@@ -53,3 +56,6 @@ def as_web_annotation(ia: IAnnotation, textrepo_url: str, textrepo_version: str)
             }
         ]
     }
+    if ia.metadata:
+        anno["body"]["tt:metadata"] = ia.metadata
+    return anno
