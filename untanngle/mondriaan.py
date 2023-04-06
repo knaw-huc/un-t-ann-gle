@@ -22,41 +22,46 @@ class IAnnotation:
     metadata: Dict[str, any] = field(default_factory=dict)
 
 
-def as_web_annotation(ia: IAnnotation, textrepo_url: str, textrepo_version: str) -> Dict[str, Any]:
-    anno = {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "tt": "https://ns.tt.di.huc.knaw.nl/tt",
-                "tei": "https://ns.tt.di.huc.knaw.nl/tei"
-            }
-        ],
-        "type": "Annotation",
-        "purpose": "tagging",
-        "generated": datetime.today().isoformat(),
-        "body": {
-            "id": f"urn:mondriaan:{ia.type}:{ia.tf_node}",
-            "type": f"tei:{ia.type.capitalize()}",
-            "tt:textfabric_node": ia.tf_node,
-            "text": ia.text
-        },
-        "target": [
-            {
-                "source": f"{textrepo_url}/rest/versions/{textrepo_version}/contents",
-                "type": "Text",
-                "selector": {
-                    "type": "tt:TextAnchorSelector",
-                    "start": ia.start_anchor,
-                    "end": ia.end_anchor
+@dataclass
+class AnnotationTransformer:
+    textrepo_url: str
+    textrepo_version: str
+
+    def as_web_annotation(self, ia: IAnnotation) -> Dict[str, Any]:
+        anno = {
+            "@context": [
+                "http://www.w3.org/ns/anno.jsonld",
+                {
+                    "tt": "https://ns.tt.di.huc.knaw.nl/tt",
+                    "tei": "https://ns.tt.di.huc.knaw.nl/tei"
                 }
+            ],
+            "type": "Annotation",
+            "purpose": "tagging",
+            "generated": datetime.today().isoformat(),
+            "body": {
+                "id": f"urn:mondriaan:{ia.type}:{ia.tf_node}",
+                "type": f"tei:{ia.type.capitalize()}",
+                "tt:textfabric_node": ia.tf_node,
+                "text": ia.text
             },
-            {
-                "source": (
-                    f"{textrepo_url}/view/versions/{textrepo_version}/segments/index/{ia.start_anchor}/{ia.end_anchor}"),
-                "type": "Text"
-            }
-        ]
-    }
-    if ia.metadata:
-        anno["body"]["tt:metadata"] = {f"tei:{k}": v for k, v in ia.metadata.items()}
-    return anno
+            "target": [
+                {
+                    "source": f"{self.textrepo_url}/rest/versions/{self.textrepo_version}/contents",
+                    "type": "Text",
+                    "selector": {
+                        "type": "tt:TextAnchorSelector",
+                        "start": ia.start_anchor,
+                        "end": ia.end_anchor
+                    }
+                },
+                {
+                    "source": (
+                        f"{self.textrepo_url}/view/versions/{self.textrepo_version}/segments/index/{ia.start_anchor}/{ia.end_anchor}"),
+                    "type": "Text"
+                }
+            ]
+        }
+        if ia.metadata:
+            anno["body"]["tt:metadata"] = {f"tei:{k}": v for k, v in ia.metadata.items()}
+        return anno

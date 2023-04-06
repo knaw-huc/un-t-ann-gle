@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import json
 
-from untanngle.mondriaan import IAnnotation, as_web_annotation, TFAnnotation
+from untanngle.mondriaan import IAnnotation, TFAnnotation, AnnotationTransformer
 
 
 def main():
@@ -32,6 +32,8 @@ def read_tf_annotations(anno_file):
 
 
 def build_web_annotations(tf_annotations, tokens):
+    at = AnnotationTransformer(textrepo_url="https://mondriaan.tt.di.huc.knaw.nl/textrepo",
+                               textrepo_version="9db547e7-1249-40f2-99ab-f014edac6cd1")
     ia_idx = {}
     note_target = {}
     for a in [a for a in tf_annotations]:
@@ -78,8 +80,7 @@ def build_web_annotations(tf_annotations, tokens):
     # TODO: convert rs annotations to annotation linking the rkd url in metadata.anno to the rd target
     # TODO: convert pb annotations to page annotations, from the <pb> to the next <pb> or </div>, with link to facs
     # TODO: convert ref annotations
-    return [as_web_annotation(a, textrepo_url="https://mondriaan.tt.di.huc.knaw.nl/textrepo",
-                              textrepo_version="9db547e7-1249-40f2-99ab-f014edac6cd1") for a in ia]
+    return [at.as_web_annotation(a) for a in ia]
 
 
 if __name__ == '__main__':
