@@ -57,5 +57,5 @@ def as_web_annotation(ia: IAnnotation, textrepo_url: str, textrepo_version: str)
         ]
     }
     if ia.metadata:
-        anno["body"]["tt:metadata"] = ia.metadata
+        anno["body"]["tt:metadata"] = {f"tei:{k}": v for k, v in ia.metadata.items()}
     return anno
