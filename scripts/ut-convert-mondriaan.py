@@ -1,34 +1,33 @@
 #!/usr/bin/env python3
 import json
 
-from untanngle.mondriaan import TFAnnotation, IAnnotation, as_web_annotation
+from untanngle.mondriaan import IAnnotation, as_web_annotation, TFAnnotation
 
 
 def main():
     basedir = 'data'
 
-    textfile = f'{basedir}/mondriaan-text.txt'
+    textfile = f'{basedir}/mondriaan-text.json'
     tf_tokens = read_tf_tokens(textfile)
 
-    anno_file = f"{basedir}/mondriaan-anno.tsv"
+    anno_file = f"{basedir}/mondriaan-anno.json"
     tf_annotations = read_tf_annotations(anno_file)
-
     web_annotations = build_web_annotations(tf_annotations, tf_tokens)
     print(json.dumps(web_annotations, indent=2))
 
 
 def read_tf_tokens(textfile):
     with open(textfile) as f:
-        tokens = [l.strip('\n') for l in f.readlines()]
-    return tokens
+        contents = json.load(f)
+    return contents["_ordered_segments"]
 
 
 def read_tf_annotations(anno_file):
     tf_annotations = []
     with open(anno_file) as f:
-        for l in f.readlines():
-            parts = l.replace('\n', '').split('\t')
-            tf_annotations.append(TFAnnotation(int(parts[0]), parts[1], parts[2], parts[3]))
+        content = json.load(f)
+        for _id, properties in content.items():
+            tf_annotations.append(TFAnnotation(id=_id, type=properties[0], body=properties[1], target=properties[2]))
     return tf_annotations
 
 
@@ -39,31 +38,38 @@ def build_web_annotations(tf_annotations, tokens):
         match a.type:
             case 'element':
                 target = a.target
-                if "-" in target:
-                    parts = target.split('-')
-                    start_anchor = int(parts[0])
-                    end_anchor = int(parts[1])
-                else:
-                    start_anchor = int(target)
-                    end_anchor = start_anchor
-                text = "".join(tokens[start_anchor:end_anchor + 1])
-                ia = IAnnotation(id=a.id, type=a.body, text=text, start_anchor=start_anchor, end_anchor=end_anchor)
+                parts = target.split('-')
+                start_anchor = int(parts[0])
+                end_anchor = int(parts[1])
+                text = "".join(tokens[start_anchor:end_anchor])
+                ia = IAnnotation(id=a.id, type=a.body, text=text, start_anchor=start_anchor, end_anchor=end_anchor - 1)
                 ia_idx[a.id] = ia
             case 'node':
-                anno_id = int(a.target)
+                anno_id = a.target
                 if anno_id in ia_idx:
                     ia_idx[anno_id].tf_node = int(a.body)
+                # else:
+                #     ic(a)
             case 'mark':
-                note_anno_id = int(a.target)
-                element_anno_id = int(a.body)
-                note_target[note_anno_id] = element_anno_id
+                note_anno_id = a.target
+                if note_anno_id in ia_idx:
+                    element_anno_id = int(a.body)
+                    note_target[note_anno_id] = element_anno_id
+                # else:
+                #     ic(a)
             case 'attribute':
-                element_anno_id = int(a.target)
-                (k, v) = a.body.split('=', 1)
-                ia_idx[element_anno_id].metadata[k] = v
+                element_anno_id = a.target
+                if element_anno_id in ia_idx:
+                    (k, v) = a.body.split('=', 1)
+                    ia_idx[element_anno_id].metadata[k] = v
+                # else:
+                #     ic(a)
             case 'anno':
-                element_anno_id = int(a.target)
-                ia_idx[element_anno_id].metadata["anno"] = a.body
+                element_anno_id = a.target
+                if element_anno_id in ia_idx:
+                    ia_idx[element_anno_id].metadata["anno"] = a.body
+                # else:
+                #     ic(a)
 
     ia = sorted(ia_idx.values(),
                 key=lambda anno: (anno.start_anchor * 100_000 + anno.end_anchor) * 100_000 + anno.tf_node)

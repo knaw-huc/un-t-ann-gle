@@ -5,15 +5,15 @@ from typing import Dict, Any
 
 @dataclass
 class TFAnnotation:
-    id: int
-    target: str
+    id: str
     type: str
     body: str
+    target: str
 
 
 @dataclass
 class IAnnotation:
-    id: int = 0
+    id: str = ""
     type: str = ""
     tf_node: int = 0
     text: str = ""
@@ -24,13 +24,14 @@ class IAnnotation:
 
 def as_web_annotation(ia: IAnnotation, textrepo_url: str, textrepo_version: str) -> Dict[str, Any]:
     return {
-        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "@context": ["http://www.w3.org/ns/anno.jsonld",
+                     {"tt": "https://ns.tt.di.huc.knaw.nl/tt", "tei": "https://ns.tt.di.huc.knaw.nl/tei"}],
         "type": "Annotation",
         "generated": datetime.today().isoformat(),
         "body": {
-            "type": f"m:{ia.type.capitalize()}",
+            "type": f"tei:{ia.type.capitalize()}",
             "id": f"urn:mondriaan:{ia.type}:{ia.tf_node}",
-            "m:textfabric_node": ia.tf_node,
+            "tt:textfabric_node": ia.tf_node,
             "text": ia.text,
             "metadata": ia.metadata
         },
