@@ -18,9 +18,12 @@ def trim_trailing_slash(url: str):
         return url
 
 
-def upload(annorepo_base_url: str, container_id: str, inputfile: str,
-           container_label: str = 'A Container for Web Annotations'):
-    ar = AnnoRepoClient(annorepo_base_url, verbose=False)
+def upload(annorepo_base_url: str,
+           container_id: str,
+           inputfile: str,
+           container_label: str = 'A Container for Web Annotations',
+           api_key: str = None):
+    ar = AnnoRepoClient(annorepo_base_url, verbose=False, api_key=api_key)
     ar_about = ar.get_about()
     print(f"AnnoRepo server at {annorepo_base_url}:\n"
           f"- version {ar_about['version']}\n"
@@ -76,12 +79,17 @@ def main():
                         help="The label to give the container, if it needs to be created.",
                         type=str,
                         metavar="container_label")
+    parser.add_argument("-k",
+                        "--api-key",
+                        help="The api-key to get access to the annorepo apu",
+                        type=str,
+                        metavar="api_key")
     args = parser.parse_args()
     annorepo_base_url = trim_trailing_slash(args.annorepo_base_url)
     if args.container_label:
-        upload(annorepo_base_url, args.container_id, args.inputfile, args.container_label)
+        upload(annorepo_base_url, args.container_id, args.inputfile, args.container_label, api_key=args.api_key)
     else:
-        upload(annorepo_base_url, args.container_id, args.inputfile)
+        upload(annorepo_base_url, args.container_id, args.inputfile, api_key=args.api_key)
 
 
 if __name__ == '__main__':
