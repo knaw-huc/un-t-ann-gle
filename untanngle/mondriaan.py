@@ -28,6 +28,10 @@ class AnnotationTransformer:
     textrepo_version: str
 
     def as_web_annotation(self, ia: IAnnotation) -> Dict[str, Any]:
+        if ia.type == "page":
+            body_type = f"tt:{ia.type.capitalize()}"
+        else:
+            body_type = f"tei:{ia.type.capitalize()}"
         anno = {
             "@context": [
                 "http://www.w3.org/ns/anno.jsonld",
@@ -41,7 +45,7 @@ class AnnotationTransformer:
             "generated": datetime.today().isoformat(),
             "body": {
                 "id": f"urn:mondriaan:{ia.type}:{ia.tf_node}",
-                "type": f"tei:{ia.type.capitalize()}",
+                "type": body_type,
                 "tt:textfabric_node": ia.tf_node,
                 "text": ia.text
             },

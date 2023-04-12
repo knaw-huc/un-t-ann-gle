@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 import json
+from typing import List
+
+from icecream import ic
+from loguru import logger
 
 from untanngle.mondriaan import IAnnotation, TFAnnotation, AnnotationTransformer
 
 
+@logger.catch()
 def main():
     basedir = 'data'
 
@@ -13,6 +18,8 @@ def main():
     anno_file = f"{basedir}/mondriaan-anno.json"
     tf_annotations = read_tf_annotations(anno_file)
     web_annotations = build_web_annotations(tf_annotations, tf_tokens)
+    # selection = [w for w in web_annotations if w["body"]["type"] in ("tei:Pb", "tei:Div")]
+    # print(json.dumps(selection, indent=2))
     print(json.dumps(web_annotations, indent=2))
 
 
@@ -29,6 +36,46 @@ def read_tf_annotations(anno_file):
         for _id, properties in content.items():
             tf_annotations.append(TFAnnotation(id=_id, type=properties[0], body=properties[1], target=properties[2]))
     return tf_annotations
+
+
+def modify_pb_annotations(ia: List[IAnnotation], tokens) -> List[IAnnotation]:
+    pb_end_anchor = 0
+    last_page_in_div = None
+    for i, a in enumerate(ia):
+        if is_div_with_pb(a):
+            pb_end_anchor = a.end_anchor
+            last_page_in_div = None
+        elif a.type == "pb":
+            if pb_end_anchor > a.start_anchor:
+                a.end_anchor = pb_end_anchor
+            else:
+                logger.warning(f"<pb> outside of <div>: {a}")
+            if not last_page_in_div:
+                last_page_in_div = i
+            else:
+                prev = ia[last_page_in_div]
+                prev.end_anchor = a.start_anchor - 1
+                prev.text = text_of(prev, tokens)
+            a.type = 'page'
+            a.text = text_of(a, tokens)
+    return ia
+
+
+def text_of(a, tokens):
+    return "".join(tokens[a.start_anchor:a.end_anchor + 1])
+
+
+def is_div_with_pb(a):
+    return a.type == "div" \
+        and "type" in a.metadata \
+        and a.metadata["type"] in ("original", "translation", "postalData")
+
+
+def sanity_check(ia: List[IAnnotation]):
+    annotations_with_invalid_anchor_range = [a for a in ia if a.start_anchor > a.end_anchor]
+    if annotations_with_invalid_anchor_range:
+        logger.error("There are annotations with invalid anchor range:")
+        ic(annotations_with_invalid_anchor_range)
 
 
 def build_web_annotations(tf_annotations, tokens):
@@ -74,12 +121,15 @@ def build_web_annotations(tf_annotations, tokens):
                 #     ic(a)
 
     ia = sorted(ia_idx.values(),
-                key=lambda anno: (anno.start_anchor * 100_000 + anno.end_anchor) * 100_000 + anno.tf_node)
+                key=lambda anno: (anno.start_anchor * 100_000 + (1000 - anno.end_anchor)) * 100_000 + anno.tf_node)
+
+    ia = modify_pb_annotations(ia, tokens)
 
     # TODO: convert ptr annotations to annotation linking the ptr target to the body.id of the m:Note with the corresponding id
     # TODO: convert rs annotations to annotation linking the rkd url in metadata.anno to the rd target
-    # TODO: convert pb annotations to page annotations, from the <pb> to the next <pb> or </div>, with link to facs
     # TODO: convert ref annotations
+
+    sanity_check(ia)
     return [at.as_web_annotation(a) for a in ia]
 
 
