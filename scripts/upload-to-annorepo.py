@@ -5,6 +5,7 @@ from itertools import zip_longest
 from typing import List, Any
 
 from annorepo.client import AnnoRepoClient
+from loguru import logger
 
 
 def chunk_list(big_list: List[Any], chunk_size: int) -> List[List[Any]]:
@@ -53,6 +54,7 @@ def upload(annorepo_base_url: str,
     print("done!")
 
 
+@logger.catch()
 def main():
     parser = argparse.ArgumentParser(
         description="Upload a list of web annotations to an annorepo server in the given container "
