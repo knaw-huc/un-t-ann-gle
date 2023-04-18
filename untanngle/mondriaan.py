@@ -22,13 +22,16 @@ class IAnnotation:
     metadata: Dict[str, any] = field(default_factory=dict)
 
 
+tt_types = ("page", "folder", "letter", "sentence")
+
+
 @dataclass
 class AnnotationTransformer:
     textrepo_url: str
     textrepo_version: str
 
     def as_web_annotation(self, ia: IAnnotation) -> Dict[str, Any]:
-        if ia.type == "page":
+        if ia.type in tt_types:
             body_type = f"tt:{ia.type.capitalize()}"
         else:
             body_type = f"tei:{ia.type.capitalize()}"
@@ -67,5 +70,22 @@ class AnnotationTransformer:
             ]
         }
         if ia.metadata:
-            anno["body"]["tt:metadata"] = {f"tei:{k}": v for k, v in ia.metadata.items()}
+            anno["body"]["metadata"] = {f"{k}": v for k, v in ia.metadata.items()}
+        if ia.type == "letter":
+            anno["body"]["metadata"]["folder"] = "proeftuin"
+            anno["target"].append({
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02%2F3783%2FNL-HaNA_1.01.02_3783_0002.jpg/full/full/0/default.jpg",
+                "type": "Image"
+            })
+        if ia.type == "folder":
+            anno["body"]["metadata"]["manifest"] = \
+                "https://images.diginfra.net/api/pim/imageset/67533019-4ca0-4b08-b87e-fd5590e7a077/manifest"
+            anno["body"].pop("text")
+        else:
+            canvas_target = {
+                "@context": "https://brambg.github.io/ns/republic.jsonld",
+                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/20633ef4-27af-4b13-9ffe-dfc0f9dad1d7",
+                "type": "Canvas"
+            }
+            anno["target"].append(canvas_target)
         return anno

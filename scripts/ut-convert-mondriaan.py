@@ -80,7 +80,7 @@ def sanity_check(ia: List[IAnnotation]):
 
 def build_web_annotations(tf_annotations, tokens):
     at = AnnotationTransformer(textrepo_url="https://mondriaan.tt.di.huc.knaw.nl/textrepo",
-                               textrepo_version="9db547e7-1249-40f2-99ab-f014edac6cd1")
+                               textrepo_version="d8c06ce9-b712-413c-b296-fccf63c77340")
     ia_idx = {}
     note_target = {}
     for a in [a for a in tf_annotations]:
