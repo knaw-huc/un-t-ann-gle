@@ -25,6 +25,10 @@ class IAnnotation:
 tt_types = ("page", "folder", "letter", "sentence")
 
 
+def as_class_name(string: str) -> str:
+    return string[0].capitalize() + string[1:]
+
+
 @dataclass
 class AnnotationTransformer:
     textrepo_url: str
@@ -32,9 +36,9 @@ class AnnotationTransformer:
 
     def as_web_annotation(self, ia: IAnnotation) -> Dict[str, Any]:
         if ia.type in tt_types:
-            body_type = f"tt:{ia.type.capitalize()}"
+            body_type = f"{as_class_name(ia.type)}"
         else:
-            body_type = f"tei:{ia.type.capitalize()}"
+            body_type = f"tei:{as_class_name(ia.type)}"
         anno = {
             "@context": [
                 "http://www.w3.org/ns/anno.jsonld",
