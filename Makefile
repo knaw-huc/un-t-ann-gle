@@ -8,6 +8,8 @@ out/web_annotations.json: ./scripts/convert-to-web-annotations.py untanngle/*.py
 republic-annotations: out/web_annotations.json
 
 out/mondriaan-web-annotations.json: ./scripts/ut-convert-mondriaan.py untanngle/*.py data/mondriaan-anno.json data/mondriaan-text.json
+	poetry run scripts/ut-convert-mondriaan.py > out/mondriaan-web-annotations.json
+
 .PHONY: mondriaan-annotations
 mondriaan-annotations: out/mondriaan-web-annotations.json
 

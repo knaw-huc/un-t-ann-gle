@@ -76,6 +76,19 @@ def sanity_check(ia: List[IAnnotation]):
     if annotations_with_invalid_anchor_range:
         logger.error("There are annotations with invalid anchor range:")
         ic(annotations_with_invalid_anchor_range)
+    letter_annotations = [a for a in ia if a.type == 'letter']
+    for i in range(len(letter_annotations)):
+        for j in range(i + 1, len(letter_annotations)):
+            anno1 = letter_annotations[i]
+            anno2 = letter_annotations[j]
+            if annotations_overlap(anno1, anno2):
+                logger.error("Overlapping Letter annotations: ")
+                ic(anno1.id, anno1.metadata, anno1.start_anchor, anno1.end_anchor)
+                ic(anno2.id, anno2.metadata, anno2.start_anchor, anno2.end_anchor)
+
+
+def annotations_overlap(anno1, anno2):
+    return (anno1.end_anchor - 1) >= anno2.start_anchor
 
 
 def build_web_annotations(tf_annotations, tokens):

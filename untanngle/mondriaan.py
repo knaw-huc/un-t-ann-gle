@@ -36,9 +36,11 @@ class AnnotationTransformer:
 
     def as_web_annotation(self, ia: IAnnotation) -> Dict[str, Any]:
         if ia.type in tt_types:
-            body_type = f"{as_class_name(ia.type)}"
+            # body_type = f"{as_class_name(ia.type)}"
+            body_type = f"{ia.type.capitalize()}"
         else:
-            body_type = f"tei:{as_class_name(ia.type)}"
+            # body_type = f"tei:{as_class_name(ia.type)}"
+            body_type = f"tei:{ia.type.capitalize()}"
         anno = {
             "@context": [
                 "http://www.w3.org/ns/anno.jsonld",
