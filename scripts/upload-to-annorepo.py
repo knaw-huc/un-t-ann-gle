@@ -83,7 +83,7 @@ def main():
                         metavar="container_label")
     parser.add_argument("-k",
                         "--api-key",
-                        help="The api-key to get access to the annorepo apu",
+                        help="The api-key to get access to the annorepo api",
                         type=str,
                         metavar="api_key")
     args = parser.parse_args()
