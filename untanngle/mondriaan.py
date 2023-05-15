@@ -22,7 +22,7 @@ class IAnnotation:
     metadata: Dict[str, any] = field(default_factory=dict)
 
 
-tt_types = ("page", "folder", "letter", "sentence")
+tt_types = ("page", "folder", "letter", "sentence", "chunk")
 
 
 def as_class_name(string: str) -> str:
@@ -36,11 +36,9 @@ class AnnotationTransformer:
 
     def as_web_annotation(self, ia: IAnnotation) -> Dict[str, Any]:
         if ia.type in tt_types:
-            # body_type = f"{as_class_name(ia.type)}"
-            body_type = f"{ia.type.capitalize()}"
+            body_type = f"tt:{as_class_name(ia.type)}"
         else:
-            # body_type = f"tei:{as_class_name(ia.type)}"
-            body_type = f"tei:{ia.type.capitalize()}"
+            body_type = f"tei:{as_class_name(ia.type)}"
         anno = {
             "@context": [
                 "http://www.w3.org/ns/anno.jsonld",
