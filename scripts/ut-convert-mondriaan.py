@@ -76,10 +76,21 @@ def sanity_check(ia: List[IAnnotation]):
     if annotations_with_invalid_anchor_range:
         logger.error("There are annotations with invalid anchor range:")
         ic(annotations_with_invalid_anchor_range)
+
     letter_annotations = [a for a in ia if a.type == 'letter']
     for i in range(len(letter_annotations)):
         for j in range(i + 1, len(letter_annotations)):
             anno1 = letter_annotations[i]
+            anno2 = letter_annotations[j]
+            if annotations_overlap(anno1, anno2):
+                logger.error("Overlapping Letter annotations: ")
+                ic(anno1.id, anno1.metadata, anno1.start_anchor, anno1.end_anchor)
+                ic(anno2.id, anno2.metadata, anno2.start_anchor, anno2.end_anchor)
+
+    sentence_annotations = [a for a in ia if a.type == 'letter']
+    for i in range(len(sentence_annotations)):
+        for j in range(i + 1, len(sentence_annotations)):
+            anno1 = sentence_annotations[i]
             anno2 = letter_annotations[j]
             if annotations_overlap(anno1, anno2):
                 logger.error("Overlapping Letter annotations: ")
@@ -93,7 +104,7 @@ def annotations_overlap(anno1, anno2):
 
 def build_web_annotations(tf_annotations, tokens):
     at = AnnotationTransformer(textrepo_url="https://mondriaan.tt.di.huc.knaw.nl/textrepo",
-                               textrepo_version="d8c06ce9-b712-413c-b296-fccf63c77340")
+                               textrepo_version="c637abd5-7e07-4a3d-962e-fb40d4656ec4")
     ia_idx = {}
     note_target = {}
     for a in [a for a in tf_annotations]:
