@@ -1,8 +1,8 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Union, List, Dict, Any
 
 import requests
-from icecream import ic
 from loguru import logger
 from uri import URI
 
@@ -32,7 +32,7 @@ class ProvenanceData:
     targets: List[ProvenanceResource]
     who: URI
     where: URI
-    when: Union[URI, str]
+    when: Union[datetime, str]
     how: ProvenanceHow
     why: ProvenanceWhy
 
@@ -41,7 +41,10 @@ class ProvenanceData:
         if self.who:
             _dict['who'] = str(self.who)
         if self.when:
-            _dict['when'] = str(self.when)
+            if type(self.when) == datetime:
+                _dict['when'] = self.when.astimezone().replace(microsecond=0).isoformat()
+            else:
+                _dict['when'] = str(self.when)
         if self.where:
             _dict['where'] = str(self.where)
         if self.how:

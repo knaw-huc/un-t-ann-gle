@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+from datetime import datetime
 
 from icecream import ic
 from loguru import logger
@@ -34,7 +35,8 @@ def post_provenance(base_url: str, api_key: str):
     pd = ProvenanceData(
         who=URI('orcid:12345'),
         where=URI('http://somelocation.uri'),
-        when='2022-02-02T02:00:00Z',
+        when=datetime.now(),
+        # when='2022-02-02T02:00:00Z',
         how=ProvenanceHow(
             software=URI('https://github.com/knaw-huc/provenance/commit/b725d0a592961985f0510afed1bc98d118acb32f'),
             init='-i my-data.trig -o my-output.csv'),
@@ -56,4 +58,7 @@ def trim_trailing_slash(url: str):
 
 
 if __name__ == '__main__':
+    # when = strftime("%Y-%m-%dT%H:%M:%SZ")
+    when = datetime.now().astimezone().replace(microsecond=0).isoformat()
+    ic(when)
     main()
