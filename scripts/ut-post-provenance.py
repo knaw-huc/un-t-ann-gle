@@ -3,7 +3,8 @@ import argparse
 
 from icecream import ic
 from loguru import logger
-from untanngle.provenance import ProvenanceClient, ProvenanceData
+from untanngle.provenance import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
+from uri import URI
 
 
 @logger.catch()
@@ -31,20 +32,18 @@ def main():
 def post_provenance(base_url: str, api_key: str):
     pc = ProvenanceClient(base_url, api_key)
     pd = ProvenanceData(
-        who='orcid:12345',
-        where='http://somelocation.uri',
+        who=URI('orcid:12345'),
+        where=URI('http://somelocation.uri'),
         when='2022-02-02T02:00:00Z',
-        how_software='https://github.com/knaw-huc/provenance/commit/b725d0a592961985f0510afed1bc98d118acb32f',
-        how_init='-i my-data.trig -o my-output.csv',
-        why='Motivation',
-        source=['md5:7815696ecbf1c96e6894b779456d330e', 'file:my-data.trig'],
-        source_rel=['primary', 'primary'],
-        target=['file:my-output.csv'],
-        target_rel=['primary']
+        how=ProvenanceHow(
+            software=URI('https://github.com/knaw-huc/provenance/commit/b725d0a592961985f0510afed1bc98d118acb32f'),
+            init='-i my-data.trig -o my-output.csv'),
+        why=ProvenanceWhy(motivation='Motivation'),
+        sources=[ProvenanceResource(resource=URI('md5:7815696ecbf1c96e6894b779456d330e'), relation='primary'),
+                 ProvenanceResource(resource=URI('file:my-data.trig'), relation='primary')],
+        targets=[ProvenanceResource(resource=URI('file:my-output.csv'), relation='primary')],
     )
     ic(pd)
-    j = pd.to_json()
-    ic(j)
     id = pc.add_provenance(pd)
     ic(id)
 
