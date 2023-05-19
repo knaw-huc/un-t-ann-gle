@@ -33,7 +33,7 @@ def main():
 def post_provenance(base_url: str, api_key: str):
     pc = ProvenanceClient(base_url, api_key)
     pd = ProvenanceData(
-        who=URI('orcid:12345'),
+        who=URI('orcid:0000-0002-3755-5929'),
         where=URI('http://somelocation.uri'),
         when=datetime.now(),
         # when='2022-02-02T02:00:00Z',
@@ -58,7 +58,4 @@ def trim_trailing_slash(url: str):
 
 
 if __name__ == '__main__':
-    # when = strftime("%Y-%m-%dT%H:%M:%SZ")
-    when = datetime.now().astimezone().replace(microsecond=0).isoformat()
-    ic(when)
     main()
