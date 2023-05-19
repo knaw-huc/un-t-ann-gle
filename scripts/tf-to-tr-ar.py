@@ -61,21 +61,18 @@ def create_web_annotations(anno_file: str, text_file: str, tr_version_id: str) -
     return annotations_json
 
 
-def permalink(mondriaan_file_path: str) -> str | None:
+def permalink(repo_name: str, path: str) -> str | None:
     access_token = os.environ.get('GITHUB_ACCESS_TOKEN')
     g = Github(access_token)
 
-    owner = 'annotation'
-    repo_name = 'mondriaan'
-
-    repo = g.get_repo(f"{owner}/{repo_name}")
-    commits = repo.get_commits(path=mondriaan_file_path)
+    repo = g.get_repo(repo_name)
+    commits = repo.get_commits(path=path)
 
     if commits.totalCount > 0:
         commit_sha = commits[0].sha
-        return f"https://github.com/{owner}/{repo_name}/raw/{commit_sha}/{mondriaan_file_path}"
+        return f"https://github.com/{repo_name}/raw/{commit_sha}/{path}"
     else:
-        logger.error(f"No commits found for {mondriaan_file_path}.")
+        logger.error(f"No commits found for {path}.")
         return None
 
 
@@ -94,7 +91,7 @@ def process(watm_version: str):
     #     ar url
     #     container name
 
-    text_permalink = permalink(f"watm/{watm_version}/text.json")
+    text_permalink = permalink(repo_name="annotation/mondriaan", path=f"watm/{watm_version}/text.json")
     # text_source_uri = f"https://raw.githubusercontent.com/annotation/mondriaan/master/watm/{watm_version}/text.json"
     text_file = 'data/watm/mondriaan-text.json'
     download_file(text_permalink, text_file)
@@ -103,7 +100,7 @@ def process(watm_version: str):
     ic(tr_version_id)
     text_target_uri = f"https://mondriaan.tt.di.huc.knaw.nl/textrepo/rest/versions/{tr_version_id}"
 
-    anno_permalink = permalink(f"watm/{watm_version}/anno.json")
+    anno_permalink = permalink(repo_name="annotation/mondriaan", path=f"watm/{watm_version}/anno.json")
     # anno_source_uri = f"https://raw.githubusercontent.com/annotation/mondriaan/master/watm/{watm_version}/anno.json"
     anno_file = 'data/watm/mondriaan-anno.json'
     download_file(anno_permalink, anno_file)
