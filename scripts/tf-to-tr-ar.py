@@ -101,11 +101,6 @@ class WatmProcessor:
 
     def upload_to_tr(self, tf_text_file: str) -> str:
         trc = TextRepoClient(self.config.textrepo_base_uri, verbose=True)
-        # trc.purge_document(external_id)
-        # doc_id = trc.create_document(external_id)
-        # print(f"doc_id={doc_id}")
-        # file_id = trc.create_document_file(doc_id, 1)
-        # print(f"file_id={file_id}")
         with open(tf_text_file) as f:
             content = f.read()
         version_id = trc.import_version(external_id=self.config.textrepo_external_id,
