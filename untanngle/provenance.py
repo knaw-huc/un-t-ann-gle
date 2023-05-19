@@ -8,6 +8,12 @@ from uri import URI
 
 
 @dataclass
+class ProvenanceIdentifier:
+    id: str
+    location: URI
+
+
+@dataclass
 class ProvenanceHow:
     software: URI
     init: Union[str, None] = None
@@ -72,7 +78,7 @@ class ProvenanceClient:
         self.base_url = base_url
         self.api_key = api_key
 
-    def add_provenance(self, provenance_data: ProvenanceData) -> str:
+    def add_provenance(self, provenance_data: ProvenanceData) -> ProvenanceIdentifier:
         response = requests.post(
             f'{self.base_url}/prov',
             data=provenance_data.to_dict(),
@@ -82,4 +88,4 @@ class ProvenanceClient:
             logger.error(f"response={response}")
             raise Exception(f"server returned error: {response.text}")
         prov_id = response.headers['Location'][1:]
-        return prov_id
+        return ProvenanceIdentifier(id=prov_id, location=URI(f"{self.base_url}/prov/{prov_id}"))
