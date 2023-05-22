@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from itertools import zip_longest
@@ -14,9 +15,10 @@ from github import Github
 from icecream import ic
 from loguru import logger
 from textrepo.client import TextRepoClient
+from uri import URI
+
 from untanngle import mondriaan
 from untanngle.provenance import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
-from uri import URI
 
 
 @dataclass
@@ -31,6 +33,8 @@ class Config:
     annorepo_container_label: str
     provenance_base_uri: str
     provenance_api_key: str
+    provenance_who: str
+    provenance_where: str
 
 
 @logger.catch()
@@ -59,7 +63,9 @@ def load_config(conf_path: str) -> Config:
         annorepo_container_id=config['annorepo']['container_id'],
         annorepo_container_label=config['annorepo']['container_label'],
         provenance_base_uri=config['provenance']['base_uri'],
-        provenance_api_key=config['provenance']['api_key']
+        provenance_api_key=config['provenance']['api_key'],
+        provenance_who=config['provenance']['who'],
+        provenance_where=config['provenance']['where']
     )
 
 
@@ -131,7 +137,7 @@ class WatmProcessor:
 
         if commits.totalCount > 0:
             commit_sha = commits[0].sha
-            return f"https://github.com/{repo_name}/raw/{commit_sha}/{path}"
+            return f"https://raw.githubusercontent.com/{repo_name}/{commit_sha}/{path}"
         else:
             logger.error(f"No commits found for {path}.")
             return None
@@ -169,18 +175,20 @@ class WatmProcessor:
         return container_uri
 
     def post_provenance(self, provenance_client: ProvenanceClient, source: str, target: str, motivation: str) -> URI:
+        commit_id = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode('ascii').strip()
         tr_provenance = ProvenanceData(
-            who=URI('orcid:0000-0002-3755-5929'),
-            where=URI('https://di.huc.knaw.nl/'),
+            who=URI(self.config.provenance_who),
+            where=URI(self.config.provenance_where),
             when=datetime.now(),
             how=ProvenanceHow(
-                software=URI('https://github.com/knaw-huc/un-t-ann-gle/blob/tt-878-republic-annotaties-omzetten/'
-                             'scripts/tf-to-tr-ar.py'),
+                software=URI(
+                    f'https://raw.githubusercontent.com/knaw-huc/un-t-ann-gle/{commit_id}/scripts/tf-to-tr-ar.py'),
                 init=f'{self.config.config_path}'),
             why=ProvenanceWhy(motivation=motivation),
             sources=[ProvenanceResource(resource=URI(source), relation='primary')],
             targets=[ProvenanceResource(resource=URI(target), relation='primary')],
         )
+
         provenance_id = provenance_client.add_provenance(tr_provenance)
         logger.info(f"provenance location: {provenance_id.location}")
         return provenance_id.location

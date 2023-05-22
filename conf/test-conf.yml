@@ -11,3 +11,5 @@ annorepo:
 provenance:
   base_uri: http://localhost:8080
   api_key: 7c7f89e7-5ce4-4b79-b475-538d5f9ddad0
+  who: orcid:0000-0002-3755-5929
+  where: file://LAP1550/
