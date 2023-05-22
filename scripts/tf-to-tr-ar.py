@@ -56,13 +56,13 @@ def load_config(conf_path: str) -> Config:
     return Config(
         config_path=conf_path,
         textfabric_watm_version=config['textfabric']['watm_version'],
-        textrepo_base_uri=config['textrepo']['base_uri'],
+        textrepo_base_uri=config['textrepo']['base_uri'].rstrip('/'),
         textrepo_external_id=config['textrepo']['external_id'],
-        annorepo_base_uri=config['annorepo']['base_uri'],
+        annorepo_base_uri=config['annorepo']['base_uri'].rstrip('/'),
         annorepo_api_key=config['annorepo']['api_key'],
         annorepo_container_id=config['annorepo']['container_id'],
         annorepo_container_label=config['annorepo']['container_label'],
-        provenance_base_uri=config['provenance']['base_uri'],
+        provenance_base_uri=config['provenance']['base_uri'].rstrip('/'),
         provenance_api_key=config['provenance']['api_key'],
         provenance_who=config['provenance']['who'],
         provenance_where=config['provenance']['where']
