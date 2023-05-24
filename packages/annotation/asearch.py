@@ -17,7 +17,7 @@ def get_annotations_of_type(type,annotations,resource_id=None):
     annotations_for_resource = annotations
     if resource_id != None:
         annotations_for_resource = (a for a in annotations if a['resource_id'] == resource_id)
-    return (a for a in annotations_for_resource if a['label'] == type)
+    return (a for a in annotations_for_resource if a['type'] == type)
 
 def get_annotations_overlapping_with(begin_anchor,end_anchor,annotations,resource_id):
     '''
@@ -34,7 +34,7 @@ def matches_filters(annotation, filters):
     if filters == None or len(filters) == 0:
         return True
 
-    if 'type' in filters and annotation['label'] != filters['type']:
+    if 'type' in filters and annotation['type'] != filters['type']:
         return False
         
     if 'owner' not in filters:
@@ -72,7 +72,7 @@ def get_annotations_of_types(types,annotations,resource_id=None):
     annotations_for_resource = annotations
     if resource_id != None:
         annotations_for_resource = (a for a in annotations if a['resource_id'] == resource_id)
-    return (a for a in annotations_for_resource if a['label'] in types)
+    return (a for a in annotations_for_resource if a['type'] in types)
 
 def get_annotations_of_types_overlapping(types,begin,end,annotations,resource_id):
     '''
@@ -81,4 +81,12 @@ def get_annotations_of_types_overlapping(types,begin,end,annotations,resource_id
     return get_annotations_of_types(types,(get_annotations_overlapping_with(begin,end,annotations,resource_id)))
 
 def get_annotation_by_id(id, annotations):
-    return next(ann for ann in annotations if 'id' in ann.keys() and ann['id'] == id)
+#    return next(ann for ann in annotations if 'id' in ann.keys() and ann['id'] == id) 
+    result = None
+    for ann in annotations:
+        if 'id' in ann.keys() and ann['id'] == id:
+            result = ann
+            break
+
+    return result
+
