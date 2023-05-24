@@ -1,0 +1,15 @@
+textfabric:
+  watm_version: 0.8.5
+textrepo:
+  base_uri: https://mondriaan.tt.di.huc.knaw.nl/textrepo
+  external_id: mondriaan-letters
+annorepo:
+  base_uri: https://mondriaan.annorepo.dev.clariah.nl
+  api_key: 7CB4E3E2-65E9-48E2-821A-DEC4761C8D9E
+  container_id: mondriaan-letters-0.8.5
+  container_label: mondriaan-letters
+provenance:
+  base_uri: https://provenance.sd.di.huc.knaw.nl
+  api_key: 3fe46698-e990-49ff-aec0-dbbb76035503
+  who: orcid:0000-0002-3755-5929
+  where: file://LAP1550/

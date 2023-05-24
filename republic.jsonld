@@ -1,0 +1,340 @@
+{
+  "@context": {
+    "republic": "https://humanities.knaw.nl/ns/republic#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "oa": "http://www.w3.org/ns/oa#",
+    "Phrasematch": "republic:Phrasematch",
+    "AttendanceList": "republic:AttendanceList",
+    "Attendant": "republic:Attendant",
+    "Column": "republic:Column",
+    "Index": "republic:Index",
+    "Line": "republic:Line",
+    "Page": "republic:Page",
+    "PagexmlDoc": "republic:PagexmlDoc",
+    "RepublicParagraph": "republic:RepublicParagraph",
+    "Resolution": "republic:Resolution",
+    "ResolutionParagraph": "republic:ResolutionParagraph",
+    "Reviewed": "republic:Reviewed",
+    "Scan": "republic:Scan",
+    "Session": "republic:Session",
+    "TextRegion": "republic:TextRegion",
+    "Location": "republic:Location",
+    "MatchScores": "republic:MatchScores",
+    "Metadata": "republic:Metadata",
+    "PropositionOrigin": "republic:PropositionOrigin",
+    "Provenance": "republic:Provenance",
+    "Structure": "republic:Structure",
+    "attendanceSpans": {
+      "@id": "republic:attendanceSpans",
+      "@type": "xsd:list"
+    },
+    "baseline": {
+      "@id": "republic:baseline",
+      "@type": "xsd:list"
+    },
+    "beginAnchor": {
+      "@id": "republic:beginAnchor",
+      "@type": "xsd:integer"
+    },
+    "beginCharOffset": {
+      "@id": "republic:beginCharOffset",
+      "@type": "xsd:integer"
+    },
+    "charMatch": {
+      "@id": "republic:charMatch",
+      "@type": "xsd:float"
+    },
+    "class": {
+      "@id": "republic:class",
+      "@type": "xsd:string"
+    },
+    "columnId": {
+      "@id": "republic:columnId",
+      "@type": "xsd:string"
+    },
+    "conversionDate": {
+      "@id": "republic:conversionDate",
+      "@type": "xsd:string"
+    },
+    "coords": {
+      "@id": "republic:coords",
+      "@type": "xsd:list"
+    },
+    "dateShiftStatus": {
+      "@id": "republic:dateShiftStatus",
+      "@type": "xsd:string"
+    },
+    "delegateId": {
+      "@id": "republic:delegateId",
+      "@type": "xsd:integer"
+    },
+    "delegateName": {
+      "@id": "republic:delegateName",
+      "@type": "xsd:string"
+    },
+    "delegateScore": {
+      "@id": "republic:delegateScore",
+      "@type": "xsd:integer"
+    },
+    "docId": {
+      "@id": "republic:docId",
+      "@type": "xsd:string"
+    },
+    "end": {
+      "@id": "republic:end",
+      "@type": "xsd:integer"
+    },
+    "endAnchor": {
+      "@id": "republic:endAnchor",
+      "@type": "xsd:integer"
+    },
+    "endCharOffset": {
+      "@id": "republic:endCharOffset",
+      "@type": "xsd:integer"
+    },
+    "evidence": {
+      "@id": "republic:evidence",
+      "@type": "xsd:list"
+    },
+    "harvestingDate": {
+      "@id": "republic:harvestingDate",
+      "@type": "xsd:string"
+    },
+    "hasSessionDateElement": {
+      "@id": "republic:hasSessionDateElement",
+      "@type": "xsd:boolean"
+    },
+    "id": {
+      "@id": "republic:id",
+      "@type": "xsd:string"
+    },
+    "ignorecase": {
+      "@id": "republic:ignorecase",
+      "@type": "xsd:boolean"
+    },
+    "iiifUrl": {
+      "@id": "republic:iiifUrl",
+      "@type": "xsd:string"
+    },
+    "indexTimestamp": {
+      "@id": "republic:indexTimestamp",
+      "@type": "xsd:string"
+    },
+    "inventoryNum": {
+      "@id": "republic:inventoryNum",
+      "@type": "xsd:integer"
+    },
+    "isWorkday": {
+      "@id": "republic:isWorkday",
+      "@type": "xsd:boolean"
+    },
+    "label": {
+      "@id": "republic:label",
+      "@type": "xsd:list"
+    },
+    "lang": {
+      "@id": "republic:lang",
+      "@type": "xsd:list"
+    },
+    "leftAlignment": {
+      "@id": "republic:leftAlignment",
+      "@type": "xsd:string"
+    },
+    "levenshteinSimilarity": {
+      "@id": "republic:levenshteinSimilarity",
+      "@type": "xsd:float"
+    },
+    "lineId": {
+      "@id": "republic:lineId",
+      "@type": "xsd:string"
+    },
+    "lineRanges": {
+      "@id": "republic:lineRanges",
+      "@type": "xsd:list"
+    },
+    "lineWidth": {
+      "@id": "republic:lineWidth",
+      "@type": "xsd:string"
+    },
+    "linesIncludeRestDay": {
+      "@id": "republic:linesIncludeRestDay",
+      "@type": "xsd:boolean"
+    },
+    "medianNormalLeft": {
+      "@id": "republic:medianNormalLeft",
+      "@type": "xsd:integer"
+    },
+    "medianNormalLength": {
+      "@id": "republic:medianNormalLength",
+      "@type": "xsd:integer"
+    },
+    "medianNormalRight": {
+      "@id": "republic:medianNormalRight",
+      "@type": "xsd:integer"
+    },
+    "medianNormalWidth": {
+      "@id": "republic:medianNormalWidth",
+      "@type": "xsd:integer"
+    },
+    "motivation": {
+      "@id": "republic:motivation",
+      "@type": "xsd:string"
+    },
+    "ngramMatch": {
+      "@id": "republic:ngramMatch",
+      "@type": "xsd:float"
+    },
+    "numLines": {
+      "@id": "republic:numLines",
+      "@type": "xsd:integer"
+    },
+    "offset": {
+      "@id": "republic:offset",
+      "@type": "xsd:integer"
+    },
+    "pageId": {
+      "@id": "republic:pageId",
+      "@type": "xsd:string"
+    },
+    "pageNum": {
+      "@id": "republic:pageNum",
+      "@type": "xsd:integer"
+    },
+    "paragraphIndex": {
+      "@id": "republic:paragraphIndex",
+      "@type": "xsd:integer"
+    },
+    "parentId": {
+      "@id": "republic:parentId",
+      "@type": "xsd:string"
+    },
+    "parentType": {
+      "@id": "republic:parentType",
+      "@type": "xsd:string"
+    },
+    "pattern": {
+      "@id": "republic:pattern",
+      "@type": "xsd:string"
+    },
+    "phrase": {
+      "@id": "republic:phrase",
+      "@type": "xsd:string"
+    },
+    "proposerRole": {
+      "@id": "republic:proposerRole",
+      "@type": "xsd:string"
+    },
+    "propositionOrganisation": {
+      "@id": "republic:propositionOrganisation",
+      "@type": "xsd:string"
+    },
+    "propositionType": {
+      "@id": "republic:propositionType",
+      "@type": "xsd:string"
+    },
+    "regionLinks": {
+      "@id": "republic:regionLinks",
+      "@type": "xsd:list"
+    },
+    "resolutionIds": {
+      "@id": "republic:resolutionIds",
+      "@type": "xsd:list"
+    },
+    "resolutionType": {
+      "@id": "republic:resolutionType",
+      "@type": "xsd:string"
+    },
+    "resourceId": {
+      "@id": "republic:resourceId",
+      "@type": "xsd:string"
+    },
+    "rightAlignment": {
+      "@id": "republic:rightAlignment",
+      "@type": "xsd:string"
+    },
+    "scanId": {
+      "@id": "republic:scanId",
+      "@type": "xsd:string"
+    },
+    "sessionDate": {
+      "@id": "republic:sessionDate",
+      "@type": "xsd:string"
+    },
+    "sessionDay": {
+      "@id": "republic:sessionDay",
+      "@type": "xsd:integer"
+    },
+    "sessionId": {
+      "@id": "republic:sessionId",
+      "@type": "xsd:string"
+    },
+    "sessionMonth": {
+      "@id": "republic:sessionMonth",
+      "@type": "xsd:integer"
+    },
+    "sessionNum": {
+      "@id": "republic:sessionNum",
+      "@type": "xsd:integer"
+    },
+    "sessionWeekday": {
+      "@id": "republic:sessionWeekday",
+      "@type": "xsd:string"
+    },
+    "sessionYear": {
+      "@id": "republic:sessionYear",
+      "@type": "xsd:integer"
+    },
+    "source": {
+      "@id": "republic:source",
+      "@type": "xsd:string"
+    },
+    "sourceId": {
+      "@id": "republic:sourceId",
+      "@type": "xsd:string"
+    },
+    "start": {
+      "@id": "republic:start",
+      "@type": "xsd:integer"
+    },
+    "startOffset": {
+      "@id": "republic:startOffset",
+      "@type": "xsd:integer"
+    },
+    "string": {
+      "@id": "republic:string",
+      "@type": "xsd:string"
+    },
+    "target": {
+      "@id": "republic:target",
+      "@type": "xsd:string"
+    },
+    "text": {
+      "@id": "republic:text",
+      "@type": "xsd:string"
+    },
+    "textId": {
+      "@id": "republic:textId",
+      "@type": "xsd:string"
+    },
+    "textPageNum": {
+      "@id": "republic:textPageNum",
+      "@type": "xsd:list"
+    },
+    "textRegionId": {
+      "@id": "republic:textRegionId",
+      "@type": "xsd:string"
+    },
+    "toolId": {
+      "@id": "republic:toolId",
+      "@type": "xsd:string"
+    },
+    "type": {
+      "@id": "republic:type",
+      "@type": "xsd:string"
+    },
+    "variant": {
+      "@id": "republic:variant",
+      "@type": "xsd:string"
+    }
+  }
+}
