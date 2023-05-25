@@ -7,7 +7,7 @@ from loguru import logger
 
 @logger.catch()
 def main():
-    basedir = 'data'
+    basedir = 'data/watm'
 
     textfile = f'{basedir}/mondriaan-text.json'
     anno_file = f"{basedir}/mondriaan-anno.json"

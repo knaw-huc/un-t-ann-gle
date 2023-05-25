@@ -10,6 +10,7 @@ from loguru import logger
 @dataclass
 class TFAnnotation:
     id: str
+    namespace: str
     type: str
     body: str
     target: str
@@ -18,15 +19,13 @@ class TFAnnotation:
 @dataclass
 class IAnnotation:
     id: str = ""
+    namespace: str = ""
     type: str = ""
     tf_node: int = 0
     text: str = ""
     start_anchor: int = 0
     end_anchor: int = 0
     metadata: Dict[str, any] = field(default_factory=dict)
-
-
-tt_types = ("page", "folder", "letter", "sentence", "chunk")
 
 
 def as_class_name(string: str) -> str:
@@ -39,14 +38,13 @@ class AnnotationTransformer:
     textrepo_version: str
 
     def as_web_annotation(self, ia: IAnnotation) -> Dict[str, Any]:
-        if ia.type in tt_types:
-            body_type = f"tt:{as_class_name(ia.type)}"
-        else:
-            body_type = f"tei:{as_class_name(ia.type)}"
+        body_type = f"{ia.namespace}:{as_class_name(ia.type)}"
         anno = {
             "@context": [
                 "http://www.w3.org/ns/anno.jsonld",
                 {
+                    "nlp": "https://ns.tt.di.huc.knaw.nl/nlp",
+                    "tf": "https://ns.tt.di.huc.knaw.nl/tf",
                     "tt": "https://ns.tt.di.huc.knaw.nl/tt",
                     "tei": "https://ns.tt.di.huc.knaw.nl/tei"
                 }
@@ -57,7 +55,7 @@ class AnnotationTransformer:
             "body": {
                 "id": f"urn:mondriaan:{ia.type}:{ia.tf_node}",
                 "type": body_type,
-                "tt:textfabric_node": ia.tf_node,
+                "tf:textfabric_node": ia.tf_node,
                 "text": ia.text
             },
             "target": [
@@ -118,7 +116,8 @@ def read_tf_annotations(anno_file):
     with open(anno_file) as f:
         content = json.load(f)
         for _id, properties in content.items():
-            tf_annotations.append(TFAnnotation(id=_id, type=properties[0], body=properties[1], target=properties[2]))
+            tf_annotations.append(TFAnnotation(id=_id, type=properties[0], namespace=properties[1], body=properties[2],
+                                               target=properties[3]))
     return tf_annotations
 
 
@@ -199,7 +198,8 @@ def build_web_annotations(tf_annotations, tokens, textrepo_url: str, textrepo_fi
                 start_anchor = int(parts[0])
                 end_anchor = int(parts[1])
                 text = "".join(tokens[start_anchor:end_anchor])
-                ia = IAnnotation(id=a.id, type=a.body, text=text, start_anchor=start_anchor, end_anchor=end_anchor - 1)
+                ia = IAnnotation(id=a.id, namespace=a.namespace, type=a.body, text=text, start_anchor=start_anchor,
+                                 end_anchor=end_anchor - 1)
                 ia_idx[a.id] = ia
             case 'node':
                 anno_id = a.target
@@ -227,6 +227,14 @@ def build_web_annotations(tf_annotations, tokens, textrepo_url: str, textrepo_fi
                     ia_idx[element_anno_id].metadata["anno"] = a.body
                 # else:
                 #     ic(a)
+            case 'format':
+                pass
+            case 'pi':
+                pass
+            case 'edge':
+                pass
+            case _:
+                logger.warning(f"unhandled type: {a.type}")
 
     ia = sorted(ia_idx.values(),
                 key=lambda anno: (anno.start_anchor * 100_000 + (1000 - anno.end_anchor)) * 100_000 + anno.tf_node)
