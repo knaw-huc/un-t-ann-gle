@@ -4,13 +4,10 @@ import glob
 import json
 import logging
 import re
-import sys
-
-sys.path.append('../packages')
-
-from textservice import segmentedtext
-from annotation import asearch
 from enum import Enum
+
+from untanngle.annotation import asearch
+from untanngle.textservice import segmentedtext
 
 # resource locations
 # year to harvest
