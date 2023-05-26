@@ -92,7 +92,7 @@ def get_annotations_of_types_overlapping(types, begin, end, annotations, resourc
 
 
 def get_annotation_by_id(id, annotations):
-#    return next(ann for ann in annotations if 'id' in ann.keys() and ann['id'] == id) 
+    #    return next(ann for ann in annotations if 'id' in ann.keys() and ann['id'] == id)
     result = None
     for ann in annotations:
         if 'id' in ann.keys() and ann['id'] == id:
@@ -100,4 +100,3 @@ def get_annotation_by_id(id, annotations):
             break
 
     return result
-
