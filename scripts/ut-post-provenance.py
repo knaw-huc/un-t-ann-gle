@@ -4,8 +4,9 @@ from datetime import datetime
 
 from icecream import ic
 from loguru import logger
-from untanngle.provenance import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
 from uri import URI
+
+from untanngle.provenance import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
 
 
 @logger.catch()

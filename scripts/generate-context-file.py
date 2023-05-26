@@ -2,7 +2,6 @@
 import argparse
 import json
 from dataclasses import dataclass
-
 from typing import List, Tuple, Set
 
 from untanngle.camel_casing import to_camel_case
