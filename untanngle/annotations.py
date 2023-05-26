@@ -9,7 +9,7 @@ import requests
 from dataclasses_json import dataclass_json, Undefined, config
 from rfc3987 import parse
 
-from untanngle.camel_casing import keys_to_camel_case, types_to_camel_case
+from camel_casing import keys_to_camel_case, types_to_camel_case
 
 REPUBLIC_CONTEXT = "https://brambg.github.io/ns/republic.jsonld"
 
