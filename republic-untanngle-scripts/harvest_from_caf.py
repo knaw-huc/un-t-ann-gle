@@ -1,9 +1,10 @@
 # harvest from CAF session and resolution indexes
 
-import json
-import requests
 import glob
+import json
 import os
+
+import requests
 
 # year to harvest
 year = 1728
@@ -25,19 +26,19 @@ res_query_base = 'https://annotation.republic-caf.diginfra.org/elasticsearch/res
 
 # create output directories if they do not yet exist
 if not os.path.exists(output_dir):
-	os.makedirs(output_dir)
-	
+    os.makedirs(output_dir)
+
 if not os.path.exists(caf_sessions_outputdir):
-	os.makedirs(caf_sessions_outputdir)
-	
+    os.makedirs(caf_sessions_outputdir)
+
 if not os.path.exists(caf_resolutions_outputdir):
-	os.makedirs(caf_resolutions_outputdir)
+    os.makedirs(caf_resolutions_outputdir)
 
 # start with harvesting all required session data from proper CAF session ES index
 print(session_query)
 response = requests.get(session_query)
-    
-#with open(sessions_dump_file, 'w') as filehandle:
+
+# with open(sessions_dump_file, 'w') as filehandle:
 #    json.dump(response.json(), filehandle, indent=4)
 
 # generate separate session json file for each session in the ES response    
@@ -46,17 +47,19 @@ for session in response.json()['hits']['hits']:
     with open(caf_sessions_outputdir + file_name, 'w') as filehandle:
         json.dump(session, filehandle, indent=4)
 
+
 # for each session in session output_dir, retrieve json data from proper CAF resolutions index
 def retrieve_res_json(query_string, date_string):
     print(query_string)
     response = requests.get(query_string)
     file_name = date_string + '-resolutions.json'
-    
+
     with open(caf_resolutions_outputdir + file_name, 'w') as filehandle:
         json.dump(response.json(), filehandle, indent=4)
-        
+
+
 session_file_names = (f for f in glob.glob(session_file_pattern))
 for n in session_file_names:
     base = os.path.basename(n)
     session_id = os.path.splitext(base)[0]
-    retrieve_res_json(res_query_base+f'{session_id}', session_id)
+    retrieve_res_json(res_query_base + f'{session_id}', session_id)
