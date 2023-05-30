@@ -198,7 +198,8 @@ def build_web_annotations(tf_annotations, tokens, textrepo_url: str, textrepo_fi
                 start_anchor = int(parts[0])
                 end_anchor = int(parts[1])
                 text = "".join(tokens[start_anchor:end_anchor])
-                ia = IAnnotation(id=a.id, namespace=a.namespace, type=a.body, text=text, start_anchor=start_anchor,
+                ia = IAnnotation(id=a.id, namespace=a.namespace, type=a.body, text=text,
+                                 start_anchor=start_anchor,
                                  end_anchor=end_anchor - 1)
                 ia_idx[a.id] = ia
             case 'node':
