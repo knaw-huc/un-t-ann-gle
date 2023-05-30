@@ -1,10 +1,16 @@
+#!/usr/bin/env python3
+
 # untanngle process
 
 import glob
 import json
 import logging
+import os
 import re
+from datetime import datetime
 from enum import Enum
+
+from loguru import logger
 
 from untanngle.annotation import asearch
 from untanngle.textservice import segmentedtext
@@ -12,17 +18,20 @@ from untanngle.textservice import segmentedtext
 # resource locations
 # year to harvest
 year = 1728
-harvestdate = 230315
-
+harvest_date = datetime.now().strftime("%y%m%d")
 # where to store harvest from CAF sessions index
 # sessions_dump_file = f'sessions-{year}-output-19aug22.json'
 
 # datadir = '../../data/1728/18jul22/'
-datadir = f'./output-{harvestdate}/'
+datadir = f'./out/{harvest_date}/'
+
+logger.info(f"create {datadir}")
+os.makedirs(datadir, exist_ok=True)
+
 sessions_folder = f'CAF-sessions-{year}/'
 resolutions_folder = f'CAF-resolutions-{year}/'
-text_store = f'{year}-textstore-{harvestdate}.json'
-annotation_store = f'{year}-annotationstore-{harvestdate}.json'
+text_store = f'{year}-textstore-{harvest_date}.json'
+annotation_store = f'{year}-annotationstore-{harvest_date}.json'
 resource_id = 'volume-{year}'
 
 logging.basicConfig(filename=datadir + 'errors.log', encoding='utf-8', filemode='w', level=logging.DEBUG)
@@ -141,6 +150,10 @@ untanngle_config = {
 all_textlines = segmentedtext.IndexedSegmentedText(resource_id)
 all_annotations = []
 
+line_ids_vs_indexes = {}
+line_ids_vs_occurrences = {}
+resolution_annotations = []
+
 
 # We want to load 'text containers' that contain more or less contiguous text and are as long as practically
 # possible. Container size is determined by pragmatic reasons, e.g. technical (performance) or user driven
@@ -249,29 +262,6 @@ def deduplicate_annotations(a_array, type):
     return
 
 
-# Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
-for f_name in get_file_sequence_for_container(resource_id):
-    text_array = segmentedtext.IndexedSegmentedText()
-    annotation_array = []
-
-    source_data = get_root_tree_element(f_name)
-
-    traverse(source_data, AnnTypes.SESSION, text_array, annotation_array)
-
-    # properly concatenate annotation info taking ongoing line indexes into account
-    for ai in annotation_array:
-        ai['begin_anchor'] += all_textlines.len()
-        ai['end_anchor'] += all_textlines.len()
-
-    all_textlines.extend(text_array)
-    all_annotations.extend(annotation_array)
-
-deduplicate_annotations(all_annotations, AnnTypes.SCAN)
-deduplicate_annotations(all_annotations, AnnTypes.PAGE)
-
-resolution_annotations = []
-
-
 def get_resolution_files_for_container(text_container):
     path = datadir + resolutions_folder + 'session-*-resolutions.json'
 
@@ -331,48 +321,6 @@ def get_res_root_element(file):
 
     resolution_data = json.loads(resolution_file)
     return resolution_data['hits']['hits']
-
-
-for f_name in get_resolution_files_for_container(resource_id):
-    # get list of resolution 'hits'
-    hits = get_res_root_element(f_name)
-    for hit in hits:
-        # each hit corresponds with a resolution
-        resolution_line_ids = []
-        res_traverse(hit['_source'])
-
-line_ids_vs_indexes = {}
-line_ids_vs_occurrences = {}
-# for line in all_annotations:
-for line in asearch.get_annotations_of_type('line', all_annotations, resource_id):
-    #    if line['type'] == 'line':
-    line_ids_vs_indexes.update({line['id']: line['begin_anchor']})
-    if line['id'] not in line_ids_vs_occurrences:
-        line_ids_vs_occurrences[line['id']] = 1
-    else:
-        line_ids_vs_occurrences[line['id']] += 1
-
-for k in line_ids_vs_occurrences:
-    if line_ids_vs_occurrences[k] > 2:
-        print(f"id: {k} occurs {line_ids_vs_occurrences[k]} times")
-
-num_errors = 0
-for res in resolution_annotations:
-    try:
-        res['begin_anchor'] = line_ids_vs_indexes[res['begin_anchor']]
-        res['end_anchor'] = line_ids_vs_indexes[res['end_anchor']]
-    except:
-        print(res)
-        quit()
-        res['begin_anchor'] = 0
-        res['end_anchor'] = 0
-        num_errors += 1
-
-if num_errors > 0:
-    logging.warning(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
-    print(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
-
-all_annotations.extend(resolution_annotations)
 
 
 def collect_attendant_info(span, paras):
@@ -445,24 +393,6 @@ def create_attendants_for_attlist(attlist, session_id, resource_id):
     return attendant_annots
 
 
-# blijkbaar komen er sessies voor zonder attendance_list. Check dit even
-
-for sess in asearch.get_annotations_of_type('session', all_annotations, resource_id):
-    alists = list(asearch.get_annotations_of_type_overlapping('attendance_list', \
-                                                              sess['begin_anchor'], sess['end_anchor'], all_annotations,
-                                                              resource_id))
-    if len(alists) == 0:
-        logging.warning(f"session {sess['id']} has no attendance_list")
-
-attendant_annotations = []
-for al in asearch.get_annotations_of_type('attendance_list', all_annotations, resource_id):
-    session_id = al['metadata']['session_id']
-    atts = create_attendants_for_attlist(al, session_id, resource_id)
-    attendant_annotations.extend(atts)
-
-all_annotations.extend(attendant_annotations)
-
-
 # assume that iiif_urls refer to the same image resource
 def union_of_iiif_urls(urls):
     # check if urls contain same image_identifier
@@ -498,38 +428,6 @@ def union_of_iiif_urls(urls):
     return bounding_url
 
 
-# vraag alle page annotations op
-pg_annots = list(asearch.get_annotations_of_type('page', all_annotations, resource_id))
-
-for pa in pg_annots:
-    # per page, vraag alle overlappende text_regions op
-    overlapping_regions = list(asearch.get_annotations_of_type_overlapping('text_region', \
-                                                                           pa['begin_anchor'], pa['end_anchor'],
-                                                                           all_annotations, resource_id))
-
-    # verzamel alle iiif_urls daarvan en unificeer die
-    urls = [tr['metadata']['iiif_url'] for tr in overlapping_regions]
-    bounding_url = union_of_iiif_urls(urls)
-    region_links = [bounding_url]
-
-    pa['region_links'] = region_links
-
-# vraag alle sessions op
-s_annots = list(asearch.get_annotations_of_type('session', all_annotations, resource_id))
-
-for s in s_annots:
-    # per session, vraag alle text_regions op
-    overlapping_regions = list(asearch.get_annotations_of_type_overlapping('text_region', \
-                                                                           s['begin_anchor'], s['end_anchor'],
-                                                                           all_annotations, resource_id))
-
-    # verzamel alle iiif_urls daarvan en zet ze in volgorde in 'region_links'
-    overlapping_regions.sort(key=lambda r_ann: r_ann['begin_anchor'])
-
-    urls = [tr['metadata']['iiif_url'] for tr in overlapping_regions]
-    s['region_links'] = urls
-
-
 def get_bounding_box_for_coords(coords):
     min_left = min([crd[0] for crd in coords])
     max_right = max([crd[0] for crd in coords])
@@ -546,76 +444,6 @@ def get_bounding_box_for_coords(coords):
     }
 
 
-# vraag alle lines op
-line_annots = list(asearch.get_annotations_of_type('line', all_annotations, resource_id))
-
-# voeg iiif region_links toe aan alle line annotaties
-for line in line_annots:
-    coords = line['coords']
-    bb = get_bounding_box_for_coords(coords)
-    bb_str = f"{bb['left']},{bb['top']},{bb['width']},{bb['height']}"
-    scan_id = line['metadata']['scan_id']
-    items = scan_id.split('_')
-
-    region_url = f"{iiif_base}{items[0]}_{items[1]}/{items[2]}/{scan_id}.jpg/{bb_str}{iiif_extension}"
-    region_links = [region_url]
-    line['region_links'] = region_links
-
-for ann_type in line_based_types:
-    print(f"Starting with annotation type {ann_type}")
-    annots = list(asearch.get_annotations_of_type(ann_type.value, all_annotations, resource_id))
-
-    for num, ann in enumerate(annots):
-        ann_region_links = []
-
-        # voor iedere resolutie, vraag overlappende regions        
-        overlapping_regions = list(asearch.get_annotations_of_type_overlapping('text_region', \
-                                                                               ann['begin_anchor'], ann['end_anchor'],
-                                                                               all_annotations, resource_id))
-        overlapping_regions.sort(key=lambda reg_ann: reg_ann['begin_anchor'])
-
-        lines_in_annotation = list(asearch.get_annotations_of_type_overlapping('line', \
-                                                                               ann['begin_anchor'], ann['end_anchor'],
-                                                                               all_annotations, resource_id))
-
-        # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
-        for tr in overlapping_regions:
-            lines_in_region = list(asearch.get_annotations_of_type_overlapping('line', \
-                                                                               tr['begin_anchor'], tr['end_anchor'],
-                                                                               all_annotations, resource_id))
-
-            lines_in_intersection = [l for l in lines_in_annotation if l in lines_in_region]
-
-            # determine iiif url region enclosing the line boxes, assume each line has only one url
-            urls = [l['region_links'][0] for l in lines_in_intersection]
-            region_url = union_of_iiif_urls(urls)
-            ann_region_links.append(region_url)
-
-            # generate output to report potential issues with layout of text_regions
-            region_string = region_pattern.search(region_url)
-            width = int(region_string.group(4))
-            if width > 1000:
-                logging.warning(f"potential error in layout, width of text_region {tr['id']} too large: {width}")
-        ann['region_links'] = ann_region_links
-        if num % 100 == 0:
-            print(f"{num} annotations of type {ann_type} processed")
-
-region_annots = list(asearch.get_annotations_of_type('text_region', all_annotations, resource_id))
-for ra in region_annots:
-    ra['region_links'] = [ra['metadata']['iiif_url']]
-
-scan_annots = list(asearch.get_annotations_of_type('scan', all_annotations, resource_id))
-for sa in scan_annots:
-    sa['iiif_url'] = re.sub(r'(\d+),(\d+),(\d+),(\d+)/(full)', r'\5/,\4', sa['iiif_url'])
-    sa['region_links'] = [sa['iiif_url']]
-
-for a in all_annotations:
-    a["provenance"] = provenance_data
-    if "metadata" in a and "index_timestamp" in a["metadata"]:
-        print(a["id"])
-        a["provenance"]["index_timestamp"] = a["metadata"]["index_timestamp"]
-
-
 def add_segmented_text_to_store(segmented_text, store_name):
     try:
         with open(datadir + store_name, 'r') as filehandle:
@@ -627,9 +455,6 @@ def add_segmented_text_to_store(segmented_text, store_name):
 
     with open(datadir + store_name, 'w') as filehandle:
         json.dump(data, filehandle, indent=4, cls=segmentedtext.SegmentEncoder)
-
-
-add_segmented_text_to_store(all_textlines, text_store)
 
 
 def add_annotations_to_store(annotations, store_name):
@@ -645,4 +470,192 @@ def add_annotations_to_store(annotations, store_name):
         json.dump(data, filehandle, indent=4, cls=segmentedtext.AnchorEncoder)
 
 
-add_annotations_to_store(all_annotations, annotation_store)
+def main():
+    logger.info("main")
+
+    # Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
+    for f_name in get_file_sequence_for_container(resource_id):
+        logger.info(f"{f_name}")
+        text_array = segmentedtext.IndexedSegmentedText()
+        annotation_array = []
+
+        source_data = get_root_tree_element(f_name)
+
+        traverse(source_data, AnnTypes.SESSION, text_array, annotation_array)
+
+        # properly concatenate annotation info taking ongoing line indexes into account
+        for ai in annotation_array:
+            ai['begin_anchor'] += all_textlines.len()
+            ai['end_anchor'] += all_textlines.len()
+
+        all_textlines.extend(text_array)
+        all_annotations.extend(annotation_array)
+
+    deduplicate_annotations(all_annotations, AnnTypes.SCAN)
+    deduplicate_annotations(all_annotations, AnnTypes.PAGE)
+
+    for f_name in get_resolution_files_for_container(resource_id):
+        # get list of resolution 'hits'
+        hits = get_res_root_element(f_name)
+        for hit in hits:
+            # each hit corresponds with a resolution
+            resolution_line_ids = []
+            res_traverse(hit['_source'])
+
+    # for line in all_annotations:
+    for line in asearch.get_annotations_of_type('line', all_annotations, resource_id):
+        #    if line['type'] == 'line':
+        line_ids_vs_indexes.update({line['id']: line['begin_anchor']})
+        if line['id'] not in line_ids_vs_occurrences:
+            line_ids_vs_occurrences[line['id']] = 1
+        else:
+            line_ids_vs_occurrences[line['id']] += 1
+
+    for k in line_ids_vs_occurrences:
+        if line_ids_vs_occurrences[k] > 2:
+            print(f"id: {k} occurs {line_ids_vs_occurrences[k]} times")
+
+    num_errors = 0
+    for res in resolution_annotations:
+        try:
+            res['begin_anchor'] = line_ids_vs_indexes[res['begin_anchor']]
+            res['end_anchor'] = line_ids_vs_indexes[res['end_anchor']]
+        except:
+            print(res)
+            quit()
+            res['begin_anchor'] = 0
+            res['end_anchor'] = 0
+            num_errors += 1
+
+    if num_errors > 0:
+        logging.warning(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
+        print(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
+
+    all_annotations.extend(resolution_annotations)
+
+    # blijkbaar komen er sessies voor zonder attendance_list. Check dit even
+
+    for sess in asearch.get_annotations_of_type('session', all_annotations, resource_id):
+        alists = list(asearch.get_annotations_of_type_overlapping('attendance_list',
+                                                                  sess['begin_anchor'], sess['end_anchor'],
+                                                                  all_annotations,
+                                                                  resource_id))
+        if len(alists) == 0:
+            logging.warning(f"session {sess['id']} has no attendance_list")
+
+    attendant_annotations = []
+    for al in asearch.get_annotations_of_type('attendance_list', all_annotations, resource_id):
+        session_id = al['metadata']['session_id']
+        atts = create_attendants_for_attlist(al, session_id, resource_id)
+        attendant_annotations.extend(atts)
+
+    all_annotations.extend(attendant_annotations)
+
+    # vraag alle page annotations op
+    pg_annots = list(asearch.get_annotations_of_type('page', all_annotations, resource_id))
+
+    for pa in pg_annots:
+        # per page, vraag alle overlappende text_regions op
+        overlapping_regions = list(asearch.get_annotations_of_type_overlapping('text_region',
+                                                                               pa['begin_anchor'], pa['end_anchor'],
+                                                                               all_annotations, resource_id))
+
+        # verzamel alle iiif_urls daarvan en unificeer die
+        urls = [tr['metadata']['iiif_url'] for tr in overlapping_regions]
+        bounding_url = union_of_iiif_urls(urls)
+        region_links = [bounding_url]
+
+        pa['region_links'] = region_links
+
+    # vraag alle sessions op
+    s_annots = list(asearch.get_annotations_of_type('session', all_annotations, resource_id))
+
+    for s in s_annots:
+        # per session, vraag alle text_regions op
+        overlapping_regions = list(asearch.get_annotations_of_type_overlapping('text_region',
+                                                                               s['begin_anchor'], s['end_anchor'],
+                                                                               all_annotations, resource_id))
+
+        # verzamel alle iiif_urls daarvan en zet ze in volgorde in 'region_links'
+        overlapping_regions.sort(key=lambda r_ann: r_ann['begin_anchor'])
+
+        urls = [tr['metadata']['iiif_url'] for tr in overlapping_regions]
+        s['region_links'] = urls
+
+    # vraag alle lines op
+    line_annots = list(asearch.get_annotations_of_type('line', all_annotations, resource_id))
+
+    # voeg iiif region_links toe aan alle line annotaties
+    for line in line_annots:
+        coords = line['coords']
+        bb = get_bounding_box_for_coords(coords)
+        bb_str = f"{bb['left']},{bb['top']},{bb['width']},{bb['height']}"
+        scan_id = line['metadata']['scan_id']
+        items = scan_id.split('_')
+
+        region_url = f"{iiif_base}{items[0]}_{items[1]}/{items[2]}/{scan_id}.jpg/{bb_str}{iiif_extension}"
+        region_links = [region_url]
+        line['region_links'] = region_links
+
+    for ann_type in line_based_types:
+        logger.info(f"Starting with annotation type {ann_type}")
+        annots = list(asearch.get_annotations_of_type(ann_type.value, all_annotations, resource_id))
+
+        for num, ann in enumerate(annots):
+            ann_region_links = []
+
+            # voor iedere resolutie, vraag overlappende regions
+            overlapping_regions = list(asearch.get_annotations_of_type_overlapping('text_region',
+                                                                                   ann['begin_anchor'],
+                                                                                   ann['end_anchor'],
+                                                                                   all_annotations, resource_id))
+            overlapping_regions.sort(key=lambda reg_ann: reg_ann['begin_anchor'])
+
+            lines_in_annotation = list(asearch.get_annotations_of_type_overlapping('line',
+                                                                                   ann['begin_anchor'],
+                                                                                   ann['end_anchor'],
+                                                                                   all_annotations, resource_id))
+
+            # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
+            for tr in overlapping_regions:
+                lines_in_region = list(asearch.get_annotations_of_type_overlapping('line',
+                                                                                   tr['begin_anchor'], tr['end_anchor'],
+                                                                                   all_annotations, resource_id))
+
+                lines_in_intersection = [l for l in lines_in_annotation if l in lines_in_region]
+
+                # determine iiif url region enclosing the line boxes, assume each line has only one url
+                urls = [l['region_links'][0] for l in lines_in_intersection]
+                region_url = union_of_iiif_urls(urls)
+                ann_region_links.append(region_url)
+
+                # generate output to report potential issues with layout of text_regions
+                region_string = region_pattern.search(region_url)
+                width = int(region_string.group(4))
+                if width > 1000:
+                    logging.warning(f"potential error in layout, width of text_region {tr['id']} too large: {width}")
+            ann['region_links'] = ann_region_links
+            if num % 100 == 0:
+                print(f"{num} annotations of type {ann_type} processed")
+
+    region_annots = list(asearch.get_annotations_of_type('text_region', all_annotations, resource_id))
+    for ra in region_annots:
+        ra['region_links'] = [ra['metadata']['iiif_url']]
+
+    scan_annots = list(asearch.get_annotations_of_type('scan', all_annotations, resource_id))
+    for sa in scan_annots:
+        sa['iiif_url'] = re.sub(r'(\d+),(\d+),(\d+),(\d+)/(full)', r'\5/,\4', sa['iiif_url'])
+        sa['region_links'] = [sa['iiif_url']]
+
+    for a in all_annotations:
+        a["provenance"] = provenance_data
+        if "metadata" in a and "index_timestamp" in a["metadata"]:
+            print(a["id"])
+            a["provenance"]["index_timestamp"] = a["metadata"]["index_timestamp"]
+
+    add_segmented_text_to_store(all_textlines, text_store)
+    add_annotations_to_store(all_annotations, annotation_store)
+
+
+if __name__ == '__main__':
+    main()
