@@ -175,7 +175,7 @@ def traverse(node, node_type, text, annotations):
     for f in extra_fields:
         annotation_info[f] = node[f]
 
-    children = [] if key_of_children == None else node[key_of_children]
+    children = [] if key_of_children is None else node[key_of_children]
     if len(children) == 0:  # if no children, do your 'leaf node thing'
 
         annotation_info['end_anchor'] = text.len()
