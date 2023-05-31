@@ -12,7 +12,6 @@ import requests
 import yaml
 from annorepo.client import AnnoRepoClient
 from github import Github
-from icecream import ic
 from loguru import logger
 from textrepo.client import TextRepoClient
 from uri import URI
@@ -35,6 +34,7 @@ class Config:
     provenance_api_key: str
     provenance_who: str
     provenance_where: str
+    text_in_annotation_body: bool
 
 
 @logger.catch()
@@ -65,7 +65,8 @@ def load_config(conf_path: str) -> Config:
         provenance_base_uri=config['provenance']['base_uri'].rstrip('/'),
         provenance_api_key=config['provenance']['api_key'],
         provenance_who=config['provenance']['who'],
-        provenance_where=config['provenance']['where']
+        provenance_where=config['provenance']['where'],
+        text_in_annotation_body=config['text_in_annotation_body']
     )
 
 
@@ -120,7 +121,8 @@ class WatmProcessor:
         web_annotations = mondriaan.convert(anno_file=anno_file,
                                             text_file=text_file,
                                             textrepo_url=self.config.textrepo_base_uri,
-                                            textrepo_file_version=tr_version_id)
+                                            textrepo_file_version=tr_version_id,
+                                            text_in_body=self.config.text_in_annotation_body)
         annotations_json = "out/mondriaan-web-annotations.json"
         logger.info(f"writing {annotations_json}")
         with open(annotations_json, "w") as f:
