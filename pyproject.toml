@@ -20,6 +20,7 @@ uri = { git = "https://github.com/marrow/uri.git", rev = "5b58db87451ca4680004a8
 setuptools = "^67.8.0"
 pygithub = "^1.58.2"
 pyyaml = "^6.0"
+elasticsearch7 = "^7.17.9"
 
 [tool.poetry.group.dev.dependencies]
 annorepo-client = {path = "/Users/bram/workspaces/elucidate/annorepo-client"}
