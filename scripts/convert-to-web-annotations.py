@@ -52,6 +52,7 @@ def normalize_annotation(annotation: dict, scanpage_iiif: dict) -> dict:
     if annotation["type"] == "scan":
         opening = int(annotation["id"].split("_")[-1])
         annotation["metadata"] = {
+            "type": "tt:ScanMetadata",
             "volume": "1728",
             "opening": opening
         }
