@@ -79,6 +79,7 @@ class AnnotationTransformer:
             anno["body"]["text"] = ia.text
         if ia.metadata:
             anno["body"]["metadata"] = {f"{k}": v for k, v in ia.metadata.items()}
+            anno["body"]["metadata"]["type"] = f"tt:{as_class_name(ia.type)}Metadata"
         if ia.type == "letter":
             anno["body"]["metadata"]["folder"] = "proeftuin"
             anno["target"].append({
