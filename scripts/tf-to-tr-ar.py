@@ -81,7 +81,7 @@ class WatmProcessor:
         self.download_file(text_permalink, text_file)
 
         tr_version_id = self.upload_to_tr(text_file)
-        ic(tr_version_id)
+        # ic(tr_version_id)
         text_target_uri = f"https://mondriaan.tt.di.huc.knaw.nl/textrepo/rest/versions/{tr_version_id}"
         pc = ProvenanceClient(self.config.provenance_base_uri, self.config.provenance_api_key)
         textprov_location = self.post_provenance(provenance_client=pc,

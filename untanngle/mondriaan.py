@@ -180,9 +180,32 @@ def sanity_check(ia: List[IAnnotation]):
                 ic(anno1.id, anno1.metadata, anno1.start_anchor, anno1.end_anchor)
                 ic(anno2.id, anno2.metadata, anno2.start_anchor, anno2.end_anchor)
 
+    note_annotations_without_lang = [a for a in ia if a.type == 'note' and 'lang' not in a.metadata]
+    if note_annotations_without_lang:
+        logger.error("There are note annotations without lang metadata:")
+        ic(note_annotations_without_lang)
+
 
 def annotations_overlap(anno1, anno2):
     return (anno1.end_anchor - 1) >= anno2.start_anchor
+
+
+def get_parent_lang(a: IAnnotation, node_parents: Dict[str, str], ia_idx: Dict[str, IAnnotation]) -> str:
+    parent = ia_idx[node_parents[a.id]]
+    if 'lang' in parent.metadata:
+        return parent.metadata['lang']
+    else:
+        return get_parent_lang(parent, node_parents, ia_idx)
+
+
+def modify_note_annotations(ia: List[IAnnotation], node_parents: Dict[str, str]) -> List[IAnnotation]:
+    ia_idx = {a.id: a for a in ia}
+    for a in ia:
+        if a.type == 'note' and 'lang' not in a.metadata:
+            parent_lang = get_parent_lang(a, node_parents, ia_idx)
+            a.metadata['lang'] = parent_lang
+            # logger.info(f"enriched note: {a}")
+    return ia
 
 
 def build_web_annotations(tf_annotations, tokens, textrepo_url: str, textrepo_file_version: str):
@@ -190,6 +213,7 @@ def build_web_annotations(tf_annotations, tokens, textrepo_url: str, textrepo_fi
                                textrepo_version=textrepo_file_version)
     ia_idx = {}
     note_target = {}
+    node_parents = {}
     for a in [a for a in tf_annotations]:
         match a.type:
             case 'element':
@@ -233,14 +257,17 @@ def build_web_annotations(tf_annotations, tokens, textrepo_url: str, textrepo_fi
             case 'pi':
                 pass
             case 'edge':
-                pass
+                child_id, parent_id = a.target.split('->')
+                node_parents[child_id] = parent_id
             case _:
                 logger.warning(f"unhandled type: {a.type}")
 
     ia = sorted(ia_idx.values(),
                 key=lambda anno: (anno.start_anchor * 100_000 + (1000 - anno.end_anchor)) * 100_000 + anno.tf_node)
 
-    ia = modify_pb_annotations(ia, tokens)
+    # ia = modify_pb_annotations(ia, tokens)
+    # ic(node_parents)
+    ia = modify_note_annotations(ia, node_parents)
 
     # TODO: convert ptr annotations to annotation linking the ptr target to the body.id of the m:Note with the corresponding id
     # TODO: convert rs annotations to annotation linking the rkd url in metadata.anno to the rd target

@@ -1,5 +1,5 @@
 textfabric:
-  watm_version: 0.8.9
+  watm_version: 0.8.10
 textrepo:
   base_uri: https://mondriaan.tt.di.huc.knaw.nl/textrepo/
   external_id: mondriaan-letters
