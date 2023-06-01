@@ -6,25 +6,31 @@ import os
 from datetime import datetime
 
 import requests
+from elasticsearch7.client import Elasticsearch
+from icecream import ic
 from loguru import logger
 
 
 # for each session in session output_dir, retrieve json data from proper CAF resolutions index
 def retrieve_res_json(query_base_url: str, date_string: str, caf_resolutions_output_dir: str):
     # max_hits = requests.get(query_base_url + "&size=1").json()['hits']['total']['value']
-    max_hits = 10000
+    max_hits = 10
     query_base_url = f"{query_base_url}&size={max_hits}"
     logger.info(f"< {query_base_url}")
     response = requests.get(query_base_url)
 
     file_name = f'{date_string}-resolutions.json'
     out_path = f'{caf_resolutions_output_dir}/{file_name}'
-    size = len(response.json()['hits']['hits'])
-    if size == max_hits:
-        logger.warning("max_hits hits found! use search_after")
+    # check_result_size(max_hits, response)
     logger.info(f"> {out_path}")
     with open(out_path, 'w') as filehandle:
         json.dump(response.json(), filehandle, indent=4)
+
+
+def check_result_size(max_hits, response):
+    size = len(response.json()['hits']['hits'])
+    if size == max_hits:
+        logger.warning("max_hits hits found! use search_after")
 
 
 def harvest_year(year: str):
@@ -81,15 +87,34 @@ def harvest_year(year: str):
         retrieve_res_json(f'{res_query_base}{session_id}', session_id, caf_resolutions_output_dir)
 
 
+def all_years():
+    es = Elasticsearch("https://annotation.republic-caf.diginfra.org/elasticsearch")
+    aggs = {
+        "min_session_date": {"min": {"field": "metadata.session_date"}},
+        "max_session_date": {"max": {"field": "metadata.session_date"}}
+    }
+    resp = es.search(index="resolutions", aggs=aggs, size=0)
+    min_session_date = resp["aggregations"]["min_session_date"]["value_as_string"][:10]
+    max_session_date = resp["aggregations"]["max_session_date"]["value_as_string"][:10]
+    min_year = int(min_session_date[:4])
+    max_year = int(max_session_date[:4])
+    return [y for y in range(min_year, max_year)]
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Harvest the given year from CAF",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("year",
-                        help="The year to harvest from CAF",
+                        help="The year(s) to harvest from CAF, or \"all\" for all available years",
+                        nargs='+',
                         type=str)
     args = parser.parse_args()
-    harvest_year(args.year)
+    years = args.year
+    if 'all' in years:
+        years = all_years()
+    for year in sorted(years):
+        harvest_year(year)
 
 
 if __name__ == '__main__':
