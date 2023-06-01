@@ -17,7 +17,7 @@ from untanngle.textservice import segmentedtext
 
 # resource locations
 # year to harvest
-year = 1728
+year = 1729
 harvest_date = datetime.now().strftime("%y%m%d")
 # where to store harvest from CAF sessions index
 # sessions_dump_file = f'sessions-{year}-output-19aug22.json'
@@ -471,8 +471,6 @@ def add_annotations_to_store(annotations, store_name):
 
 
 def main():
-    logger.info("main")
-
     # Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
     for f_name in get_file_sequence_for_container(resource_id):
         logger.info(f"{f_name}")
@@ -499,7 +497,6 @@ def main():
         hits = get_res_root_element(f_name)
         for hit in hits:
             # each hit corresponds with a resolution
-            resolution_line_ids = []
             res_traverse(hit['_source'])
 
     # for line in all_annotations:
@@ -513,7 +510,7 @@ def main():
 
     for k in line_ids_vs_occurrences:
         if line_ids_vs_occurrences[k] > 2:
-            print(f"id: {k} occurs {line_ids_vs_occurrences[k]} times")
+            logger.info(f"id: {k} occurs {line_ids_vs_occurrences[k]} times")
 
     num_errors = 0
     for res in resolution_annotations:
@@ -521,7 +518,7 @@ def main():
             res['begin_anchor'] = line_ids_vs_indexes[res['begin_anchor']]
             res['end_anchor'] = line_ids_vs_indexes[res['end_anchor']]
         except:
-            print(res)
+            logger.error(res)
             quit()
             res['begin_anchor'] = 0
             res['end_anchor'] = 0
@@ -529,7 +526,6 @@ def main():
 
     if num_errors > 0:
         logging.warning(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
-        print(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
 
     all_annotations.extend(resolution_annotations)
 
@@ -636,7 +632,7 @@ def main():
                     logging.warning(f"potential error in layout, width of text_region {tr['id']} too large: {width}")
             ann['region_links'] = ann_region_links
             if num % 100 == 0:
-                print(f"{num} annotations of type {ann_type} processed")
+                logger.info(f"{num} annotations of type {ann_type} processed")
 
     region_annots = list(asearch.get_annotations_of_type('text_region', all_annotations, resource_id))
     for ra in region_annots:
@@ -650,7 +646,7 @@ def main():
     for a in all_annotations:
         a["provenance"] = provenance_data
         if "metadata" in a and "index_timestamp" in a["metadata"]:
-            print(a["id"])
+            logger.debug(a["id"])
             a["provenance"]["index_timestamp"] = a["metadata"]["index_timestamp"]
 
     add_segmented_text_to_store(all_textlines, text_store)
