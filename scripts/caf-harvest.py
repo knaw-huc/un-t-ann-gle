@@ -28,6 +28,8 @@ def retrieve_res_json(session_id: str, caf_resolutions_output_dir: str):
         logger.info(f"=> {out_path} ({number_of_resolutions:4} resolutions)")
         with open(out_path, 'w') as filehandle:
             json.dump(response, filehandle, indent=4)
+    else:
+        logger.warning(f"no resolutions found for session {session_id}")
 
 
 def check_result_size(max_hits, response):
