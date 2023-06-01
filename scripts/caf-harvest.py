@@ -5,26 +5,29 @@ import json
 import os
 from datetime import datetime
 
-import requests
 from elasticsearch7.client import Elasticsearch
-from icecream import ic
 from loguru import logger
+
+es = Elasticsearch("https://annotation.republic-caf.diginfra.org/elasticsearch")
 
 
 # for each session in session output_dir, retrieve json data from proper CAF resolutions index
-def retrieve_res_json(query_base_url: str, date_string: str, caf_resolutions_output_dir: str):
-    # max_hits = requests.get(query_base_url + "&size=1").json()['hits']['total']['value']
-    max_hits = 10
-    query_base_url = f"{query_base_url}&size={max_hits}"
-    logger.info(f"< {query_base_url}")
-    response = requests.get(query_base_url)
+def retrieve_res_json(session_id: str, caf_resolutions_output_dir: str):
+    session_date = session_id[8:18]
+    query = {
+        "range": {
+            "metadata.session_date": {"gte": session_date, "lte": session_date}
+        }
+    }
+    response = es.search(index="resolutions", query=query, size=10000)
 
-    file_name = f'{date_string}-resolutions.json'
+    file_name = f'{session_id}-resolutions.json'
     out_path = f'{caf_resolutions_output_dir}/{file_name}'
-    # check_result_size(max_hits, response)
-    logger.info(f"> {out_path}")
-    with open(out_path, 'w') as filehandle:
-        json.dump(response.json(), filehandle, indent=4)
+    number_of_resolutions = response["hits"]["total"]["value"]
+    if number_of_resolutions > 0:
+        logger.info(f"=> {out_path} ({number_of_resolutions:4} resolutions)")
+        with open(out_path, 'w') as filehandle:
+            json.dump(response, filehandle, indent=4)
 
 
 def check_result_size(max_hits, response):
@@ -42,15 +45,6 @@ def harvest_year(year: str):
     caf_sessions_output_dir = f'{output_dir}/CAF-sessions-{year}'
     caf_resolutions_output_dir = f'{output_dir}/CAF-resolutions-{year}'
 
-    # pattern to filter session json files generated during the process
-    session_file_pattern = f"{caf_sessions_output_dir}/session-{year}-*"
-
-    # query strings
-    session_query = f"https://annotation.republic-caf.diginfra.org/elasticsearch/session_lines/_doc/_search?" \
-                    f"q=metadata.session_year:{year}"
-    res_query_base = 'https://annotation.republic-caf.diginfra.org/elasticsearch/resolutions/_doc/_search?' \
-                     'track_total_hits=true&q=metadata.session_id:'
-
     # create output directories if they do not yet exist
     if not os.path.exists(output_dir):
         logger.info(f"creating {output_dir}")
@@ -65,30 +59,27 @@ def harvest_year(year: str):
         os.makedirs(caf_resolutions_output_dir)
 
     # start with harvesting all required session data from proper CAF session ES index
-    max_hits = requests.get(session_query + "&size=1").json()['hits']['total']['value']
-    session_query = f'{session_query}&size={max_hits}'
-    logger.info(f"< {session_query}")
-    response = requests.get(session_query)
-
-    # with open(sessions_dump_file, 'w') as filehandle:
-    #    json.dump(response.json(), filehandle, indent=4)
+    query = {"term": {"metadata.session_year": year}}
+    response = es.search(index="session_lines", query=query, sort="_id", size=10000)
 
     # generate separate session json file for each session in the ES response
-    for session in response.json()['hits']['hits']:
+    for session in response['hits']['hits']:
         file_name = session['_id'] + '.json'
         output_path = f"{caf_sessions_output_dir}/{file_name}"
-        logger.info(f"> {output_path}")
+        logger.info(f"=> {output_path}")
         with open(output_path, 'w') as filehandle:
             json.dump(session, filehandle, indent=4)
+
+    # pattern to filter session json files generated during the process
+    session_file_pattern = f"{caf_sessions_output_dir}/session-{year}-*"
     session_file_names = (f for f in glob.glob(session_file_pattern))
     for n in sorted(session_file_names):
         base = os.path.basename(n)
         session_id = os.path.splitext(base)[0]
-        retrieve_res_json(f'{res_query_base}{session_id}', session_id, caf_resolutions_output_dir)
+        retrieve_res_json(session_id, caf_resolutions_output_dir)
 
 
 def all_years():
-    es = Elasticsearch("https://annotation.republic-caf.diginfra.org/elasticsearch")
     aggs = {
         "min_session_date": {"min": {"field": "metadata.session_date"}},
         "max_session_date": {"max": {"field": "metadata.session_date"}}
