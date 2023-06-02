@@ -94,6 +94,7 @@ def all_years():
     return [y for y in range(min_year, max_year)]
 
 
+@logger.catch
 def main():
     parser = argparse.ArgumentParser(
         description="Harvest the given year from CAF",
