@@ -322,6 +322,7 @@ def collect_attendant_info(span, paras):
     last_end = 0
     begin_anchor = ''
     result = None
+    line_ids_not_in_index = set()
 
     for p in paras:
         if result is not None:  # bit ugly, to break out of both loops when result is reached
@@ -343,11 +344,12 @@ def collect_attendant_info(span, paras):
             # print(f"l_begin: {line_begin}, l_end: {line_end}, att_begin: {att_begin}, att_end: {att_end}")
             begin_char_offset = 0
             if lr['line_id'] in line_ids_vs_indexes:
+                anchor = line_ids_vs_indexes[lr['line_id']]
                 if line_begin <= att_begin < line_end:
-                    begin_anchor = line_ids_vs_indexes[lr['line_id']]
+                    begin_anchor = anchor
                     begin_char_offset = att_begin - lr['start']
                 if line_begin <= att_end < line_end:
-                    end_anchor = line_ids_vs_indexes[lr['line_id']]
+                    end_anchor = anchor
                     end_char_offset = att_end - lr['start']
 
                     result = {
@@ -358,7 +360,10 @@ def collect_attendant_info(span, paras):
                     }
                     break
             else:
-                logging.warning(f"{lr['line_id']} not found in line_ids_vs_indexes")
+                line_ids_not_in_index.add(lr['line_id'])
+                # logging.warning(f"{lr['line_id']} not found in line_ids_vs_indexes")
+    if line_ids_not_in_index:
+        logger.warning(f"{len(line_ids_not_in_index)} `line_id`s missing from line_ids_vs_indexes")
     return result
 
 
@@ -635,6 +640,7 @@ def add_attendant_annotations(resource_id):
     attendant_annotations = []
     for al in asearch.get_annotations_of_type('attendance_list', all_annotations, resource_id):
         session_id = al['metadata']['session_id']
+        logger.info(session_id)
         atts = create_attendants_for_attlist(al, session_id, resource_id)
         attendant_annotations.extend(atts)
     all_annotations.extend(attendant_annotations)
