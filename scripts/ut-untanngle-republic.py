@@ -455,28 +455,34 @@ def get_bounding_box_for_coords(coords):
 
 
 def add_segmented_text_to_store(segmented_text, store_name):
+    store_path = datadir + store_name
     try:
-        with open(datadir + store_name, 'r') as filehandle:
+        logger.info(f"<= {store_path}")
+        with open(store_path, 'r') as filehandle:
             data = json.loads(filehandle.read())
     except FileNotFoundError:
         data = {'_resources': []}
 
     data['_resources'].append(segmented_text)
 
-    with open(datadir + store_name, 'w') as filehandle:
+    logger.info(f"=> {store_path}")
+    with open(store_path, 'w') as filehandle:
         json.dump(data, filehandle, indent=4, cls=segmentedtext.SegmentEncoder)
 
 
 def add_annotations_to_store(annotations, store_name):
+    store_path = datadir + store_name
     try:
-        with open(datadir + store_name, 'r') as filehandle:
+        logger.info(f"<= {store_path}")
+        with open(store_path, 'r') as filehandle:
             data = json.loads(filehandle.read())
     except FileNotFoundError:
         data = []
 
     data.extend(annotations)
 
-    with open(datadir + store_name, 'w') as filehandle:
+    logger.info(f"=> {store_path}")
+    with open(store_path, 'w') as filehandle:
         json.dump(data, filehandle, indent=4, cls=segmentedtext.AnchorEncoder)
 
 
@@ -496,32 +502,43 @@ def untanngle_year(year: int):
     deduplicate_annotations(all_annotations, AnnTypes.PAGE)
     logger.info(f"after removing duplicate page annotations: {len(all_annotations)} annotations")
 
+    logger.info(f"traverse_resolution_files({resolutions_folder},{resource_id})")
     traverse_resolution_files(resolutions_folder, resource_id)
 
+    logger.info(f"index_line_annotations({resource_id})")
     index_line_annotations(resource_id)
 
+    logger.info("sanity_check_line_id_occurrences()")
     sanity_check_line_id_occurrences()
 
+    logger.info("set_anchors_in_resolution_annotations()")
     set_anchors_in_resolution_annotations()
 
-    all_annotations.extend(resolution_annotations)
-
+    logger.info(f"check_for_missing_attendance_lists_in_session_annotations({resource_id})")
     check_for_missing_attendance_lists_in_session_annotations(resource_id)
 
+    logger.info(f"add_attendant_annotations({resource_id})")
     add_attendant_annotations(resource_id)
 
+    logger.info(f"add_region_links_to_page_annotations({resource_id})")
     add_region_links_to_page_annotations(resource_id)
 
+    logger.info(f"add_region_links_to_session_annotations({resource_id})")
     add_region_links_to_session_annotations(resource_id)
 
+    logger.info(f"add_region_links_to_line_annotations({resource_id})")
     add_region_links_to_line_annotations(resource_id)
 
+    logger.info(f"process_line_based_types({resource_id})")
     process_line_based_types(resource_id)
 
+    logger.info(f"add_region_links_to_text_region_annotations({resource_id})")
     add_region_links_to_text_region_annotations(resource_id)
 
+    logger.info(f"fix_scan_annotations({resource_id})")
     fix_scan_annotations(resource_id)
 
+    logger.info("add_provenance()")
     add_provenance()
 
     add_annotations_to_store(all_annotations, annotation_store)
@@ -600,6 +617,7 @@ def set_anchors_in_resolution_annotations():
     #     num_errors += 1
     if num_errors > 0:
         logging.warning(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
+    all_annotations.extend(resolution_annotations)
 
 
 def check_for_missing_attendance_lists_in_session_annotations(resource_id):
