@@ -372,7 +372,7 @@ def create_attendants_for_attlist(attlist, session_id, resource_id):
 
     spans = attlist['attendance_spans']
 
-    sess = asearch.get_annotation_by_id(session_id, all_annotations)
+    # sess = asearch.get_annotation_by_id(session_id, all_annotations)
     paras = list(asearch.get_annotations_of_type_overlapping('republic_paragraph',
                                                              attlist['begin_anchor'],
                                                              attlist['end_anchor'],
