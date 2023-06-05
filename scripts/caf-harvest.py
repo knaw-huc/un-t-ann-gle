@@ -9,6 +9,8 @@ from elasticsearch7.client import Elasticsearch
 from loguru import logger
 
 es = Elasticsearch("https://annotation.republic-caf.diginfra.org/elasticsearch")
+resolutions_index = "full_resolutions"
+lines_index = "session_lines"
 
 
 # for each session in session output_dir, retrieve json data from proper CAF resolutions index
@@ -19,7 +21,7 @@ def retrieve_res_json(session_id: str, caf_resolutions_output_dir: str):
             "metadata.session_date": {"gte": session_date, "lte": session_date}
         }
     }
-    response = es.search(index="resolutions", query=query, size=10000)
+    response = es.search(index=resolutions_index, query=query, size=10000)
 
     file_name = f'{session_id}-resolutions.json'
     out_path = f'{caf_resolutions_output_dir}/{file_name}'
@@ -62,7 +64,7 @@ def harvest_year(year: str):
 
     # start with harvesting all required session data from proper CAF session ES index
     query = {"term": {"metadata.session_year": year}}
-    response = es.search(index="session_lines", query=query, sort="_id", size=10000)
+    response = es.search(index=lines_index, query=query, sort="_id", size=10000)
 
     # generate separate session json file for each session in the ES response
     for session in response['hits']['hits']:
@@ -86,7 +88,7 @@ def all_years():
         "min_session_date": {"min": {"field": "metadata.session_date"}},
         "max_session_date": {"max": {"field": "metadata.session_date"}}
     }
-    resp = es.search(index="resolutions", aggs=aggs, size=0)
+    resp = es.search(index=resolutions_index, aggs=aggs, size=0)
     min_session_date = resp["aggregations"]["min_session_date"]["value_as_string"][:10]
     max_session_date = resp["aggregations"]["max_session_date"]["value_as_string"][:10]
     min_year = int(min_session_date[:4])
