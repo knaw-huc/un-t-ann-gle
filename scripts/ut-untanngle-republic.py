@@ -5,17 +5,18 @@ import json
 import logging
 import re
 from enum import Enum
-from typing import List
+from typing import List, Dict, Any
 
 from loguru import logger
 
 from untanngle.annotation import asearch
 from untanngle.textservice import segmentedtext
+from untanngle.textservice.segmentedtext import IndexedSegmentedText
 
 # untanngle process
 
 # resource locations
-harvest_date = "230601"  # datetime.now().strftime("%y%m%d")
+harvest_date = "230605"  # datetime.now().strftime("%y%m%d")
 # where to store harvest from CAF sessions index
 
 datadir = f'./out/{harvest_date}/'
@@ -161,7 +162,7 @@ untanngle_config = {
 # possible. Container size is determined by pragmatic reasons, e.g. technical (performance) or user driven
 # (corresponding with all scans in a book or volume). This functions returns all component files IN TEXT ORDER.
 # Examples: sorted list of files, part of IIIF manifest.
-def get_file_sequence_for_container(sessions_folder: str) -> List[str]:
+def get_session_files(sessions_folder: str) -> List[str]:
     path = f"{datadir}{sessions_folder}session-*-num*.json"
     session_file_names = (f for f in glob.glob(path))
     return sorted(session_file_names)
@@ -170,7 +171,7 @@ def get_file_sequence_for_container(sessions_folder: str) -> List[str]:
 # Many file types contain a hierarchy of ordered text and/or annotation elements of different types. Some form of
 # depth-first, post order traversal is necessary. Examples: processing a json hierarchy with dictionaries
 # and lists (republic) or parsing TEI XML (DBNL document).
-def traverse(node, node_type, text, annotations, resource_id: str):
+def traverse(node: Dict[str, Any], node_type: AnnTypes, text: IndexedSegmentedText, annotations, resource_id: str):
     # find the list that represents the children, each child is a dict
     config = untanngle_config[node_type]
     key_of_children = config['child_key']
@@ -179,8 +180,13 @@ def traverse(node, node_type, text, annotations, resource_id: str):
     metadata = node['metadata'] if 'metadata' in node else None
 
     begin_index = text.len()
-    annotation_info = {'resource_id': resource_id, 'type': node_type.value,
-                       'metadata': metadata, 'id': node['id'], 'begin_anchor': begin_index}
+    annotation_info = {
+        'resource_id': resource_id,
+        'type': node_type.value,
+        'metadata': metadata,
+        'id': node['id'],
+        'begin_anchor': begin_index
+    }
 
     # add selected extra_fields to annotation_info
     extra_fields = config['extra_fields']
@@ -189,7 +195,6 @@ def traverse(node, node_type, text, annotations, resource_id: str):
 
     children = node[key_of_children] if key_of_children is not None else []
     if len(children) == 0:  # if no children, do your 'leaf node thing'
-
         annotation_info['end_anchor'] = text.len()
         node_text = node['text']
 
@@ -208,8 +213,6 @@ def traverse(node, node_type, text, annotations, resource_id: str):
 
     if 'additional_processing' in config:
         config['additional_processing'](node, begin_index, end_index, annotations, resource_id)
-
-    return
 
 
 # In case of presence of a hierarchical structure, processing/traversal typically starts from a root element.
@@ -552,7 +555,7 @@ def untanngle_year(year: int):
 def traverse_session_files(sessions_folder, resource_id):
     all_textlines = segmentedtext.IndexedSegmentedText(resource_id)
     # Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
-    for f_name in get_file_sequence_for_container(sessions_folder):
+    for f_name in get_session_files(sessions_folder):
         logger.info(f"<= {f_name}")
 
         source_data = get_root_tree_element(f_name)
@@ -613,15 +616,8 @@ def set_anchors_in_resolution_annotations():
             logging.error(f"missing line annotation {res['end_anchor']}")
             res['end_anchor'] = 0
             num_errors += 1
-    # except:
-    #     ic(res)
-    #     logger.error(res)
-    #     quit()
-    #     res['begin_anchor'] = 0
-    #     res['end_anchor'] = 0
-    #     num_errors += 1
     if num_errors > 0:
-        logging.warning(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
+        logger.error(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
     all_annotations.extend(resolution_annotations)
 
 
@@ -731,7 +727,7 @@ def process_line_based_types(resource_id):
                 # generate output to report potential issues with layout of text_regions
                 region_string = region_pattern.search(region_url)
                 width = int(region_string.group(4))
-                if width > 1000:
+                if width > 2000:
                     logging.warning(f"potential error in layout, width of text_region {tr['id']} too large: {width}")
             ann['region_links'] = ann_region_links
 
@@ -753,7 +749,7 @@ def add_provenance():
     for a in all_annotations:
         a["provenance"] = provenance_data
         if "metadata" in a and "index_timestamp" in a["metadata"]:
-            logger.debug(a["id"])
+            logging.debug(a["id"])
             a["provenance"]["index_timestamp"] = a["metadata"]["index_timestamp"]
 
 
