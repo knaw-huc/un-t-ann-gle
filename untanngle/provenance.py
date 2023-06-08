@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Union, List, Dict, Any
 
 import requests
+from icecream import ic
 from loguru import logger
 from uri import URI
 
@@ -72,6 +73,21 @@ class ProvenanceData:
         return _dict
 
 
+def log_curl_command(authorization, data, url):
+    ic(data)
+    data_params = []
+    for k, v in data.items():
+        if type(v) == list:
+            for sub_v in v:
+                data_params.append(f"-d \"{k}={sub_v}\"")
+        else:
+            data_params.append(f"-d \"{k}={v}\"")
+
+    data_param_str = " ".join(data_params)
+    logger.debug(f"curlie -i -X POST -H 'Authorization: {authorization}' "
+                 f"{data_param_str} {url}")
+
+
 class ProvenanceClient:
 
     def __init__(self, base_url: str, api_key: str):
@@ -79,11 +95,17 @@ class ProvenanceClient:
         self.api_key = api_key
 
     def add_provenance(self, provenance_data: ProvenanceData) -> ProvenanceIdentifier:
+        url = f'{self.base_url}/prov'
+        data = provenance_data.to_dict()
+        authorization = f'Basic: {self.api_key}'
+        # log_curl_command(authorization, data, url)
         response = requests.post(
-            f'{self.base_url}/prov',
-            data=provenance_data.to_dict(),
-            headers={'Authorization': f'Basic: {self.api_key}'}
+            url=url,
+            data=data,
+            headers={'Authorization': authorization}
         )
+        # ic(response.request.headers)
+        # ic(response.headers)
         if not response.ok:
             logger.error(f"response={response}")
             raise Exception(f"server returned error: {response.text}")
