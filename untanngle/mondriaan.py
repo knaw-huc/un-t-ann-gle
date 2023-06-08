@@ -196,11 +196,15 @@ def annotations_overlap(anno1, anno2):
 
 
 def get_parent_lang(a: IAnnotation, node_parents: Dict[str, str], ia_idx: Dict[str, IAnnotation]) -> str:
-    parent = ia_idx[node_parents[a.id]]
-    if 'lang' in parent.metadata:
-        return parent.metadata['lang']
+    if a.id in node_parents:
+        parent = ia_idx[node_parents[a.id]]
+        if 'lang' in parent.metadata:
+            return parent.metadata['lang']
+        else:
+            return get_parent_lang(parent, node_parents, ia_idx)
     else:
-        return get_parent_lang(parent, node_parents, ia_idx)
+        logger.warning(f"node {a.id} has no parents, and no metadata.lang -> returning default 'en'")
+        return 'en'
 
 
 def modify_note_annotations(ia: List[IAnnotation], node_parents: Dict[str, str]) -> List[IAnnotation]:
@@ -220,6 +224,8 @@ def build_web_annotations(tf_annotations, tokens, textrepo_url: str, textrepo_fi
     ia_idx = {}
     note_target = {}
     node_parents = {}
+    ref_links = []
+    target_links = []
     for a in [a for a in tf_annotations]:
         match a.type:
             case 'element':
@@ -263,8 +269,24 @@ def build_web_annotations(tf_annotations, tokens, textrepo_url: str, textrepo_fi
             case 'pi':
                 pass
             case 'edge':
-                child_id, parent_id = a.target.split('->')
-                node_parents[child_id] = parent_id
+                match a.body:
+                    case 'parent':
+                        child_id, parent_id = a.target.split('->')
+                        node_parents[child_id] = parent_id
+                    case 'link_ref':
+                        from_id, to_id = a.target.split('->')
+                        ref_links.append((from_id, to_id))
+                        pass
+                    case 'link_target':
+                        from_id, to_id = a.target.split('->')
+                        target_links.append((from_id, to_id))
+                        pass
+                    case _:
+                        if a.body.startswith('sibling='):
+                            pass
+                        else:
+                            logger.warning(f"unhandled edge body: {a.body}")
+
             case _:
                 logger.warning(f"unhandled type: {a.type}")
 
@@ -280,4 +302,33 @@ def build_web_annotations(tf_annotations, tokens, textrepo_url: str, textrepo_fi
     # TODO: convert ref annotations
 
     sanity_check(ia)
-    return [at.as_web_annotation(a) for a in ia]
+
+    tf_node_to_ia_id = {a.tf_node: a.id for a in ia}
+    web_annotations = [at.as_web_annotation(a) for a in ia]
+    ia_id_to_body_id = {tf_node_to_ia_id[wa["body"]["tf:textfabric_node"]]: wa["body"]["id"] for wa in web_annotations}
+
+    ref_annotations = [
+        as_link_anno(from_ia_id, to_ia_id, "referencing", ia_id_to_body_id)
+        for from_ia_id, to_ia_id in ref_links
+    ]
+    web_annotations.extend(ref_annotations)
+
+    target_annotations = [
+        as_link_anno(from_ia_id, to_ia_id, "targeting", ia_id_to_body_id)
+        for from_ia_id, to_ia_id in target_links
+    ]
+    web_annotations.extend(target_annotations)
+    return web_annotations
+
+
+def as_link_anno(from_ia_id, to_ia_id, purpose, ia_id_to_body_id):
+    body_id = ia_id_to_body_id[from_ia_id]
+    target_id = ia_id_to_body_id[to_ia_id]
+    return {
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "type": "Annotation",
+        "purpose": purpose,
+        "generated": datetime.today().isoformat(),
+        "body": body_id,
+        "target": target_id
+    }

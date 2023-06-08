@@ -4,6 +4,7 @@ import glob
 import json
 import logging
 import re
+import time
 from enum import Enum
 from typing import List, Dict, Any
 
@@ -19,9 +20,8 @@ from untanngle.textservice.segmentedtext import IndexedSegmentedText
 harvest_date = "230605"  # datetime.now().strftime("%y%m%d")
 # where to store harvest from CAF sessions index
 
-datadir = f'./out/{harvest_date}/'
+# datadir = f'./out/{harvest_date}/'
 
-logging.basicConfig(filename=datadir + 'errors.log', encoding='utf-8', filemode='w', level=logging.DEBUG)
 
 # selected classes that refer to persons
 attendant_classes = ('president', 'delegate', 'raadpensionaris')
@@ -66,7 +66,7 @@ provenance_data = {
 
 all_annotations = []
 
-line_ids_vs_indexes = {}
+line_ids_to_anchors = {}
 line_ids_vs_occurrences = {}
 resolution_annotations = []
 
@@ -163,7 +163,7 @@ untanngle_config = {
 # (corresponding with all scans in a book or volume). This functions returns all component files IN TEXT ORDER.
 # Examples: sorted list of files, part of IIIF manifest.
 def get_session_files(sessions_folder: str) -> List[str]:
-    path = f"{datadir}{sessions_folder}session-*-num*.json"
+    path = f"{sessions_folder}session-*-num*.json"
     session_file_names = (f for f in glob.glob(path))
     return sorted(session_file_names)
 
@@ -261,7 +261,7 @@ def deduplicate_annotations(a_array, type):
 
 
 def get_resolution_files(resolutions_folder: str):
-    path = f'{datadir}{resolutions_folder}session-*-resolutions.json'
+    path = f'{resolutions_folder}session-*-resolutions.json'
     resolution_file_names = (f for f in glob.glob(path))
     return sorted(resolution_file_names)
 
@@ -305,7 +305,7 @@ def res_traverse(node, resource_id: str):
     extra_fields = config['extra_fields']
     for f in extra_fields:
         if AnnTypes(node_label) == AnnTypes.ATTENDANCE_LIST and node['attendance_spans'] == []:
-            logging.warning(f"empty attendance_span for {node['id']}")
+            logging.warning(f"node {node['id']}: empty attendance_span")
         annotation_info[f] = node[f]
 
     resolution_annotations.append(annotation_info)
@@ -321,11 +321,23 @@ def get_res_root_element(file):
 
 
 def collect_attendant_info(span, paras):
+    result = None
+
+    att_begin = span['offset']
+    att_end = span['end']
+    if att_begin < 0:
+        logging.warning(f"span {span}: span['offset'] ({span['offset']}) < 0")
+        return result
+
+    if att_end < 0:
+        logging.warning(f"span {span}: span['end] ({span['end']}) < 0")
+        return result
+
     char_ptr = 0
     last_end = 0
-    begin_anchor = ''
-    result = None
     line_ids_not_in_index = set()
+    begin_anchor = 0
+    begin_char_offset = 0
 
     for p in paras:
         if result is not None:  # bit ugly, to break out of both loops when result is reached
@@ -334,20 +346,12 @@ def collect_attendant_info(span, paras):
 
         for lr in p['line_ranges']:
             last_end = lr['end']
-
-            att_begin = span['offset']
-            att_end = span['end']
             line_begin = lr['start'] + char_ptr
             line_end = lr['end'] + char_ptr
+            logging.debug(f"l_begin: {line_begin}, l_end: {line_end}, att_begin: {att_begin}, att_end: {att_end}")
 
-            if att_begin < 0 or att_end < 0:
-                logging.warning(f"span['offset'] < 0 or span['end] < 0")
-                break
-
-            # print(f"l_begin: {line_begin}, l_end: {line_end}, att_begin: {att_begin}, att_end: {att_end}")
-            begin_char_offset = 0
-            if lr['line_id'] in line_ids_vs_indexes:
-                anchor = line_ids_vs_indexes[lr['line_id']]
+            if lr['line_id'] in line_ids_to_anchors:
+                anchor = line_ids_to_anchors[lr['line_id']]
                 if line_begin <= att_begin < line_end:
                     begin_anchor = anchor
                     begin_char_offset = att_begin - lr['start']
@@ -364,9 +368,9 @@ def collect_attendant_info(span, paras):
                     break
             else:
                 line_ids_not_in_index.add(lr['line_id'])
-                # logging.warning(f"{lr['line_id']} not found in line_ids_vs_indexes")
+                logging.warning(f"span {span}: {lr['line_id']} not found in line_ids_vs_indexes")
     if line_ids_not_in_index:
-        logger.warning(f"{len(line_ids_not_in_index)} `line_id`s missing from line_ids_vs_indexes")
+        logging.warning(f"span {span}: {len(line_ids_not_in_index)} `line_id`s missing from line_ids_vs_indexes")
     return result
 
 
@@ -381,19 +385,19 @@ def create_attendants_for_attlist(attlist, session_id, resource_id):
                                                              attlist['end_anchor'],
                                                              all_annotations,
                                                              resource_id))
-
-    for index, s in enumerate(spans):
-        if s['class'] in attendant_classes:
+    logging.debug(f"{len(paras)} republic_parargraphs found")
+    for index, span in enumerate(spans):
+        if span['class'] in attendant_classes:
             attendant = {
                 'resource_id': resource_id,
                 'type': 'attendant',
                 'id': f'{session_id}-attendant-{index}',
-                'metadata': s
+                'metadata': span
             }
 
-            a_info = collect_attendant_info(s, paras)
+            a_info = collect_attendant_info(span, paras)
             if a_info is None:  # span not matching with text of paras
-                logging.error(f"span does not match: {s} for {session_id}")
+                logging.error(f"span {span}: does not match for session {session_id}")
             else:
                 attendant['begin_anchor'] = a_info['begin_anchor']
                 attendant['end_anchor'] = a_info['end_anchor']
@@ -462,10 +466,9 @@ def get_bounding_box_for_coords(coords):
     }
 
 
-def add_segmented_text_to_store(segmented_text, store_name):
-    store_path = datadir + store_name
+def add_segmented_text_to_store(segmented_text, store_path: str):
     try:
-        logger.info(f"<= {store_path}")
+        logging.info(f"<= {store_path}")
         with open(store_path, 'r') as filehandle:
             data = json.loads(filehandle.read())
     except FileNotFoundError:
@@ -473,15 +476,14 @@ def add_segmented_text_to_store(segmented_text, store_name):
 
     data['_resources'].append(segmented_text)
 
-    logger.info(f"=> {store_path}")
+    logging.info(f"=> {store_path}")
     with open(store_path, 'w') as filehandle:
         json.dump(data, filehandle, indent=4, cls=segmentedtext.SegmentEncoder)
 
 
-def add_annotations_to_store(annotations, store_name):
-    store_path = datadir + store_name
+def add_annotations_to_store(annotations, store_path: str):
     try:
-        logger.info(f"<= {store_path}")
+        logging.info(f"<= {store_path}")
         with open(store_path, 'r') as filehandle:
             data = json.loads(filehandle.read())
     except FileNotFoundError:
@@ -489,74 +491,83 @@ def add_annotations_to_store(annotations, store_name):
 
     data.extend(annotations)
 
-    logger.info(f"=> {store_path}")
+    logging.info(f"=> {store_path}")
     with open(store_path, 'w') as filehandle:
         json.dump(data, filehandle, indent=4, cls=segmentedtext.AnchorEncoder)
 
 
-def untanngle_year(year: int):
+def untanngle_year(year: int, data_dir: str):
+    datadir = data_dir
+    logfile = f'{datadir}/untanngle-republic-{year}.log'
+    logger.info(f"logging to {logfile}")
+    logging.basicConfig(filename=logfile,
+                        encoding='utf-8',
+                        filemode='w',
+                        format='%(asctime)s | %(levelname)s | %(message)s',
+                        level=logging.DEBUG)
+
     sessions_folder = f'CAF-sessions-{year}/'
     resolutions_folder = f'CAF-resolutions-{year}/'
     text_store = f'{year}-textstore-{harvest_date}.json'
     annotation_store = f'{year}-annotationstore-{harvest_date}.json'
     resource_id = f'volume-{year}'
 
-    all_textlines = traverse_session_files(sessions_folder, resource_id)
-    add_segmented_text_to_store(all_textlines, text_store)
+    all_textlines = traverse_session_files(f'{datadir}/{sessions_folder}', resource_id)
+    add_segmented_text_to_store(all_textlines, f'{datadir}/{text_store}')
 
     deduplicate_annotations(all_annotations, AnnTypes.SCAN)
-    logger.info(f"after removing duplicate scan annotations: {len(all_annotations)} annotations")
+    logging.info(f"after removing duplicate scan annotations: {len(all_annotations)} annotations")
 
     deduplicate_annotations(all_annotations, AnnTypes.PAGE)
-    logger.info(f"after removing duplicate page annotations: {len(all_annotations)} annotations")
+    logging.info(f"after removing duplicate page annotations: {len(all_annotations)} annotations")
 
-    logger.info(f"traverse_resolution_files({resolutions_folder},{resource_id})")
-    traverse_resolution_files(resolutions_folder, resource_id)
+    logging.info(f"traverse_resolution_files({resolutions_folder},{resource_id})")
+    traverse_resolution_files(f'{datadir}/{resolutions_folder}', resource_id)
 
-    logger.info(f"index_line_annotations({resource_id})")
+    logging.info(f"index_line_annotations({resource_id})")
     index_line_annotations(resource_id)
 
-    logger.info("sanity_check_line_id_occurrences()")
+    logging.info("sanity_check_line_id_occurrences()")
     sanity_check_line_id_occurrences()
 
-    logger.info("set_anchors_in_resolution_annotations()")
+    logging.info("set_anchors_in_resolution_annotations()")
     set_anchors_in_resolution_annotations()
 
-    logger.info(f"check_for_missing_attendance_lists_in_session_annotations({resource_id})")
+    logging.info(f"check_for_missing_attendance_lists_in_session_annotations({resource_id})")
     check_for_missing_attendance_lists_in_session_annotations(resource_id)
 
-    logger.info(f"add_attendant_annotations({resource_id})")
+    logging.info(f"add_attendant_annotations({resource_id})")
     add_attendant_annotations(resource_id)
 
-    logger.info(f"add_region_links_to_page_annotations({resource_id})")
+    logging.info(f"add_region_links_to_page_annotations({resource_id})")
     add_region_links_to_page_annotations(resource_id)
 
-    logger.info(f"add_region_links_to_session_annotations({resource_id})")
+    logging.info(f"add_region_links_to_session_annotations({resource_id})")
     add_region_links_to_session_annotations(resource_id)
 
-    logger.info(f"add_region_links_to_line_annotations({resource_id})")
+    logging.info(f"add_region_links_to_line_annotations({resource_id})")
     add_region_links_to_line_annotations(resource_id)
 
-    logger.info(f"process_line_based_types({resource_id})")
+    logging.info(f"process_line_based_types({resource_id})")
     process_line_based_types(resource_id)
 
-    logger.info(f"add_region_links_to_text_region_annotations({resource_id})")
+    logging.info(f"add_region_links_to_text_region_annotations({resource_id})")
     add_region_links_to_text_region_annotations(resource_id)
 
-    logger.info(f"fix_scan_annotations({resource_id})")
+    logging.info(f"fix_scan_annotations({resource_id})")
     fix_scan_annotations(resource_id)
 
-    logger.info("add_provenance()")
+    logging.info("add_provenance()")
     add_provenance()
 
-    add_annotations_to_store(all_annotations, annotation_store)
+    add_annotations_to_store(all_annotations, f'{datadir}/{annotation_store}')
 
 
 def traverse_session_files(sessions_folder, resource_id):
     all_textlines = segmentedtext.IndexedSegmentedText(resource_id)
     # Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
     for f_name in get_session_files(sessions_folder):
-        logger.info(f"<= {f_name}")
+        logging.info(f"<= {f_name}")
 
         source_data = get_root_tree_element(f_name)
         text_array = segmentedtext.IndexedSegmentedText()
@@ -571,7 +582,7 @@ def traverse_session_files(sessions_folder, resource_id):
 
         all_textlines.extend(text_array)
         all_annotations.extend(annotation_array)
-    logger.info(f"{len(all_annotations)} annotations")
+    logging.info(f"{len(all_annotations)} annotations")
     return all_textlines
 
 
@@ -587,14 +598,14 @@ def traverse_resolution_files(resolutions_folder, resource_id):
 def sanity_check_line_id_occurrences():
     for k in line_ids_vs_occurrences:
         if line_ids_vs_occurrences[k] > 2:
-            logger.info(f"id: {k} occurs {line_ids_vs_occurrences[k]} times")
+            logging.info(f"id: {k} occurs {line_ids_vs_occurrences[k]} times")
 
 
 def index_line_annotations(resource_id):
     # for line in all_annotations:
     for line in asearch.get_annotations_of_type('line', all_annotations, resource_id):
         #    if line['type'] == 'line':
-        line_ids_vs_indexes.update({line['id']: line['begin_anchor']})
+        line_ids_to_anchors.update({line['id']: line['begin_anchor']})
         if line['id'] not in line_ids_vs_occurrences:
             line_ids_vs_occurrences[line['id']] = 1
         else:
@@ -604,20 +615,20 @@ def index_line_annotations(resource_id):
 def set_anchors_in_resolution_annotations():
     num_errors = 0
     for res in resolution_annotations:
-        if res['begin_anchor'] in line_ids_vs_indexes:
-            res['begin_anchor'] = line_ids_vs_indexes[res['begin_anchor']]
+        if res['begin_anchor'] in line_ids_to_anchors:
+            res['begin_anchor'] = line_ids_to_anchors[res['begin_anchor']]
         else:
             logging.error(f"missing line annotation {res['begin_anchor']}")
             res["begin_anchor"] = 0
             num_errors += 1
-        if res['end_anchor'] in line_ids_vs_indexes:
-            res['end_anchor'] = line_ids_vs_indexes[res['end_anchor']]
+        if res['end_anchor'] in line_ids_to_anchors:
+            res['end_anchor'] = line_ids_to_anchors[res['end_anchor']]
         else:
             logging.error(f"missing line annotation {res['end_anchor']}")
             res['end_anchor'] = 0
             num_errors += 1
     if num_errors > 0:
-        logger.error(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
+        logging.error(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
     all_annotations.extend(resolution_annotations)
 
 
@@ -636,7 +647,7 @@ def add_attendant_annotations(resource_id):
     attendant_annotations = []
     for al in asearch.get_annotations_of_type('attendance_list', all_annotations, resource_id):
         session_id = al['metadata']['session_id']
-        logger.info(session_id)
+        logging.info(session_id)
         atts = create_attendants_for_attlist(al, session_id, resource_id)
         attendant_annotations.extend(atts)
     all_annotations.extend(attendant_annotations)
@@ -693,29 +704,42 @@ def add_region_links_to_line_annotations(resource_id):
 
 def process_line_based_types(resource_id):
     for ann_type in line_based_types:
-        logger.info(f"Starting with annotation type {ann_type}")
         annots = list(asearch.get_annotations_of_type(ann_type.value, all_annotations, resource_id))
-
+        logging.info(f"Processing annotation type {ann_type} ({len(annots)} annotations)")
         for num, ann in enumerate(annots):
             ann_region_links = []
 
             # voor iedere resolutie, vraag overlappende regions
-            overlapping_regions = list(asearch.get_annotations_of_type_overlapping('text_region',
-                                                                                   ann['begin_anchor'],
-                                                                                   ann['end_anchor'],
-                                                                                   all_annotations, resource_id))
+            overlapping_regions = list(
+                asearch.get_annotations_of_type_overlapping(
+                    'text_region',
+                    ann['begin_anchor'],
+                    ann['end_anchor'],
+                    all_annotations,
+                    resource_id
+                )
+            )
             overlapping_regions.sort(key=lambda reg_ann: reg_ann['begin_anchor'])
 
-            lines_in_annotation = list(asearch.get_annotations_of_type_overlapping('line',
-                                                                                   ann['begin_anchor'],
-                                                                                   ann['end_anchor'],
-                                                                                   all_annotations, resource_id))
+            lines_in_annotation = list(
+                asearch.get_annotations_of_type_overlapping(
+                    'line',
+                    ann['begin_anchor'],
+                    ann['end_anchor'],
+                    all_annotations,
+                    resource_id
+                )
+            )
 
             # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
             for tr in overlapping_regions:
-                lines_in_region = list(asearch.get_annotations_of_type_overlapping('line',
-                                                                                   tr['begin_anchor'], tr['end_anchor'],
-                                                                                   all_annotations, resource_id))
+                lines_in_region = list(
+                    asearch.get_annotations_of_type_overlapping(
+                        'line',
+                        tr['begin_anchor'], tr['end_anchor'],
+                        all_annotations, resource_id
+                    )
+                )
 
                 lines_in_intersection = [line for line in lines_in_annotation if line in lines_in_region]
 
@@ -728,7 +752,8 @@ def process_line_based_types(resource_id):
                 region_string = region_pattern.search(region_url)
                 width = int(region_string.group(4))
                 if width > 2000:
-                    logging.warning(f"potential error in layout, width of text_region {tr['id']} too large: {width}")
+                    logging.warning(
+                        f"annotation {ann}: potential error in layout, width of text_region {tr['id']} too large: {width}")
             ann['region_links'] = ann_region_links
 
 
@@ -741,7 +766,7 @@ def add_region_links_to_text_region_annotations(resource_id):
 def fix_scan_annotations(resource_id):
     scan_annots = list(asearch.get_annotations_of_type('scan', all_annotations, resource_id))
     for sa in scan_annots:
-        sa['iiif_url'] = re.sub(r'(\d+),(\d+),(\d+),(\d+)/(full)', r'\5/,\4', sa['iiif_url'])
+        sa['iiif_url'] = re.sub(r"(\d+),(\d+),(\d+),(\d+)/(full)", r'\5/,\4', sa['iiif_url'])
         sa['region_links'] = [sa['iiif_url']]
 
 
@@ -749,12 +774,13 @@ def add_provenance():
     for a in all_annotations:
         a["provenance"] = provenance_data
         if "metadata" in a and "index_timestamp" in a["metadata"]:
-            logging.debug(a["id"])
+            # logging.debug(a["id"])
             a["provenance"]["index_timestamp"] = a["metadata"]["index_timestamp"]
 
 
 @logger.catch
 def main():
+    tic = time.perf_counter()
     parser = argparse.ArgumentParser(
         description="Untanngle the harvested CAF data for the given year(s)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -762,10 +788,19 @@ def main():
                         help="The year(s) to untanngle",
                         nargs='+',
                         type=int)
+    parser.add_argument("-d", "--data-dir",
+                        help="The directory where to find the downloaded CAS files",
+                        required=True,
+                        type=str)
+
     args = parser.parse_args()
     years = args.year
+    data_dir = args.data_dir
     for year in sorted(years):
-        untanngle_year(year)
+        untanngle_year(year, data_dir)
+    logging.info("done!")
+    toc = time.perf_counter()
+    logger.info(f"processing took {toc - tic:0.4f} seconds")
 
 
 if __name__ == '__main__':
