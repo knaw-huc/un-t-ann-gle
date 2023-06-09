@@ -348,7 +348,6 @@ def collect_attendant_info(span, paras):
             last_end = lr['end']
             line_begin = lr['start'] + char_ptr
             line_end = lr['end'] + char_ptr
-            logging.debug(f"l_begin: {line_begin}, l_end: {line_end}, att_begin: {att_begin}, att_end: {att_end}")
 
             if lr['line_id'] in line_ids_to_anchors:
                 anchor = line_ids_to_anchors[lr['line_id']]
@@ -365,7 +364,13 @@ def collect_attendant_info(span, paras):
                         'begin_char_offset': begin_char_offset,
                         'end_char_offset': end_char_offset
                     }
+                    logging.debug(
+                        f"result! for: l_begin: {line_begin}, l_end: {line_end}, att_begin: {att_begin}, att_end: {att_end}")
                     break
+                else:
+                    logging.debug(
+                        f"no result for: l_begin: {line_begin}, l_end: {line_end}, att_begin: {att_begin}, att_end: {att_end}")
+
             else:
                 line_ids_not_in_index.add(lr['line_id'])
                 logging.warning(f"span {span}: {lr['line_id']} not found in line_ids_vs_indexes")
@@ -414,38 +419,33 @@ def union_of_iiif_urls(urls):
     # check if urls contain same image_identifier
     img_id = image_id_pattern.search(urls[0]).group(2)
 
+    # Initialize the bounding region coordinates
+    min_left, max_right, min_top, max_bottom = float('inf'), float('-inf'), float('inf'), float('-inf')
+
     # for each url, find left, right, top, bottom
-    boxes = []
     for url in urls:
-        # i_id = image_id_pattern.search(url)
         if image_id_pattern.search(url).group(2) != img_id:
             # print(f'\t{urls[0]}')
             logging.error(f"{url} refers to other image than {img_id}")
             break
 
         region_string = region_pattern.search(url)
-        left = int(region_string.group(2))
-        top = int(region_string.group(3))
-        width = int(region_string.group(4))
-        height = int(region_string.group(5))
-        region = {
-            "left": left,
-            "right": left + width,
-            "top": top,
-            "bottom": top + height
-        }
-        boxes.append(region)
+        left, top, width, height = map(int, region_string.groups()[1:5])
+        right = left + width
+        bottom = top + height
 
-    min_left = min(box['left'] for box in boxes)
-    max_right = max(box['right'] for box in boxes)
-    min_top = min(box['top'] for box in boxes)
-    max_bottom = max(box['bottom'] for box in boxes)
+        # Update the bounding region coordinates
+        min_left = min(min_left, left)
+        max_right = max(max_right, right)
+        min_top = min(min_top, top)
+        max_bottom = max(max_bottom, bottom)
+
     height = max_bottom - min_top
     width = max_right - min_left
 
-    # construct iiif_url by replacing coordinate part in first input url
+    # Construct the IIIF URL by replacing the coordinate part in the first input URL
     bounding_region_str = f"{min_left},{min_top},{width},{height}"
-    bounding_url = re.sub(r'(\d+),(\d+),(\d+),(\d+)', rf'{bounding_region_str}', urls[0])
+    bounding_url = re.sub(r'\d+,\d+,\d+,\d+', bounding_region_str, urls[0])
 
     return bounding_url
 
@@ -504,7 +504,7 @@ def untanngle_year(year: int, data_dir: str):
                         encoding='utf-8',
                         filemode='w',
                         format='%(asctime)s | %(levelname)s | %(message)s',
-                        level=logging.DEBUG)
+                        level=logging.INFO)
 
     sessions_folder = f'CAF-sessions-{year}/'
     resolutions_folder = f'CAF-resolutions-{year}/'
@@ -704,22 +704,22 @@ def add_region_links_to_line_annotations(resource_id):
 
 def process_line_based_types(resource_id):
     for ann_type in line_based_types:
-        annots = list(asearch.get_annotations_of_type(ann_type.value, all_annotations, resource_id))
-        logging.info(f"Processing annotation type {ann_type} ({len(annots)} annotations)")
+        annots = asearch.get_annotations_of_type(ann_type.value, all_annotations, resource_id)
+        logging.info(f"Processing annotation type {ann_type}")
         for num, ann in enumerate(annots):
             ann_region_links = []
 
             # voor iedere resolutie, vraag overlappende regions
-            overlapping_regions = list(
+            overlapping_regions = sorted(
                 asearch.get_annotations_of_type_overlapping(
                     'text_region',
                     ann['begin_anchor'],
                     ann['end_anchor'],
                     all_annotations,
                     resource_id
-                )
+                ),
+                key=lambda reg_ann: reg_ann['begin_anchor']
             )
-            overlapping_regions.sort(key=lambda reg_ann: reg_ann['begin_anchor'])
 
             lines_in_annotation = list(
                 asearch.get_annotations_of_type_overlapping(
@@ -733,15 +733,17 @@ def process_line_based_types(resource_id):
 
             # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
             for tr in overlapping_regions:
-                lines_in_region = list(
-                    asearch.get_annotations_of_type_overlapping(
+                line_ids_in_region = set(
+                    [a["id"] for a in asearch.get_annotations_of_type_overlapping(
                         'line',
-                        tr['begin_anchor'], tr['end_anchor'],
-                        all_annotations, resource_id
-                    )
+                        tr['begin_anchor'],
+                        tr['end_anchor'],
+                        all_annotations,
+                        resource_id
+                    )]
                 )
 
-                lines_in_intersection = [line for line in lines_in_annotation if line in lines_in_region]
+                lines_in_intersection = [line for line in lines_in_annotation if line["id"] in line_ids_in_region]
 
                 # determine iiif url region enclosing the line boxes, assume each line has only one url
                 urls = [line['region_links'][0] for line in lines_in_intersection]
@@ -754,7 +756,7 @@ def process_line_based_types(resource_id):
                 if width > 2000:
                     logging.warning(
                         f"annotation {ann}: potential error in layout, width of text_region {tr['id']} too large: {width}")
-            ann['region_links'] = ann_region_links
+                ann['region_links'] = ann_region_links
 
 
 def add_region_links_to_text_region_annotations(resource_id):
