@@ -17,12 +17,6 @@ from untanngle.textservice.segmentedtext import IndexedSegmentedText
 
 # untanngle process
 
-# resource locations
-harvest_date = "230605"  # datetime.now().strftime("%y%m%d")
-# where to store harvest from CAF sessions index
-
-# datadir = f'./out/{harvest_date}/'
-
 
 # selected classes that refer to persons
 attendant_classes = ('president', 'delegate', 'raadpensionaris')
@@ -467,15 +461,17 @@ def get_bounding_box_for_coords(coords):
     }
 
 
-def add_segmented_text_to_store(segmented_text, store_path: str):
-    try:
-        logging.info(f"<= {store_path}")
-        with open(store_path, 'r') as filehandle:
-            data = json.loads(filehandle.read())
-    except FileNotFoundError:
-        data = {'_resources': []}
-
-    data['_resources'].append(segmented_text)
+def add_segmented_text_to_store(segmented_text: IndexedSegmentedText, store_path: str):
+    # try:
+    #     logging.info(f"<= {store_path}")
+    #     with open(store_path, 'r') as filehandle:
+    #         data = json.loads(filehandle.read())
+    # except FileNotFoundError:
+    #     data = {'_resources': []}
+    #
+    # data['_resources'].append(segmented_text)
+    data = segmented_text.__dict__
+    data.pop("text_grid_spec")
 
     logging.info(f"=> {store_path}")
     with open(store_path, 'w') as filehandle:
@@ -483,18 +479,18 @@ def add_segmented_text_to_store(segmented_text, store_path: str):
 
 
 def add_annotations_to_store(annotations, store_path: str):
-    try:
-        logging.info(f"<= {store_path}")
-        with open(store_path, 'r') as filehandle:
-            data = json.loads(filehandle.read())
-    except FileNotFoundError:
-        data = []
-
-    data.extend(annotations)
+    # try:
+    #     logging.info(f"<= {store_path}")
+    #     with open(store_path, 'r') as filehandle:
+    #         data = json.loads(filehandle.read())
+    # except FileNotFoundError:
+    #     data = []
+    #
+    # data.extend(annotations)
 
     logging.info(f"=> {store_path}")
     with open(store_path, 'w') as filehandle:
-        json.dump(data, filehandle, indent=4, cls=segmentedtext.AnchorEncoder)
+        json.dump(annotations, filehandle, indent=4, cls=segmentedtext.AnchorEncoder)
 
 
 def untanngle_year(year: int, data_dir: str):
@@ -509,8 +505,8 @@ def untanngle_year(year: int, data_dir: str):
 
     sessions_folder = f'CAF-sessions-{year}/'
     resolutions_folder = f'CAF-resolutions-{year}/'
-    text_store = f'{year}-textstore-{harvest_date}.json'
-    annotation_store = f'{year}-annotationstore-{harvest_date}.json'
+    text_store = f'{year}-textstore.json'
+    annotation_store = f'{year}-annotationstore.json'
     resource_id = f'volume-{year}'
 
     all_textlines = traverse_session_files(f'{datadir}/{sessions_folder}', resource_id)
