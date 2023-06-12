@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import datetime
 import glob
 import json
 import logging
@@ -802,7 +803,8 @@ def main():
         untanngle_year(year, data_dir)
     logging.info("done!")
     toc = time.perf_counter()
-    logger.info(f"processing took {toc - tic:0.4f} seconds")
+    duration = str(datetime.timedelta(seconds=(toc - tic)))
+    logger.info(f"processing took {duration}")
 
 
 if __name__ == '__main__':
