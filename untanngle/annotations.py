@@ -354,6 +354,7 @@ class HeightMetadata:
     min: int
     mean: int
     median: int
+    type: str = "HeightMetadata"
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -614,6 +615,8 @@ class AttendantMetadata:
     delegate_id: int
     delegate_name: str
     delegate_score: int
+    type: str = "AttendantMetadata"
+
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -832,6 +835,7 @@ class ReviewedAnnotation(Annotation):
 class PageMetadata:
     page_id: str
     scan_id: str
+    type: str = "PageMetadata"
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -862,6 +866,7 @@ class ScanMetadata:
     type: str
     volume: str
     opening: int
+    type: str = "ScanMetadata"
 
 
 @dataclass_json(undefined=Undefined.RAISE)
