@@ -25,6 +25,7 @@ def upload(year: int, data_dir: str, trc: TextRepoClient, idx):
                                         as_latest_version=True)
         idx[year] = version_id.version_id
         store_version_id_idx(idx)
+        logger.info(f"verify: {trc.base_uri}/view/versions/{version_id.version_id}/segments/index/0/39")
     else:
         logger.error(f"file not found: {path}")
 
