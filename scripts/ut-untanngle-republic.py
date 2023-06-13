@@ -461,7 +461,7 @@ def get_bounding_box_for_coords(coords):
     }
 
 
-def add_segmented_text_to_store(segmented_text: IndexedSegmentedText, store_path: str):
+def store_segmented_text(segmented_text: IndexedSegmentedText, store_path: str):
     # try:
     #     logging.info(f"<= {store_path}")
     #     with open(store_path, 'r') as filehandle:
@@ -474,11 +474,11 @@ def add_segmented_text_to_store(segmented_text: IndexedSegmentedText, store_path
     data.pop("text_grid_spec")
 
     logging.info(f"=> {store_path}")
-    with open(store_path, 'w') as filehandle:
-        json.dump(data, filehandle, indent=4, cls=segmentedtext.SegmentEncoder)
+    with open(store_path, 'w', encoding='UTF8') as filehandle:
+        json.dump(data, filehandle, indent=4, cls=segmentedtext.SegmentEncoder, ensure_ascii=False)
 
 
-def add_annotations_to_store(annotations, store_path: str):
+def store_annotations(annotations, store_path: str):
     # try:
     #     logging.info(f"<= {store_path}")
     #     with open(store_path, 'r') as filehandle:
@@ -489,12 +489,12 @@ def add_annotations_to_store(annotations, store_path: str):
     # data.extend(annotations)
 
     logging.info(f"=> {store_path}")
-    with open(store_path, 'w') as filehandle:
-        json.dump(annotations, filehandle, indent=4, cls=segmentedtext.AnchorEncoder)
+    with open(store_path, 'w', encoding='UTF8') as filehandle:
+        json.dump(annotations, filehandle, indent=4, cls=segmentedtext.AnchorEncoder, ensure_ascii=False)
 
 
 def untanngle_year(year: int, data_dir: str):
-    datadir = data_dir
+    datadir = f"{data_dir}/{year}"
     logfile = f'{datadir}/untanngle-republic-{year}.log'
     logger.info(f"logging to {logfile}")
     logging.basicConfig(filename=logfile,
@@ -503,14 +503,14 @@ def untanngle_year(year: int, data_dir: str):
                         format='%(asctime)s | %(levelname)s | %(message)s',
                         level=logging.INFO)
 
-    sessions_folder = f'CAF-sessions-{year}/'
-    resolutions_folder = f'CAF-resolutions-{year}/'
-    text_store = f'{year}-textstore.json'
-    annotation_store = f'{year}-annotationstore.json'
+    sessions_folder = f'sessions/'
+    resolutions_folder = f'resolutions/'
+    text_store = f'textstore-{year}.json'
+    annotation_store = f'annotationstore-{year}.json'
     resource_id = f'volume-{year}'
 
     all_textlines = traverse_session_files(f'{datadir}/{sessions_folder}', resource_id)
-    add_segmented_text_to_store(all_textlines, f'{datadir}/{text_store}')
+    store_segmented_text(all_textlines, f'{datadir}/{text_store}')
 
     deduplicate_annotations(all_annotations, AnnTypes.SCAN)
     logging.info(f"after removing duplicate scan annotations: {len(all_annotations)} annotations")
@@ -557,7 +557,7 @@ def untanngle_year(year: int, data_dir: str):
     logging.info("add_provenance()")
     add_provenance()
 
-    add_annotations_to_store(all_annotations, f'{datadir}/{annotation_store}')
+    store_annotations(all_annotations, f'{datadir}/{annotation_store}')
 
 
 def traverse_session_files(sessions_folder, resource_id):
@@ -700,6 +700,61 @@ def add_region_links_to_line_annotations(resource_id):
 
 
 def process_line_based_types(resource_id):
+    types = {at.value for at in line_based_types}
+    for ann in (a for a in all_annotations if a['resource_id'] == resource_id and a['type'] in types):
+        ann_region_links = []
+
+        # voor iedere resolutie, vraag overlappende regions
+        overlapping_regions = sorted(
+            asearch.get_annotations_of_type_overlapping(
+                'text_region',
+                ann['begin_anchor'],
+                ann['end_anchor'],
+                all_annotations,
+                resource_id
+            ),
+            key=lambda reg_ann: reg_ann['begin_anchor']
+        )
+
+        lines_in_annotation = list(
+            asearch.get_annotations_of_type_overlapping(
+                'line',
+                ann['begin_anchor'],
+                ann['end_anchor'],
+                all_annotations,
+                resource_id
+            )
+        )
+
+        # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
+        for tr in overlapping_regions:
+            line_ids_in_region = set(
+                [a["id"] for a in asearch.get_annotations_of_type_overlapping(
+                    'line',
+                    tr['begin_anchor'],
+                    tr['end_anchor'],
+                    all_annotations,
+                    resource_id
+                )]
+            )
+
+            lines_in_intersection = [line for line in lines_in_annotation if line["id"] in line_ids_in_region]
+
+            # determine iiif url region enclosing the line boxes, assume each line has only one url
+            urls = [line['region_links'][0] for line in lines_in_intersection]
+            region_url = union_of_iiif_urls(urls)
+            ann_region_links.append(region_url)
+
+            # generate output to report potential issues with layout of text_regions
+            region_string = region_pattern.search(region_url)
+            width = int(region_string.group(4))
+            if width > 2000:
+                logging.warning(
+                    f"annotation {ann}: potential error in layout, width of text_region {tr['id']} too large: {width}")
+            ann['region_links'] = ann_region_links
+
+
+def process_line_based_types0(resource_id):
     for ann_type in line_based_types:
         annots = asearch.get_annotations_of_type(ann_type.value, all_annotations, resource_id)
         logging.info(f"Processing annotation type {ann_type}")

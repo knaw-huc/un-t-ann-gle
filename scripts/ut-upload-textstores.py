@@ -12,8 +12,7 @@ version_id_idx_path = "out/version_id_idx.json"
 
 def upload(year: int, data_dir: str, trc: TextRepoClient, idx):
     # harvest_date = data_dir.split("/")[-1]
-    harvest_date = "230605"
-    path = f"{data_dir}/{year}-textstore-{harvest_date}.json"
+    path = f"{data_dir}/{year}/textstore-{year}.json"
     if exists(path):
         logger.info(f"<= {path}")
         with open(path) as f:

@@ -45,9 +45,9 @@ def harvest_year(year: str):
 
     # where to store harvest from CAF sessions index
     # output directories for session and resolution json_data
-    output_dir = f'./out/{harvest_date}'
-    caf_sessions_output_dir = f'{output_dir}/CAF-sessions-{year}'
-    caf_resolutions_output_dir = f'{output_dir}/CAF-resolutions-{year}'
+    output_dir = f'./out/{harvest_date}/{year}'
+    caf_sessions_output_dir = f'{output_dir}/sessions'
+    caf_resolutions_output_dir = f'{output_dir}/resolutions'
 
     # create output directories if they do not yet exist
     if not os.path.exists(output_dir):
