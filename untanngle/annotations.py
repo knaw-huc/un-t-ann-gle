@@ -282,6 +282,7 @@ class TextRegionMetadata:
     median_normal_width: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
     median_normal_length: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
     structure: Optional[Structure] = field(metadata=config(exclude=exclude_if_none), default=None)
+    text_region_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -348,6 +349,15 @@ def to_image_coords(coords: List[List[int]]) -> ImageCoords:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
+class HeightMetadata:
+    max: int
+    min: int
+    mean: int
+    median: int
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
 class LineMetadata:
     id: str
     type: str
@@ -357,6 +367,8 @@ class LineMetadata:
     page_id: str
     text_region_id: str
     column_id: str
+    height: Optional[HeightMetadata] = field(metadata=config(exclude=exclude_if_none), default=None)
+    header_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     left_alignment: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     right_alignment: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     line_width: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
@@ -431,6 +443,10 @@ class SessionMetadata:
     session_weekday: str
     session_year: int
     text_page_num: List[int]
+    page_ids: List[str]
+    prov_url: str
+    code_commit: str
+    # page_ids: Optional[List[str]] = field(metadata=config(exclude=exclude_if_none), default=None)
     attendants_list_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     iiif_url: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     num_lines: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
@@ -516,7 +532,11 @@ class AttendantsListMetadata:
     session_day: int
     session_weekday: str
     text_page_num: List[int]
+    page_num: List[int]
     index_timestamp: str
+    prov_url: str
+    code_commit: str
+    page_ids: List[str]
     president: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
 
 
@@ -729,6 +749,7 @@ class RepublicParagraphMetadata:
     doc_id: str
     lang: str
     paragraph_index: int
+    page_ids: List[str]
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -779,6 +800,7 @@ class ReviewedMetadata:
     doc_id: str
     lang: str
     paragraph_index: int
+    page_ids: List[str]
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -837,6 +859,7 @@ class PageAnnotation(Annotation):
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class ScanMetadata:
+    type: str
     volume: str
     opening: int
 
