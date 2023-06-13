@@ -349,7 +349,7 @@ def collect_attendant_info(span, paras):
                 if line_begin <= att_begin < line_end:
                     begin_anchor = anchor
                     begin_char_offset = att_begin - lr['start']
-                if line_begin <= att_end < line_end:
+                if line_begin <= att_end <= line_end:
                     end_anchor = anchor
                     end_char_offset = att_end - lr['start']
 
@@ -369,6 +369,7 @@ def collect_attendant_info(span, paras):
             else:
                 line_ids_not_in_index.add(lr['line_id'])
                 logging.warning(f"span {span}: {lr['line_id']} not found in line_ids_vs_indexes")
+        char_ptr += 1  # paragraphs are concatenated with space in between
     if line_ids_not_in_index:
         logging.warning(f"span {span}: {len(line_ids_not_in_index)} `line_id`s missing from line_ids_vs_indexes")
     return result
@@ -701,7 +702,7 @@ def add_region_links_to_line_annotations(resource_id):
 
 def process_line_based_types(resource_id):
     types = {at.value for at in line_based_types}
-    for ann in (a for a in all_annotations if a['resource_id'] == resource_id and a['type'] in types):
+    for ann in (a for a in all_annotations if a['type'] in types and a['resource_id'] == resource_id):
         ann_region_links = []
 
         # voor iedere resolutie, vraag overlappende regions
@@ -728,17 +729,16 @@ def process_line_based_types(resource_id):
 
         # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
         for tr in overlapping_regions:
-            line_ids_in_region = set(
-                [a["id"] for a in asearch.get_annotations_of_type_overlapping(
+            line_ids_in_region = {
+                a["id"] for a in asearch.get_annotations_of_type_overlapping(
                     'line',
                     tr['begin_anchor'],
                     tr['end_anchor'],
                     all_annotations,
                     resource_id
-                )]
-            )
+                )}
 
-            lines_in_intersection = [line for line in lines_in_annotation if line["id"] in line_ids_in_region]
+            lines_in_intersection = (line for line in lines_in_annotation if line["id"] in line_ids_in_region)
 
             # determine iiif url region enclosing the line boxes, assume each line has only one url
             urls = [line['region_links'][0] for line in lines_in_intersection]
@@ -751,7 +751,8 @@ def process_line_based_types(resource_id):
             if width > 2000:
                 logging.warning(
                     f"annotation {ann}: potential error in layout, width of text_region {tr['id']} too large: {width}")
-            ann['region_links'] = ann_region_links
+
+        ann['region_links'] = ann_region_links
 
 
 def process_line_based_types0(resource_id):
