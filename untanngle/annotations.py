@@ -1046,7 +1046,7 @@ def web_annotation(body: Any,
         anno_id = f"urn:republic:annotation:{uuid.uuid4()}"
     contexts = [
         "http://www.w3.org/ns/anno.jsonld",
-        {"provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"}
+        # {"provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"}
     ]
 
     context = contexts[0] if len(contexts) == 1 else contexts
@@ -1066,9 +1066,9 @@ def web_annotation(body: Any,
     }
     if custom:
         annotation.update(custom)
-    if provenance:
-        annotation["provenance"] = provenance.to_dict()
-        annotation["provenance"]["@context"] = "https://brambg.github.io/ns/provenance.jsonld"
+    # if provenance:
+    #     annotation["provenance"] = provenance.to_dict()
+    #     annotation["provenance"]["@context"] = "https://brambg.github.io/ns/provenance.jsonld"
 
     # ic(annotation)
     camel_cased = keys_to_camel_case(annotation)
