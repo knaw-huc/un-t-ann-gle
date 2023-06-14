@@ -866,7 +866,6 @@ class ScanMetadata:
     type: str
     volume: str
     opening: int
-    type: str = "ScanMetadata"
 
 
 @dataclass_json(undefined=Undefined.RAISE)

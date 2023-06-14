@@ -77,7 +77,7 @@ def export_to_file(web_annotations, export_path: str):
     out_file = f"{export_path}/web_annotations.json"
     print(f'> exporting to {out_file} ...')
     with open(out_file, 'w') as out:
-        json.dump(web_annotations, out, indent=4)
+        json.dump(web_annotations, out, indent=4, ensure_ascii=False)
 
 
 def get_sample(web_annotations: List[Dict]) -> List[Dict]:
@@ -96,7 +96,7 @@ def export_sample(web_annotations, export_path: str):
     out_file = f'{export_path}/sample.json'
     print(f'> exporting to {out_file} ...')
     with open(out_file, 'w') as out:
-        json.dump(get_sample(web_annotations), out, indent=4)
+        json.dump(get_sample(web_annotations), out, indent=4, ensure_ascii=False)
 
 
 def print_example_conversions(annotations, scanpage_iiif: dict, textrepo_base_url: str):
