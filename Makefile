@@ -1,6 +1,12 @@
 all: help
 SHELL=/bin/bash
 
+data/republic-volumes.csv: data/pim-republic-imagesets.json scripts/rp-extract-volume-data.py
+	poetry run scripts/rp-extract-volume-data.py
+
+data/image-to-canvas.csv: data/republic-volumes.csv scripts/rp-extract-image-to-canvas.sh
+	./scripts/rp-extract-image-to-canvas.sh
+
 out/web_annotations.json: ./scripts/convert-to-web-annotations.py untanngle/*.py data/image-to-canvas.csv data/1728-annotationstore-220718.json
 	poetry run ./scripts/convert-to-web-annotations.py -t https://textrepo.republic-caf.diginfra.org/api/ -v 42df1275-81cd-489c-b28c-345780c3889b -c data/image-to-canvas.csv data/1728-annotationstore-220718.json -o out
 
