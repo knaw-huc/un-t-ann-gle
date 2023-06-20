@@ -683,108 +683,123 @@ def add_attendant_annotations(resource_id):
 def add_region_links_to_page_annotations(resource_id):
     # vraag alle page annotations op
     pg_annots = list(asearch.get_annotations_of_type('page', all_annotations, resource_id))
-    for pa in pg_annots:
-        # per page, vraag alle overlappende text_regions op
-        overlapping_regions = list(asearch.get_annotations_of_type_overlapping('text_region',
-                                                                               pa['begin_anchor'], pa['end_anchor'],
-                                                                               all_annotations, resource_id))
+    with alive_bar(len(pg_annots), title="Processing page annotations", spinner=None) as bar:
+        for pa in pg_annots:
+            pa['region_links'] = calculate_region_links_for_page_annotation(pa, resource_id)
+            bar()
 
-        # verzamel alle iiif_urls daarvan en unificeer die
-        urls = [tr['metadata']['iiif_url'] for tr in overlapping_regions]
-        bounding_url = union_of_iiif_urls(urls)
-        region_links = [bounding_url]
 
-        pa['region_links'] = region_links
+def calculate_region_links_for_page_annotation(pa, resource_id):
+    # per page, vraag alle overlappende text_regions op
+    overlapping_regions = list(
+        asearch.get_annotations_of_type_overlapping(
+            'text_region',
+            pa['begin_anchor'], pa['end_anchor'],
+            all_annotations, resource_id
+        )
+    )
+    # verzamel alle iiif_urls daarvan en unificeer die
+    urls = [tr['metadata']['iiif_url'] for tr in overlapping_regions]
+    bounding_url = union_of_iiif_urls(urls)
+    return [bounding_url]
 
 
 def add_region_links_to_session_annotations(resource_id):
     # vraag alle sessions op
     s_annots = list(asearch.get_annotations_of_type('session', all_annotations, resource_id))
-    for s in s_annots:
-        # per session, vraag alle text_regions op
-        overlapping_regions = list(asearch.get_annotations_of_type_overlapping('text_region',
-                                                                               s['begin_anchor'], s['end_anchor'],
-                                                                               all_annotations, resource_id))
+    with alive_bar(len(s_annots), title="Processing session annotations", spinner=None) as bar:
+        for s in s_annots:
+            s['region_links'] = calculate_region_links_for_session_annotation(resource_id, s)
+            bar()
 
-        # verzamel alle iiif_urls daarvan en zet ze in volgorde in 'region_links'
-        overlapping_regions.sort(key=lambda r_ann: r_ann['begin_anchor'])
 
-        urls = [tr['metadata']['iiif_url'] for tr in overlapping_regions]
-        s['region_links'] = urls
+def calculate_region_links_for_session_annotation(resource_id, s):
+    # per session, vraag alle text_regions op
+    overlapping_regions = list(asearch.get_annotations_of_type_overlapping('text_region',
+                                                                           s['begin_anchor'], s['end_anchor'],
+                                                                           all_annotations, resource_id))
+    # verzamel alle iiif_urls daarvan en zet ze in volgorde in 'region_links'
+    overlapping_regions.sort(key=lambda r_ann: r_ann['begin_anchor'])
+    urls = [tr['metadata']['iiif_url'] for tr in overlapping_regions]
+    return urls
 
 
 def add_region_links_to_line_annotations(resource_id):
     # vraag alle lines op
     line_annots = list(asearch.get_annotations_of_type('line', all_annotations, resource_id))
-    # voeg iiif region_links toe aan alle line annotaties
-    for line in line_annots:
-        coords = line['coords']
-        bb = get_bounding_box_for_coords(coords)
-        bb_str = f"{bb['left']},{bb['top']},{bb['width']},{bb['height']}"
-        scan_id = line['metadata']['scan_id']
-        items = scan_id.split('_')
+    with alive_bar(len(line_annots), title="Processing line annotations", spinner=None) as bar:
+        # voeg iiif region_links toe aan alle line annotaties
+        for line in line_annots:
+            line['region_links'] = calculate_region_links_for_line_annotation(line)
+            bar()
 
-        region_url = f"{iiif_base}{items[0]}_{items[1]}/{items[2]}/{scan_id}.jpg/{bb_str}{iiif_extension}"
-        region_links = [region_url]
-        line['region_links'] = region_links
+
+def calculate_region_links_for_line_annotation(line):
+    coords = line['coords']
+    bb = get_bounding_box_for_coords(coords)
+    bb_str = f"{bb['left']},{bb['top']},{bb['width']},{bb['height']}"
+    scan_id = line['metadata']['scan_id']
+    items = scan_id.split('_')
+    region_url = f"{iiif_base}{items[0]}_{items[1]}/{items[2]}/{scan_id}.jpg/{bb_str}{iiif_extension}"
+    return [region_url]
 
 
 def process_line_based_types(resource_id):
     types = {at.value for at in line_based_types}
     relevant_annotations = [a for a in all_annotations if a['type'] in types and a['resource_id'] == resource_id]
-    with alive_bar(len(relevant_annotations), title="Processing line-based annotations") as bar:
+    with alive_bar(len(relevant_annotations), title="Processing line-based annotations", spinner=None) as bar:
         for ann in relevant_annotations:
-            ann_region_links = []
-
-            # voor iedere resolutie, vraag overlappende regions
-            overlapping_regions = sorted(
-                asearch.get_annotations_of_type_overlapping(
-                    'text_region',
-                    ann['begin_anchor'],
-                    ann['end_anchor'],
-                    all_annotations,
-                    resource_id
-                ),
-                key=lambda reg_ann: reg_ann['begin_anchor']
-            )
-
-            lines_in_annotation = list(
-                asearch.get_annotations_of_type_overlapping(
-                    'line',
-                    ann['begin_anchor'],
-                    ann['end_anchor'],
-                    all_annotations,
-                    resource_id
-                )
-            )
-
-            # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
-            for tr in overlapping_regions:
-                line_ids_in_region = {
-                    a["id"] for a in asearch.get_annotations_of_type_overlapping(
-                        'line',
-                        tr['begin_anchor'],
-                        tr['end_anchor'],
-                        all_annotations,
-                        resource_id
-                    )}
-
-                lines_in_intersection = (line for line in lines_in_annotation if line["id"] in line_ids_in_region)
-
-                # determine iiif url region enclosing the line boxes, assume each line has only one url
-                urls = [line['region_links'][0] for line in lines_in_intersection]
-                region_url = union_of_iiif_urls(urls)
-                ann_region_links.append(region_url)
-
-                # generate output to report potential issues with layout of text_regions
-                region_string = region_pattern.search(region_url)
-                width = int(region_string.group(4))
-                if width > 2000:
-                    logging.warning(
-                        f"annotation {ann}: potential error in layout, width of text_region {tr['id']} too large: {width}")
-
-            ann['region_links'] = ann_region_links
+            ann['region_links'] = calculate_region_links(ann, resource_id)
             bar()
+
+
+def calculate_region_links(ann, resource_id):
+    ann_region_links = []
+    # voor iedere resolutie, vraag overlappende regions
+    overlapping_regions = sorted(
+        asearch.get_annotations_of_type_overlapping(
+            'text_region',
+            ann['begin_anchor'],
+            ann['end_anchor'],
+            all_annotations,
+            resource_id
+        ),
+        key=lambda reg_ann: reg_ann['begin_anchor']
+    )
+    lines_in_annotation = list(
+        asearch.get_annotations_of_type_overlapping(
+            'line',
+            ann['begin_anchor'],
+            ann['end_anchor'],
+            all_annotations,
+            resource_id
+        )
+    )
+    # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
+    for tr in overlapping_regions:
+        line_ids_in_region = {
+            a["id"] for a in asearch.get_annotations_of_type_overlapping(
+                'line',
+                tr['begin_anchor'],
+                tr['end_anchor'],
+                all_annotations,
+                resource_id
+            )}
+
+        lines_in_intersection = (line for line in lines_in_annotation if line["id"] in line_ids_in_region)
+
+        # determine iiif url region enclosing the line boxes, assume each line has only one url
+        urls = [line['region_links'][0] for line in lines_in_intersection]
+        region_url = union_of_iiif_urls(urls)
+        ann_region_links.append(region_url)
+
+        # # generate output to report potential issues with layout of text_regions
+        # region_string = region_pattern.search(region_url)
+        # width = int(region_string.group(4))
+        # if width > 2000:
+        #     logging.warning(
+        #         f"annotation {ann}: potential error in layout, width of text_region {tr['id']} too large: {width}")
+    return ann_region_links
 
 
 def process_line_based_types0(resource_id):
