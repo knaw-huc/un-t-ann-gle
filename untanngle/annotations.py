@@ -24,7 +24,7 @@ class Annotation:
         return web_annotation(
             body=self.annotation_body(),
             target=self.annotation_target(canvas_idx, textrepo_base_url, version_id),
-            provenance=self.provenance)
+        )
 
     def annotation_body(self):
         body = self.body()
@@ -247,6 +247,7 @@ class ColumnAnnotation:
     begin_anchor: int
     end_anchor: int
     resource_id: str
+    inventory_id: str
     image_coords: ImageCoords
     image_range: List[List[Union[List[ImageCoords], str]]]
     region_links: List[str]
@@ -291,12 +292,14 @@ class TextRegionAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    inventory_id: str
     metadata: TextRegionMetadata
     begin_anchor: int
     end_anchor: int
     coords: List[List[int]]
     region_links: List[str]
-    provenance: Provenance
+
+    # provenance: Provenance
 
     def body(self) -> Dict[str, Any]:
         return {
@@ -315,6 +318,7 @@ class TextRegionAnnotation0:
     begin_anchor: int
     end_anchor: int
     resource_id: str
+    inventory_id: str
     image_coords: ImageCoords
     image_range: List[List[Union[List[ImageCoords], str]]]
     region_links: List[str]
@@ -381,13 +385,15 @@ class LineAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    inventory_id: str
     metadata: LineMetadata
     begin_anchor: int
     end_anchor: int
     baseline: List[List[int]]
     coords: List[List[int]]
     region_links: List[str]
-    provenance: Provenance
+
+    # provenance: Provenance
 
     def body(self) -> Dict[str, Any]:
         return {
@@ -466,11 +472,12 @@ class SessionAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    inventory_id: str
     begin_anchor: int
     end_anchor: int
     evidence: List[Evidence]
     metadata: SessionMetadata
-    provenance: Provenance
+    # provenance: Provenance
     region_links: List[str]
     coords: Optional[List[List[int]]] = field(metadata=config(exclude=exclude_if_none), default=None)
 
@@ -559,12 +566,14 @@ class AttendantsListAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    inventory_id: str
     begin_anchor: int
     end_anchor: int
     metadata: AttendantsListMetadata
     attendance_spans: List[AttendanceSpan]
     region_links: List[str]
-    provenance: Provenance
+
+    # provenance: Provenance
 
     def body(self) -> Dict[str, Any]:
         return {
@@ -618,20 +627,21 @@ class AttendantMetadata:
     type: str = "AttendantMetadata"
 
 
-
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class AttendantAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    # inventory_id: str
     metadata: AttendantMetadata
     begin_anchor: int
     end_anchor: int
     begin_char_offset: int
     end_char_offset: int
     region_links: List[str]
-    provenance: Provenance
+
+    # provenance: Provenance
 
     def body(self) -> Dict[str, Any]:
         return {
@@ -689,11 +699,12 @@ class ResolutionAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    inventory_id: str
     begin_anchor: int
     end_anchor: int
     region_links: List[str]
     metadata: dict
-    provenance: Provenance
+    # provenance: Provenance
     coords: Optional[List[List[int]]] = field(metadata=config(exclude=exclude_if_none), default=None)
     evidence: Optional[List[Evidence]] = field(metadata=config(exclude=exclude_if_none), default=None)
 
@@ -771,13 +782,15 @@ class RepublicParagraphAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    inventory_id: str
     begin_anchor: int
     end_anchor: int
     metadata: RepublicParagraphMetadata
     line_ranges: List[LineRange]
     text: str
     region_links: List[str]
-    provenance: Provenance
+
+    # provenance: Provenance
 
     def body(self) -> Dict[str, Any]:
         return {
@@ -812,13 +825,15 @@ class ReviewedAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    inventory_id: str
     begin_anchor: int
     end_anchor: int
     metadata: ReviewedMetadata
     line_ranges: List[LineRange]
     text: str
     region_links: List[str]
-    provenance: Provenance
+
+    # provenance: Provenance
 
     def body(self) -> Dict[str, Any]:
         return {
@@ -844,12 +859,14 @@ class PageAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    # inventory_id: str
     begin_anchor: int
     end_anchor: int
     metadata: PageMetadata
     coords: List[List[int]]
     region_links: List[str]
-    provenance: Provenance
+
+    # provenance: Provenance
 
     def body(self) -> Dict[str, Any]:
         return {
@@ -874,12 +891,14 @@ class ScanAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    # inventory_id: str
     iiif_url: str
     begin_anchor: int
     end_anchor: int
     metadata: ScanMetadata
     region_links: List[str]
-    provenance: Provenance
+
+    # provenance: Provenance
 
     def body(self) -> Dict[str, Any]:
         return {
@@ -1039,7 +1058,7 @@ def create_context(custom_fields: Set[str]) -> Dict[str, str]:
 def web_annotation(body: Any,
                    target: Any,
                    anno_id: str = None,
-                   provenance: Provenance = None,
+                   # provenance: Provenance = None,
                    custom: dict = None) -> dict:
     if not anno_id:
         anno_id = f"urn:republic:annotation:{uuid.uuid4()}"

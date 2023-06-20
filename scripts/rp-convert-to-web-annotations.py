@@ -50,10 +50,12 @@ def normalize_annotation(annotation: dict, scanpage_iiif: dict) -> dict:
         if iiif_url:
             annotation['iiif_url'] = iiif_url
     if annotation["type"] == "scan":
-        opening = int(annotation["id"].split("_")[-1])
+        id_parts = annotation["id"].split("_")
+        opening = int(id_parts[-1])
+        volume = "_".join(id_parts[:-1])
         annotation["metadata"] = {
             "type": "tt:ScanMetadata",
-            "volume": "1728",
+            "volume": volume,
             "opening": opening
         }
     return annotation
@@ -122,29 +124,46 @@ def print_example_conversions(annotations, scanpage_iiif: dict, textrepo_base_ur
         print("----")
 
 
-def create_document_annotation(end_anchor: int, title: str, textrepo_base_url: str, version_id: str):
-    da = VolumeAnnotation(title=title,
-                          begin_anchor=0, end_anchor=end_anchor,
-                          manifest_url="https://images.diginfra.net/api/pim/imageset/67533019-4ca0-4b08-b87e-fd5590e7a077/manifest")
-    return da.as_web_annotation(textrepo_base_url=textrepo_base_url, version_id=version_id)
+def get_manifest_url(inventory_id: str) -> str:
+    with open("data/republic-volumes.csv") as f:
+        reader = csv.DictReader(f)
+        manifest_idx = {r["inventory_id"]: r["manifest"] for r in reader}
+    return manifest_idx[inventory_id]
 
 
-def convert(input_file: str, textrepo_url: str, version_id: str, canvas_index_file: str, export_path: str) -> None:
-    print(f'> importing {input_file} ...')
-    with open(input_file) as f:
+def create_volume_annotation(begin_anchor: int, end_anchor: int,
+                             inventory_id: str,
+                             textrepo_base_url: str,
+                             version_id: str):
+    manifest_url = get_manifest_url(inventory_id)
+    va = VolumeAnnotation(title=inventory_id,
+                          begin_anchor=begin_anchor, end_anchor=end_anchor,
+                          manifest_url=manifest_url)
+    return va.as_web_annotation(textrepo_base_url=textrepo_base_url, version_id=version_id)
+
+
+def convert(annotation_store_path: str, textrepo_url: str, version_id: str, canvas_index_path: str,
+            export_path: str) -> None:
+    print(f'> importing {annotation_store_path} ...')
+    with open(annotation_store_path) as f:
         annotations = json.load(f)
     num_annotations = len(annotations)
     print(f'> {num_annotations} annotations loaded')
 
-    end_anchor = max(a["end_anchor"] for a in annotations)
-    document_annotation = create_document_annotation(end_anchor=end_anchor, title="1728",
-                                                     textrepo_base_url=textrepo_url,
-                                                     version_id=version_id)
-
-    canvas_idx = read_canvas_idx(canvas_index_file)
+    canvas_idx = read_canvas_idx(canvas_index_path)
     web_annotations = convert_annotations(annotations, "", textrepo_url, version_id, canvas_idx)
 
-    web_annotations.append(document_annotation)
+    inventory_ids = {a["inventory_id"] for a in annotations if "inventory_id" in a}
+    for inventory_id in inventory_ids:
+        begin_anchor = max(
+            a["begin_anchor"] for a in annotations if "inventory_id" in a and a["inventory_id"] == inventory_id)
+        end_anchor = max(
+            a["end_anchor"] for a in annotations if "inventory_id" in a and a["inventory_id"] == inventory_id)
+        volume_annotation = create_volume_annotation(begin_anchor=begin_anchor, end_anchor=end_anchor,
+                                                     inventory_id=inventory_id,
+                                                     textrepo_base_url=textrepo_url,
+                                                     version_id=version_id)
+        web_annotations.append(volume_annotation)
 
     export_to_file(web_annotations, export_path)
     export_sample(web_annotations, export_path)

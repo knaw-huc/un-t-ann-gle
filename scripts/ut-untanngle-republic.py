@@ -9,6 +9,7 @@ import time
 from enum import Enum
 from typing import List, Dict, Any
 
+from alive_progress import alive_bar
 from loguru import logger
 
 from untanngle.annotation import asearch
@@ -173,9 +174,10 @@ def traverse(node: Dict[str, Any], node_type: AnnTypes, text: IndexedSegmentedTe
     type_of_children = config['child_type']
 
     metadata = node['metadata'] if 'metadata' in node else None
-
+    inventory_id = get_inventory_id(node)
     begin_index = text.len()
     annotation_info = {
+        'inventory_id': inventory_id,
         'resource_id': resource_id,
         'type': node_type.value,
         'metadata': metadata,
@@ -287,7 +289,10 @@ def res_traverse(node, resource_id: str):
     if 'additional_processing' in config:
         config['additional_processing'](node)
 
+    inventory_id = get_inventory_id(node)
+
     annotation_info = {
+        'inventory_id': inventory_id,
         'resource_id': resource_id,
         'type': node_label,
         'begin_anchor': begin_line_id,
@@ -304,6 +309,30 @@ def res_traverse(node, resource_id: str):
         annotation_info[f] = node[f]
 
     resolution_annotations.append(annotation_info)
+
+
+def get_inventory_id(node):
+    if 'inventory_id' in node:
+        inventory_id = node['inventory_id']
+    elif 'metadata' in node and 'page_ids' in node['metadata']:
+        page_id = node['metadata']['page_ids'][0]
+        inventory_id = extract_inventory_id(page_id)
+    elif 'metadata' in node and 'page_id' in node['metadata']:
+        page_id = node['metadata']['page_id']
+        inventory_id = extract_inventory_id(page_id)
+    elif 'metadata' in node and 'scan_id' in node['metadata']:
+        page_id = node['metadata']['page_id']
+        inventory_id = extract_inventory_id(page_id)
+    else:
+        logging.error(f"no inventory_id for {node}")
+        raise Exception(f"no inventory_id for {node}")
+    return inventory_id
+
+
+def extract_inventory_id(page_id):
+    parts = page_id.split('_')
+    inventory_id = "_".join(parts[:3])
+    return inventory_id
 
 
 # In case of presence of a hierarchical structure, processing/traversal typically starts from a root element.
@@ -555,8 +584,8 @@ def untanngle_year(year: int, data_dir: str):
     logging.info(f"fix_scan_annotations({resource_id})")
     fix_scan_annotations(resource_id)
 
-    logging.info("add_provenance()")
-    add_provenance()
+    # logging.info("add_provenance()")
+    # add_provenance()
 
     store_annotations(all_annotations, f'{datadir}/{annotation_store}')
 
@@ -702,57 +731,60 @@ def add_region_links_to_line_annotations(resource_id):
 
 def process_line_based_types(resource_id):
     types = {at.value for at in line_based_types}
-    for ann in (a for a in all_annotations if a['type'] in types and a['resource_id'] == resource_id):
-        ann_region_links = []
+    relevant_annotations = [a for a in all_annotations if a['type'] in types and a['resource_id'] == resource_id]
+    with alive_bar(len(relevant_annotations), title="Processing line-based annotations") as bar:
+        for ann in relevant_annotations:
+            ann_region_links = []
 
-        # voor iedere resolutie, vraag overlappende regions
-        overlapping_regions = sorted(
-            asearch.get_annotations_of_type_overlapping(
-                'text_region',
-                ann['begin_anchor'],
-                ann['end_anchor'],
-                all_annotations,
-                resource_id
-            ),
-            key=lambda reg_ann: reg_ann['begin_anchor']
-        )
-
-        lines_in_annotation = list(
-            asearch.get_annotations_of_type_overlapping(
-                'line',
-                ann['begin_anchor'],
-                ann['end_anchor'],
-                all_annotations,
-                resource_id
-            )
-        )
-
-        # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
-        for tr in overlapping_regions:
-            line_ids_in_region = {
-                a["id"] for a in asearch.get_annotations_of_type_overlapping(
-                    'line',
-                    tr['begin_anchor'],
-                    tr['end_anchor'],
+            # voor iedere resolutie, vraag overlappende regions
+            overlapping_regions = sorted(
+                asearch.get_annotations_of_type_overlapping(
+                    'text_region',
+                    ann['begin_anchor'],
+                    ann['end_anchor'],
                     all_annotations,
                     resource_id
-                )}
+                ),
+                key=lambda reg_ann: reg_ann['begin_anchor']
+            )
 
-            lines_in_intersection = (line for line in lines_in_annotation if line["id"] in line_ids_in_region)
+            lines_in_annotation = list(
+                asearch.get_annotations_of_type_overlapping(
+                    'line',
+                    ann['begin_anchor'],
+                    ann['end_anchor'],
+                    all_annotations,
+                    resource_id
+                )
+            )
 
-            # determine iiif url region enclosing the line boxes, assume each line has only one url
-            urls = [line['region_links'][0] for line in lines_in_intersection]
-            region_url = union_of_iiif_urls(urls)
-            ann_region_links.append(region_url)
+            # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
+            for tr in overlapping_regions:
+                line_ids_in_region = {
+                    a["id"] for a in asearch.get_annotations_of_type_overlapping(
+                        'line',
+                        tr['begin_anchor'],
+                        tr['end_anchor'],
+                        all_annotations,
+                        resource_id
+                    )}
 
-            # generate output to report potential issues with layout of text_regions
-            region_string = region_pattern.search(region_url)
-            width = int(region_string.group(4))
-            if width > 2000:
-                logging.warning(
-                    f"annotation {ann}: potential error in layout, width of text_region {tr['id']} too large: {width}")
+                lines_in_intersection = (line for line in lines_in_annotation if line["id"] in line_ids_in_region)
 
-        ann['region_links'] = ann_region_links
+                # determine iiif url region enclosing the line boxes, assume each line has only one url
+                urls = [line['region_links'][0] for line in lines_in_intersection]
+                region_url = union_of_iiif_urls(urls)
+                ann_region_links.append(region_url)
+
+                # generate output to report potential issues with layout of text_regions
+                region_string = region_pattern.search(region_url)
+                width = int(region_string.group(4))
+                if width > 2000:
+                    logging.warning(
+                        f"annotation {ann}: potential error in layout, width of text_region {tr['id']} too large: {width}")
+
+            ann['region_links'] = ann_region_links
+            bar()
 
 
 def process_line_based_types0(resource_id):

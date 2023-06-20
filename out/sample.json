@@ -1,15 +1,10 @@
 [
     {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:2bc32433-85b9-4532-b69b-e3b630473aa7",
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:e27b0af2-a650-4eca-b771-f1146cce7075",
         "type": "Annotation",
         "motivation": "classifying",
-        "generated": "2023-06-13T17:01:14.842179",
+        "generated": "2023-06-16T15:41:16.822344",
         "generator": {
             "id": "https://github.com/knaw-huc/un-t-ann-gle",
             "type": "Software",
@@ -17,96 +12,162 @@
         },
         "body": {
             "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:NL-HaNA_1.01.02_3783_0119-line-3440-2669-897-55",
+            "id": "urn:republic:session-1735-02-24-ordinaris-num-1-attendant-15",
+            "type": "Attendant",
+            "metadata": {
+                "offset": 252,
+                "end": 265,
+                "class": "delegate",
+                "pattern": "Van Borsselen",
+                "delegateId": 13492,
+                "delegateName": "van den Born",
+                "delegateScore": 0,
+                "type": "AttendantMetadata"
+            }
+        },
+        "target": [
+            {
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0097.jpg/430,972,306,47/full/0/default.jpg",
+                "type": "Image"
+            },
+            {
+                "@context": "https://brambg.github.io/ns/republic.jsonld",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/382f6743-94e9-437c-a81d-3a39eaa72aad",
+                "type": "Canvas",
+                "selector": [
+                    {
+                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
+                        "type": "iiif:ImageApiSelector",
+                        "region": "430,972,306,47"
+                    },
+                    {
+                        "type": "SvgSelector",
+                        "value": "<svg height=\"1019\" width=\"736\"><path d=\"M430 972 L736 972 L736 1019 L430 1019 Z\"/></svg>"
+                    }
+                ]
+            },
+            {
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0097.jpg/full/full/0/default.jpg",
+                "type": "Image",
+                "selector": [
+                    {
+                        "type": "FragmentSelector",
+                        "conformsTo": "http://www.w3.org/TR/media-frags/",
+                        "value": "xywh=430,972,306,47"
+                    },
+                    {
+                        "type": "SvgSelector",
+                        "value": "<svg height=\"1019\" width=\"736\"><path d=\"M430 972 L736 972 L736 1019 L430 1019 Z\"/></svg>"
+                    }
+                ]
+            },
+            {
+                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
+                "type": "Text",
+                "selector": {
+                    "@context": "https://brambg.github.io/ns/republic.jsonld",
+                    "type": "urn:republic:TextAnchorSelector",
+                    "start": 11966,
+                    "end": 11966,
+                    "beginCharOffset": 0,
+                    "endCharOffset": 12
+                }
+            },
+            {
+                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/segments/index/11966/0/11966/12",
+                "type": "Text"
+            }
+        ]
+    },
+    {
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:4ada109e-0579-4299-969e-07d8b64e20b7",
+        "type": "Annotation",
+        "motivation": "classifying",
+        "generated": "2023-06-16T15:40:56.333379",
+        "generator": {
+            "id": "https://github.com/knaw-huc/un-t-ann-gle",
+            "type": "Software",
+            "name": "un-t-ann-gle"
+        },
+        "body": {
+            "@context": "https://brambg.github.io/ns/republic.jsonld",
+            "id": "urn:republic:NL-HaNA_1.01.02_3790_0217-line-3451-1014-840-54",
             "type": "Line",
             "metadata": {
                 "parentType": "text_region",
-                "parentId": "urn:republic:NL-HaNA_1.01.02_3783_0119-text_region-3422-454-919-2875",
-                "scanId": "urn:republic:NL-HaNA_1.01.02_3783_0119",
-                "pageId": "urn:republic:NL-HaNA_1.01.02_3783_0119-page-237",
-                "textRegionId": "urn:republic:NL-HaNA_1.01.02_3783_0119-text_region-3422-454-919-2875",
-                "columnId": "urn:republic:NL-HaNA_1.01.02_3783_0119-column-3420-441-912-2913",
+                "parentId": "urn:republic:NL-HaNA_1.01.02_3790_0217-text_region-3375-428-918-1400",
+                "scanId": "urn:republic:NL-HaNA_1.01.02_3790_0217",
+                "pageId": "urn:republic:NL-HaNA_1.01.02_3790_0217-page-433",
+                "textRegionId": "urn:republic:NL-HaNA_1.01.02_3790_0217-text_region-3375-428-918-1400",
+                "columnId": "urn:republic:NL-HaNA_1.01.02_3790_0217-column-3388-423-1002-2909",
                 "height": {
-                    "max": 37,
-                    "min": 25,
-                    "mean": 36,
-                    "median": 37
+                    "max": 35,
+                    "min": 22,
+                    "mean": 32,
+                    "median": 33,
+                    "type": "HeightMetadata"
                 }
             }
         },
         "target": [
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0119.jpg/3440,2669,897,55/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0217.jpg/3451,1014,840,54/full/0/default.jpg",
                 "type": "Image"
             },
             {
                 "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/dd6dfff4-b5ab-4d13-818a-56e88568ca3f",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/c99cc04e-eae7-41ff-b9d4-0c5055fd2161",
                 "type": "Canvas",
                 "selector": [
                     {
                         "@context": "http://iiif.io/api/annex/openannotation/context.json",
                         "type": "iiif:ImageApiSelector",
-                        "region": "3440,2669,897,55"
+                        "region": "3451,1014,840,54"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"2724\" width=\"4337\"><path d=\"M3440 2674 L4210 2669 L4220 2679 L4337 2682 L4337 2712 L3817 2712 L3789 2722 L3440 2724 Z\"/></svg>"
+                        "value": "<svg height=\"1068\" width=\"4291\"><path d=\"M3451 1014 L4041 1017 L4159 1024 L4170 1034 L4291 1038 L4291 1068 L3451 1063 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0119.jpg/full/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0217.jpg/full/full/0/default.jpg",
                 "type": "Image",
                 "selector": [
                     {
                         "type": "FragmentSelector",
                         "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=3440,2669,897,55"
+                        "value": "xywh=3451,1014,840,54"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"2724\" width=\"4337\"><path d=\"M3440 2674 L4210 2669 L4220 2679 L4337 2682 L4337 2712 L3817 2712 L3789 2722 L3440 2724 Z\"/></svg>"
+                        "value": "<svg height=\"1068\" width=\"4291\"><path d=\"M3451 1014 L4041 1017 L4159 1024 L4170 1034 L4291 1038 L4291 1068 L3451 1063 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
                 "type": "Text",
                 "selector": {
                     "@context": "https://brambg.github.io/ns/republic.jsonld",
                     "type": "urn:republic:TextAnchorSelector",
-                    "start": 14901,
-                    "end": 14901
+                    "start": 38029,
+                    "end": 38029
                 }
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/segments/index/14901/14901",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/segments/index/38029/38029",
                 "type": "Text"
             }
-        ],
-        "provenance": {
-            "source": "CAF 'session_lines' and 'resolutions' indexes",
-            "target": "json text array plus standoff annotation info in custom untanngle json format",
-            "harvestingDate": "2023-06-01",
-            "conversionDate": "2023-06-01",
-            "toolId": "untanngle dd 15 maart 2023",
-            "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work",
-            "indexTimestamp": "2023-05-20T01:59:36.931468Z",
-            "@context": "https://brambg.github.io/ns/provenance.jsonld"
-        }
+        ]
     },
     {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:c5efed91-bf68-4e1e-b1e6-2c7b6cec3a68",
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:d97d0360-9858-4e66-b5e0-523149f166bb",
         "type": "Annotation",
         "motivation": "classifying",
-        "generated": "2023-06-13T17:01:18.703218",
+        "generated": "2023-06-16T15:41:10.953876",
         "generator": {
             "id": "https://github.com/knaw-huc/un-t-ann-gle",
             "type": "Software",
@@ -114,95 +175,72 @@
         },
         "body": {
             "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:NL-HaNA_1.01.02_3783_0168-text_region-360-393-919-2903",
-            "type": "TextRegion",
+            "id": "urn:republic:NL-HaNA_1.01.02_3790_0355-page-709",
+            "type": "Page",
             "metadata": {
-                "parentType": "page",
-                "parentId": "urn:republic:NL-HaNA_1.01.02_3783_0168-page-334",
-                "scanId": "urn:republic:NL-HaNA_1.01.02_3783_0168",
-                "pageId": "urn:republic:NL-HaNA_1.01.02_3783_0168-page-334",
-                "iiifUrl": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0168.jpg/260,293,1119,3103/full/0/default.jpg",
-                "pageNum": 334,
-                "textPageNum": 234,
-                "medianNormalLeft": 1287,
-                "medianNormalRight": 2183,
-                "medianNormalWidth": 896,
-                "medianNormalLength": 41
+                "pageId": "urn:republic:NL-HaNA_1.01.02_3790_0355-page-709",
+                "scanId": "urn:republic:NL-HaNA_1.01.02_3790_0355",
+                "type": "PageMetadata"
             }
         },
         "target": [
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0168.jpg/260,293,1119,3103/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0355.jpg/2221,371,2021,3055/full/0/default.jpg",
                 "type": "Image"
             },
             {
                 "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/d7a94650-2c91-4f60-8836-b76f7b237e38",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/2e143996-e2cb-490e-8bf0-58fd5abe2757",
                 "type": "Canvas",
                 "selector": [
                     {
                         "@context": "http://iiif.io/api/annex/openannotation/context.json",
                         "type": "iiif:ImageApiSelector",
-                        "region": "360,393,919,2903"
+                        "region": "2321,471,914,2805"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"3296\" width=\"1279\"><path d=\"M360 444 L367 393 L1212 395 L1276 408 L1279 749 L1279 2075 L1263 3091 L1258 3284 L954 3296 L367 3296 L365 3244 L360 637 Z\"/></svg>"
+                        "value": "<svg height=\"3276\" width=\"3235\"><path d=\"M2321 2884 L2323 2159 L2337 471 L3161 474 L3233 488 L3235 538 L3235 568 L3231 1144 L3213 3028 L3211 3225 L2923 3272 L2323 3276 L2321 3219 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0168.jpg/full/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0355.jpg/full/full/0/default.jpg",
                 "type": "Image",
                 "selector": [
                     {
                         "type": "FragmentSelector",
                         "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=360,393,919,2903"
+                        "value": "xywh=2321,471,914,2805"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"3296\" width=\"1279\"><path d=\"M360 444 L367 393 L1212 395 L1276 408 L1279 749 L1279 2075 L1263 3091 L1258 3284 L954 3296 L367 3296 L365 3244 L360 637 Z\"/></svg>"
+                        "value": "<svg height=\"3276\" width=\"3235\"><path d=\"M2321 2884 L2323 2159 L2337 471 L3161 474 L3233 488 L3235 538 L3235 568 L3231 1144 L3213 3028 L3211 3225 L2923 3272 L2323 3276 L2321 3219 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
                 "type": "Text",
                 "selector": {
                     "@context": "https://brambg.github.io/ns/republic.jsonld",
                     "type": "urn:republic:TextAnchorSelector",
-                    "start": 23562,
-                    "end": 23620
+                    "start": 62796,
+                    "end": 62907
                 }
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/segments/index/23562/23620",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/segments/index/62796/62907",
                 "type": "Text"
             }
-        ],
-        "provenance": {
-            "source": "CAF 'session_lines' and 'resolutions' indexes",
-            "target": "json text array plus standoff annotation info in custom untanngle json format",
-            "harvestingDate": "2023-06-01",
-            "conversionDate": "2023-06-01",
-            "toolId": "untanngle dd 15 maart 2023",
-            "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work",
-            "indexTimestamp": "2023-05-20T01:59:36.931468Z",
-            "@context": "https://brambg.github.io/ns/provenance.jsonld"
-        }
+        ]
     },
     {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:937cfbd8-3100-4d73-acbb-ca43402130b3",
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:8013a268-59e8-45c7-8a70-609e7ab031a8",
         "type": "Annotation",
         "motivation": "classifying",
-        "generated": "2023-06-13T17:01:56.147427",
+        "generated": "2023-06-16T15:41:12.141072",
         "generator": {
             "id": "https://github.com/knaw-huc/un-t-ann-gle",
             "type": "Software",
@@ -210,297 +248,106 @@
         },
         "body": {
             "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:session-1728-08-09-num-1-para-3",
-            "type": "Reviewed",
-            "metadata": {
-                "inventoryNum": 3783,
-                "sourceId": "urn:republic:session-1728-08-09-ordinaris-num-1",
-                "textPageNum": [
-                    620
-                ],
-                "pageNum": [
-                    720
-                ],
-                "startOffset": 363,
-                "iiifUrl": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0361.jpg/1194,812,1120,2673/full/0/default.jpg",
-                "docId": "urn:republic:session-1728-08-09-ordinaris-num-1",
-                "lang": "nl",
-                "paragraphIndex": 2,
-                "pageIds": [
-                    "NL-HaNA_1.01.02_3783_0361-page-720"
-                ]
-            },
-            "text": "DE Resolutien, eergisteren genomen, zyn gelesen ende geresumeert, gelijck oock geresumeert ende gearresteert zyn de Depesches daar uyt resulteerende."
-        },
-        "target": [
-            {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0361.jpg/1305,1887,902,260/full/0/default.jpg",
-                "type": "Image"
-            },
-            {
-                "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/8388fd54-8fc9-49fe-87e8-93b25b6aa102",
-                "type": "Canvas",
-                "selector": [
-                    {
-                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
-                        "type": "iiif:ImageApiSelector",
-                        "region": "1305,1887,902,260"
-                    },
-                    {
-                        "type": "SvgSelector",
-                        "value": "<svg height=\"2147\" width=\"2207\"><path d=\"M1305 1887 L2207 1887 L2207 2147 L1305 2147 Z\"/></svg>"
-                    }
-                ]
-            },
-            {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0361.jpg/full/full/0/default.jpg",
-                "type": "Image",
-                "selector": [
-                    {
-                        "type": "FragmentSelector",
-                        "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=1305,1887,902,260"
-                    },
-                    {
-                        "type": "SvgSelector",
-                        "value": "<svg height=\"2147\" width=\"2207\"><path d=\"M1305 1887 L2207 1887 L2207 2147 L1305 2147 Z\"/></svg>"
-                    }
-                ]
-            },
-            {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
-                "type": "Text",
-                "selector": {
-                    "@context": "https://brambg.github.io/ns/republic.jsonld",
-                    "type": "urn:republic:TextAnchorSelector",
-                    "start": 61744,
-                    "end": 61748
-                }
-            },
-            {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/segments/index/61744/61748",
-                "type": "Text"
-            }
-        ],
-        "provenance": {
-            "source": "CAF 'session_lines' and 'resolutions' indexes",
-            "target": "json text array plus standoff annotation info in custom untanngle json format",
-            "harvestingDate": "2023-06-01",
-            "conversionDate": "2023-06-01",
-            "toolId": "untanngle dd 15 maart 2023",
-            "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work",
-            "indexTimestamp": "2023-05-20T01:59:36.931468Z",
-            "@context": "https://brambg.github.io/ns/provenance.jsonld"
-        }
-    },
-    {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:82c75ad0-af1b-4fc3-b3cb-58ecb0ff61ec",
-        "type": "Annotation",
-        "motivation": "classifying",
-        "generated": "2023-06-13T17:01:59.269446",
-        "generator": {
-            "id": "https://github.com/knaw-huc/un-t-ann-gle",
-            "type": "Software",
-            "name": "un-t-ann-gle"
-        },
-        "body": {
-            "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:session-1728-05-03-ordinaris-num-1-attendant-22",
-            "type": "Attendant",
-            "metadata": {
-                "offset": 248,
-                "end": 263,
-                "class": "delegate",
-                "pattern": "van Cattenborgh",
-                "delegateId": 14323,
-                "delegateName": "van Swanenburgh",
-                "delegateScore": 0
-            }
-        },
-        "target": [
-            {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0214.jpg/1358,1410,812,52/full/0/default.jpg",
-                "type": "Image"
-            },
-            {
-                "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/4e6ff1d9-8a30-4464-a958-fb70b8977015",
-                "type": "Canvas",
-                "selector": [
-                    {
-                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
-                        "type": "iiif:ImageApiSelector",
-                        "region": "1358,1410,812,52"
-                    },
-                    {
-                        "type": "SvgSelector",
-                        "value": "<svg height=\"1462\" width=\"2170\"><path d=\"M1358 1410 L2170 1410 L2170 1462 L1358 1462 Z\"/></svg>"
-                    }
-                ]
-            },
-            {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0214.jpg/full/full/0/default.jpg",
-                "type": "Image",
-                "selector": [
-                    {
-                        "type": "FragmentSelector",
-                        "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=1358,1410,812,52"
-                    },
-                    {
-                        "type": "SvgSelector",
-                        "value": "<svg height=\"1462\" width=\"2170\"><path d=\"M1358 1410 L2170 1410 L2170 1462 L1358 1462 Z\"/></svg>"
-                    }
-                ]
-            },
-            {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
-                "type": "Text",
-                "selector": {
-                    "@context": "https://brambg.github.io/ns/republic.jsonld",
-                    "type": "urn:republic:TextAnchorSelector",
-                    "start": 31866,
-                    "end": 31866,
-                    "beginCharOffset": 0,
-                    "endCharOffset": 14
-                }
-            },
-            {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/segments/index/31866/0/31866/14",
-                "type": "Text"
-            }
-        ],
-        "provenance": {
-            "source": "CAF 'session_lines' and 'resolutions' indexes",
-            "target": "json text array plus standoff annotation info in custom untanngle json format",
-            "harvestingDate": "2023-06-01",
-            "conversionDate": "2023-06-01",
-            "toolId": "untanngle dd 15 maart 2023",
-            "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work",
-            "indexTimestamp": "2023-05-20T01:59:36.931468Z",
-            "@context": "https://brambg.github.io/ns/provenance.jsonld"
-        }
-    },
-    {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:f058fd17-a8cb-43b6-a914-c5fa738cf80c",
-        "type": "Annotation",
-        "motivation": "classifying",
-        "generated": "2023-06-13T17:01:53.116570",
-        "generator": {
-            "id": "https://github.com/knaw-huc/un-t-ann-gle",
-            "type": "Software",
-            "name": "un-t-ann-gle"
-        },
-        "body": {
-            "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:session-1728-04-06-num-1-para-44",
+            "id": "urn:republic:session-1735-03-07-num-1-para-7",
             "type": "RepublicParagraph",
             "metadata": {
-                "inventoryNum": 3783,
-                "sourceId": "urn:republic:session-1728-04-06-ordinaris-num-1",
+                "inventoryNum": 3790,
+                "sourceId": "urn:republic:session-1735-03-07-ordinaris-num-1",
                 "textPageNum": [
-                    257
+                    122,
+                    123
                 ],
                 "pageNum": [
-                    357
+                    208,
+                    209
                 ],
-                "startOffset": 48465,
-                "iiifUrl": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0179.jpg/2470,380,1131,3097/full/0/default.jpg",
-                "docId": "urn:republic:session-1728-04-06-ordinaris-num-1",
+                "startOffset": 1569,
+                "iiifUrl": [
+                    "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0105.jpg/1198,352,1177,3115/full/0/default.jpg",
+                    "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0105.jpg/2340,371,1177,3068/full/0/default.jpg"
+                ],
+                "docId": "urn:republic:session-1735-03-07-ordinaris-num-1",
                 "lang": "nl",
                 "paragraphIndex": 0,
                 "pageIds": [
-                    "NL-HaNA_1.01.02_3783_0179-page-357"
+                    "NL-HaNA_1.01.02_3790_0105-page-208",
+                    "NL-HaNA_1.01.02_3790_0105-page-209"
                 ]
             },
-            "text": "IS ter Vergaderinge gelesen de Requeste van Mango Backers, woonende binnen 's Hertogenbosch, houdende, dat den Graave van Maldegem als Collator haar Suppliante al op den aghtienden November seventien hondert drie en twintigh hadde gebeneficeert met een plaats in het Maaghdenhuys, gefundeert binnen 's Hertogenbosch voorschreve by wylen Hester van Grinsven, omme haar leven geduyrende het provenu van het voorschreve beneficie te genieten, als by Copie authentieq der voorschreve Acte, nevens de voorschreve Requeste gevoeght; dat sy Suppliante tot dato deses daar van niet hadde geprofiteert, dewyle Maria Everwyn ouder Acte was hebbende; dat nu Margriet Lieffers overleden zijnde, sy Suppliante staat te succedeeren, en door continueelen arbeydt afgeslooft, wel binnen de voorschreve Stadt haare woonsteede soude blyven behouden, dogh om veel inconvenienten gaarne buyten het Gasthuys voorschreve soude resideeren, soo als door haar Hoogh Mogende aan andere voorheen was geaccordeert; versoeckende derhalven, dat haar Hoogh Mogende aan haar Suppliante gelieven te permitteeren, om sigh binnen de voorschreve Stadt 's Hertogenbosch buyten het voorschreve Gasthuys te mogen ophouden, ende te mogen genieten de revenues van de voorschreve beneficie. WAAR op gedelibereert zynde, is goedtgevonden ende verstaan, dat Copie van de voorschreve Requeste gesonden sal werden aan den Ontfanger 's Gravesande, om sijn beright en advis daar op aan haar Hoogh Mogende te laaten toekomen."
+            "text": "ONtfangen een Missive van den Heere Hop, haar Hoogh Mogende extraordinaris Envoyé aan het Hof van sijne Majesteyt den Koningh van Groot-Brittannien, geschreven te Londen den vierden deser loopende maandt, houdende advertentie. WAAR op geen resolutie is gevallen."
         },
         "target": [
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0179.jpg/2570,480,910,1781/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0105.jpg/1307,3208,899,159/full/0/default.jpg",
+                "type": "Image"
+            },
+            {
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0105.jpg/2499,471,918,242/full/0/default.jpg",
                 "type": "Image"
             },
             {
                 "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/cabd2a49-cb2e-4630-b645-bd3100230e92",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/50172e94-3085-4d60-aecd-edf668c255f7",
                 "type": "Canvas",
                 "selector": [
                     {
                         "@context": "http://iiif.io/api/annex/openannotation/context.json",
                         "type": "iiif:ImageApiSelector",
-                        "region": "2570,480,910,1781"
+                        "region": "1307,3208,899,159"
+                    },
+                    {
+                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
+                        "type": "iiif:ImageApiSelector",
+                        "region": "2499,471,918,242"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"2261\" width=\"3480\"><path d=\"M2570 480 L3480 480 L3480 2261 L2570 2261 Z\"/></svg>"
+                        "value": "<svg height=\"3367\" width=\"3417\"><path d=\"M1307 3208 L2206 3208 L2206 3367 L1307 3367 Z M2499 471 L3417 471 L3417 713 L2499 713 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0179.jpg/full/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0105.jpg/full/full/0/default.jpg",
                 "type": "Image",
                 "selector": [
                     {
                         "type": "FragmentSelector",
                         "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=2570,480,910,1781"
+                        "value": "xywh=1307,3208,899,159"
+                    },
+                    {
+                        "type": "FragmentSelector",
+                        "conformsTo": "http://www.w3.org/TR/media-frags/",
+                        "value": "xywh=2499,471,918,242"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"2261\" width=\"3480\"><path d=\"M2570 480 L3480 480 L3480 2261 L2570 2261 Z\"/></svg>"
+                        "value": "<svg height=\"3367\" width=\"3417\"><path d=\"M1307 3208 L2206 3208 L2206 3367 L1307 3367 Z M2499 471 L3417 471 L3417 713 L2499 713 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
                 "type": "Text",
                 "selector": {
                     "@context": "https://brambg.github.io/ns/republic.jsonld",
                     "type": "urn:republic:TextAnchorSelector",
-                    "start": 25311,
-                    "end": 25347
+                    "start": 13894,
+                    "end": 13901
                 }
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/segments/index/25311/25347",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/segments/index/13894/13901",
                 "type": "Text"
             }
-        ],
-        "provenance": {
-            "source": "CAF 'session_lines' and 'resolutions' indexes",
-            "target": "json text array plus standoff annotation info in custom untanngle json format",
-            "harvestingDate": "2023-06-01",
-            "conversionDate": "2023-06-01",
-            "toolId": "untanngle dd 15 maart 2023",
-            "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work",
-            "indexTimestamp": "2023-05-20T01:59:36.931468Z",
-            "@context": "https://brambg.github.io/ns/provenance.jsonld"
-        }
+        ]
     },
     {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:0fdce6b5-3a1d-4ab1-93ab-2fc03be4cc65",
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:6c8badc7-1e2c-47cd-91a6-540c5c863f80",
         "type": "Annotation",
         "motivation": "classifying",
-        "generated": "2023-06-13T17:01:50.729013",
+        "generated": "2023-06-16T15:41:08.439350",
         "generator": {
             "id": "https://github.com/knaw-huc/un-t-ann-gle",
             "type": "Software",
@@ -508,148 +355,80 @@
         },
         "body": {
             "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:NL-HaNA_1.01.02_3783_0296",
-            "type": "Scan",
+            "id": "urn:republic:NL-HaNA_1.01.02_3790_0377-text_region-3316-480-921-1980",
+            "type": "TextRegion",
             "metadata": {
-                "type": "tt:ScanMetadata",
-                "volume": "1728",
-                "opening": 296
+                "parentType": "page",
+                "parentId": "urn:republic:NL-HaNA_1.01.02_3790_0377-page-753",
+                "scanId": "urn:republic:NL-HaNA_1.01.02_3790_0377",
+                "pageId": "urn:republic:NL-HaNA_1.01.02_3790_0377-page-753",
+                "iiifUrl": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0377.jpg/3216,380,1121,2180/full/0/default.jpg",
+                "pageNum": 753,
+                "textPageNum": 667,
+                "structure": {
+                    "type": "Resolution"
+                },
+                "textRegionId": "urn:republic:NL-HaNA_1.01.02_3790_0377"
             }
         },
         "target": [
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0296.jpg/full/,3096/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0377.jpg/3216,380,1121,2180/full/0/default.jpg",
                 "type": "Image"
             },
             {
                 "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/51268578-08d5-47e7-bf3b-1cd0d9af3b8f",
-                "type": "Canvas"
-            },
-            {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
-                "type": "Text",
-                "selector": {
-                    "@context": "https://brambg.github.io/ns/republic.jsonld",
-                    "type": "urn:republic:TextAnchorSelector",
-                    "start": 47907,
-                    "end": 48141
-                }
-            },
-            {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/segments/index/47907/48141",
-                "type": "Text"
-            }
-        ],
-        "provenance": {
-            "source": "CAF 'session_lines' and 'resolutions' indexes",
-            "target": "json text array plus standoff annotation info in custom untanngle json format",
-            "harvestingDate": "2023-06-01",
-            "conversionDate": "2023-06-01",
-            "toolId": "untanngle dd 15 maart 2023",
-            "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work",
-            "indexTimestamp": "2023-05-20T01:59:36.931468Z",
-            "@context": "https://brambg.github.io/ns/provenance.jsonld"
-        }
-    },
-    {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:ccf455cb-2853-4a1e-bc4f-b8eaad3b6d24",
-        "type": "Annotation",
-        "motivation": "classifying",
-        "generated": "2023-06-13T17:01:50.929606",
-        "generator": {
-            "id": "https://github.com/knaw-huc/un-t-ann-gle",
-            "type": "Software",
-            "name": "un-t-ann-gle"
-        },
-        "body": {
-            "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:NL-HaNA_1.01.02_3783_0382-page-762",
-            "type": "Page",
-            "metadata": {
-                "pageId": "urn:republic:NL-HaNA_1.01.02_3783_0382-page-762",
-                "scanId": "urn:republic:NL-HaNA_1.01.02_3783_0382"
-            }
-        },
-        "target": [
-            {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0382.jpg/324,352,2026,3110/full/0/default.jpg",
-                "type": "Image"
-            },
-            {
-                "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/333682ff-acb2-46ab-9235-c94c88dee123",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/e6aed35c-94f3-4858-b3ba-78cc63083265",
                 "type": "Canvas",
                 "selector": [
                     {
                         "@context": "http://iiif.io/api/annex/openannotation/context.json",
                         "type": "iiif:ImageApiSelector",
-                        "region": "424,452,918,2910"
+                        "region": "3316,480,921,1980"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"3362\" width=\"1342\"><path d=\"M424 3215 L426 846 L428 503 L431 452 L1072 452 L1342 470 L1342 499 L1339 1850 L1337 2578 L1335 2884 L1330 3352 L1077 3361 L424 3362 Z\"/></svg>"
+                        "value": "<svg height=\"2460\" width=\"4237\"><path d=\"M3316 2034 L3330 808 L3336 533 L3341 480 L4120 499 L4237 516 L4237 548 L4221 1743 L4214 2224 L4212 2270 L4207 2319 L4045 2460 L3463 2458 L3318 2354 L3316 2306 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0382.jpg/full/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0377.jpg/full/full/0/default.jpg",
                 "type": "Image",
                 "selector": [
                     {
                         "type": "FragmentSelector",
                         "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=424,452,918,2910"
+                        "value": "xywh=3316,480,921,1980"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"3362\" width=\"1342\"><path d=\"M424 3215 L426 846 L428 503 L431 452 L1072 452 L1342 470 L1342 499 L1339 1850 L1337 2578 L1335 2884 L1330 3352 L1077 3361 L424 3362 Z\"/></svg>"
+                        "value": "<svg height=\"2460\" width=\"4237\"><path d=\"M3316 2034 L3330 808 L3336 533 L3341 480 L4120 499 L4237 516 L4237 548 L4221 1743 L4214 2224 L4212 2270 L4207 2319 L4045 2460 L3463 2458 L3318 2354 L3316 2306 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
                 "type": "Text",
                 "selector": {
                     "@context": "https://brambg.github.io/ns/republic.jsonld",
                     "type": "urn:republic:TextAnchorSelector",
-                    "start": 65467,
-                    "end": 65585
+                    "start": 66626,
+                    "end": 66664
                 }
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/segments/index/65467/65585",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/segments/index/66626/66664",
                 "type": "Text"
             }
-        ],
-        "provenance": {
-            "source": "CAF 'session_lines' and 'resolutions' indexes",
-            "target": "json text array plus standoff annotation info in custom untanngle json format",
-            "harvestingDate": "2023-06-01",
-            "conversionDate": "2023-06-01",
-            "toolId": "untanngle dd 15 maart 2023",
-            "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work",
-            "indexTimestamp": "2023-05-20T01:59:36.931468Z",
-            "@context": "https://brambg.github.io/ns/provenance.jsonld"
-        }
+        ]
     },
     {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:6a2739ec-87d0-4ce0-855b-85c5c0fa8a47",
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:511b2ace-b21d-4914-963f-4124e1bbc776",
         "type": "Annotation",
         "motivation": "classifying",
-        "generated": "2023-06-13T17:01:53.734523",
+        "generated": "2023-06-16T15:41:13.057570",
         "generator": {
             "id": "https://github.com/knaw-huc/un-t-ann-gle",
             "type": "Software",
@@ -657,117 +436,104 @@
         },
         "body": {
             "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:session-1728-05-05-ordinaris-num-1-resolution-3",
+            "id": "urn:republic:session-1735-04-22-ordinaris-num-1-resolution-9",
             "type": "Resolution",
             "metadata": {
-                "inventoryNum": 3783,
-                "sourceId": "urn:republic:session-1728-05-05-ordinaris-num-1",
+                "inventoryNum": 3790,
+                "sourceId": "urn:republic:session-1735-04-22-ordinaris-num-1",
                 "pageIds": [
-                    "NL-HaNA_1.01.02_3783_0218-page-434"
+                    "NL-HaNA_1.01.02_3790_0164-page-327"
                 ],
-                "sessionDate": "1728-05-05",
-                "sessionId": "urn:republic:session-1728-05-05-ordinaris-num-1",
+                "sessionDate": "1735-04-22",
+                "sessionId": "urn:republic:session-1735-04-22-ordinaris-num-1",
                 "sessionNum": 1,
                 "president": null,
-                "sessionYear": 1728,
-                "sessionMonth": 5,
-                "sessionDay": 5,
-                "sessionWeekday": "Mercurii",
-                "propositionType": "missive",
+                "sessionYear": 1735,
+                "sessionMonth": 4,
+                "sessionDay": 22,
+                "sessionWeekday": "Veneris",
+                "propositionType": "requeste",
                 "proposer": {
-                    "personRole": {
-                        "text": "den Resident",
-                        "startOffset": 26,
-                        "endOffset": 38
-                    },
                     "variableEntity": {
-                        "text": "Spina,",
-                        "startOffset": 38,
-                        "endOffset": 44
+                        "text": "Archibald en Isaac Hope,",
+                        "startOffset": 44,
+                        "endOffset": 68
+                    },
+                    "personRole": {
+                        "text": "Kooplieden",
+                        "startOffset": 69,
+                        "endOffset": 82
+                    },
+                    "location": {
+                        "text": "Rotterdam",
+                        "startOffset": 87,
+                        "endOffset": 96
                     },
                     "fullString": {
-                        "text": "den Resident Spina",
-                        "startOffset": 26,
-                        "endOffset": 44
+                        "text": "Archibald en Isaac Hope, Koopluyluyden tot Rotterdam",
+                        "startOffset": 44,
+                        "endOffset": 96
                     }
                 },
                 "decision": null,
                 "resolutionType": "ordinaris",
                 "textPageNum": [
-                    334
+                    241
                 ],
                 "pageNum": [
-                    434
+                    327
                 ],
                 "provUrl": [
-                    "https://provenance.sd.di.huc.knaw.nl/prov/2274238",
-                    "https://provenance.sd.di.huc.knaw.nl/prov/2290235"
+                    "https://provenance.sd.di.huc.knaw.nl/prov/2282795",
+                    "https://provenance.sd.di.huc.knaw.nl/prov/2288797"
                 ],
-                "indexTimestamp": "2023-05-20T01:13:16.105132Z",
+                "indexTimestamp": "2023-05-20T01:04:47.159134Z",
                 "codeCommit": "https://github.com/HuygensING/republic-project/commit/c0f2e5d64625e6e9255f7f6cae6a0ccbee22e821",
                 "formula": {
                     "propositionOpening": {
-                        "text": "ONtfangen een Missive van",
+                        "text": "IS ter Vergaderinge gelesen de Requeste van ",
                         "startOffset": 0,
-                        "endOffset": 25
+                        "endOffset": 44
                     },
                     "fullString": {
-                        "text": "ONtfangen een Missive van",
+                        "text": "IS ter Vergaderinge gelesen de Requeste van ",
                         "startOffset": 0,
-                        "endOffset": 25
-                    }
-                },
-                "propositionOrigin": {
-                    "correspondenceFrom": {
-                        "text": "geschreeven te",
-                        "startOffset": 46,
-                        "endOffset": 59
-                    },
-                    "location": {
-                        "text": "Franckfort",
-                        "startOffset": 60,
-                        "endOffset": 70
-                    },
-                    "temporalReference": {
-                        "text": "den .. der voorleeden maand",
-                        "startOffset": 71,
-                        "endOffset": 116
-                    },
-                    "fullString": {
-                        "text": "geschieven te Franckfort den negen en twintighsten der voorlede maandt",
-                        "startOffset": 46,
-                        "endOffset": 116
+                        "endOffset": 44
                     }
                 },
                 "propositionVerb": {
                     "propositionVerb": {
                         "text": "houdende",
-                        "startOffset": 118,
-                        "endOffset": 126
+                        "startOffset": 98,
+                        "endOffset": 106
                     },
                     "fullString": {
                         "text": "houdende",
-                        "startOffset": 118,
-                        "endOffset": 126
+                        "startOffset": 98,
+                        "endOffset": 106
+                    }
+                },
+                "propositionOrigin": {
+                    "location": {
+                        "text": "unidentified"
                     }
                 },
                 "propositionOrganisation": "unidentified",
-                "proposerRole": "Resident"
+                "proposerRole": "Kooplieden"
             },
             "evidence": [
                 {
                     "type": "PhraseMatch",
-                    "phrase": "ONtfangen een Missive van",
-                    "variant": "ONtfangen een Missive van",
-                    "string": "ONtfangen een Missive van",
+                    "phrase": "IS ter Vergaderinge gelesen de Requeste van ",
+                    "variant": "IS ter Vergaderinge gelesen de Requeste van ",
+                    "string": "IS ter Vergaderinge gelesen de Requeste van ",
                     "offset": 0,
                     "label": [
                         "proposition_opening",
-                        "proposition_from_correspondence",
-                        "proposition_type:missive"
+                        "proposition_type:requeste"
                     ],
                     "ignorecase": false,
-                    "textId": "urn:republic:session-1728-05-05-num-1-para-5",
+                    "textId": "urn:republic:session-1735-04-22-num-1-para-12",
                     "matchScores": {
                         "charMatch": 1.0,
                         "ngramMatch": 1.0,
@@ -776,71 +542,39 @@
                 },
                 {
                     "type": "PhraseMatch",
-                    "phrase": "den Resident",
-                    "variant": "den Resident",
-                    "string": "den Resident",
-                    "offset": 26,
+                    "phrase": "Kooplieden",
+                    "variant": "Koopluyden",
+                    "string": "Koopluyluyden",
+                    "offset": 69,
                     "label": [
-                        "citizen",
-                        "person_role"
+                        "person_role",
+                        "merchant",
+                        "merchant_multi"
                     ],
                     "ignorecase": false,
-                    "textId": "urn:republic:session-1728-05-05-num-1-para-5",
+                    "textId": "urn:republic:session-1735-04-22-num-1-para-12",
                     "matchScores": {
                         "charMatch": 1.0,
                         "ngramMatch": 1.0,
-                        "levenshteinSimilarity": 1.0
+                        "levenshteinSimilarity": 0.7692307692307692
                     }
                 },
                 {
                     "type": "PhraseMatch",
-                    "phrase": "geschreeven te",
-                    "variant": "geschreeven te",
-                    "string": "geschieven te",
-                    "offset": 46,
-                    "label": "correspondence_from",
-                    "ignorecase": false,
-                    "textId": "urn:republic:session-1728-05-05-num-1-para-5",
-                    "matchScores": {
-                        "charMatch": 0.8571428571428571,
-                        "ngramMatch": 0.7142857142857143,
-                        "levenshteinSimilarity": 0.8571428571428572
-                    }
-                },
-                {
-                    "type": "PhraseMatch",
-                    "phrase": "Franckfort",
-                    "variant": "Franckfort",
-                    "string": "Franckfort",
-                    "offset": 60,
+                    "phrase": "Rotterdam",
+                    "variant": "Rotterdam",
+                    "string": "Rotterdam",
+                    "offset": 87,
                     "label": [
                         "location",
                         "region"
                     ],
                     "ignorecase": false,
-                    "textId": "urn:republic:session-1728-05-05-num-1-para-5",
+                    "textId": "urn:republic:session-1735-04-22-num-1-para-12",
                     "matchScores": {
                         "charMatch": 1.0,
                         "ngramMatch": 1.0,
                         "levenshteinSimilarity": 1.0
-                    }
-                },
-                {
-                    "type": "PhraseMatch",
-                    "phrase": "den .. der voorleeden maand",
-                    "variant": "den seeven en twintighsten der voorleeden maand",
-                    "string": "den negen en twintighsten der voorlede maandt",
-                    "offset": 71,
-                    "label": [
-                        "previous_month",
-                        "temporal_reference"
-                    ],
-                    "ignorecase": false,
-                    "textId": "urn:republic:session-1728-05-05-num-1-para-5",
-                    "matchScores": {
-                        "charMatch": 0.9148936170212766,
-                        "ngramMatch": 0.7446808510638298,
-                        "levenshteinSimilarity": 0.8723404255319149
                     }
                 },
                 {
@@ -848,14 +582,14 @@
                     "phrase": "houdende",
                     "variant": "houdende",
                     "string": "houdende",
-                    "offset": 118,
+                    "offset": 98,
                     "label": [
                         "proposition_verb",
                         "proposition_opening_end_verb",
                         "proposition_body"
                     ],
                     "ignorecase": false,
-                    "textId": "urn:republic:session-1728-05-05-num-1-para-5",
+                    "textId": "urn:republic:session-1735-04-22-num-1-para-12",
                     "matchScores": {
                         "charMatch": 1.0,
                         "ngramMatch": 1.0,
@@ -866,77 +600,76 @@
         },
         "target": [
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0218.jpg/1293,2241,895,244/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0164.jpg/2463,1769,913,1545/full/0/default.jpg",
+                "type": "Image"
+            },
+            {
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0164.jpg/3382,414,920,2076/full/0/default.jpg",
                 "type": "Image"
             },
             {
                 "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/bdb2c58d-9ab4-449b-801d-17d0a1e7684f",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/1bc4e5db-3684-4dfd-8c19-f69a1ba21820",
                 "type": "Canvas",
                 "selector": [
                     {
                         "@context": "http://iiif.io/api/annex/openannotation/context.json",
                         "type": "iiif:ImageApiSelector",
-                        "region": "1293,2241,895,244"
+                        "region": "2463,1769,913,1545"
+                    },
+                    {
+                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
+                        "type": "iiif:ImageApiSelector",
+                        "region": "3382,414,920,2076"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"2485\" width=\"2188\"><path d=\"M1293 2241 L2188 2241 L2188 2485 L1293 2485 Z\"/></svg>"
+                        "value": "<svg height=\"3314\" width=\"4302\"><path d=\"M2463 1769 L3376 1769 L3376 3314 L2463 3314 Z M3382 414 L4302 414 L4302 2490 L3382 2490 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0218.jpg/full/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0164.jpg/full/full/0/default.jpg",
                 "type": "Image",
                 "selector": [
                     {
                         "type": "FragmentSelector",
                         "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=1293,2241,895,244"
+                        "value": "xywh=2463,1769,913,1545"
+                    },
+                    {
+                        "type": "FragmentSelector",
+                        "conformsTo": "http://www.w3.org/TR/media-frags/",
+                        "value": "xywh=3382,414,920,2076"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"2485\" width=\"2188\"><path d=\"M1293 2241 L2188 2241 L2188 2485 L1293 2485 Z\"/></svg>"
+                        "value": "<svg height=\"3314\" width=\"4302\"><path d=\"M2463 1769 L3376 1769 L3376 3314 L2463 3314 Z M3382 414 L4302 414 L4302 2490 L3382 2490 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
                 "type": "Text",
                 "selector": {
                     "@context": "https://brambg.github.io/ns/republic.jsonld",
                     "type": "urn:republic:TextAnchorSelector",
-                    "start": 32576,
-                    "end": 32580
+                    "start": 26659,
+                    "end": 26734
                 }
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/segments/index/32576/32580",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/segments/index/26659/26734",
                 "type": "Text"
             }
-        ],
-        "provenance": {
-            "source": "CAF 'session_lines' and 'resolutions' indexes",
-            "target": "json text array plus standoff annotation info in custom untanngle json format",
-            "harvestingDate": "2023-06-01",
-            "conversionDate": "2023-06-01",
-            "toolId": "untanngle dd 15 maart 2023",
-            "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work",
-            "indexTimestamp": "2023-05-20T01:59:36.931468Z",
-            "@context": "https://brambg.github.io/ns/provenance.jsonld"
-        }
+        ]
     },
     {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:69ad6739-0e86-47a5-abc9-885904d3afff",
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:268e9114-80d7-4702-9c44-13c2f84844bc",
         "type": "Annotation",
         "motivation": "classifying",
-        "generated": "2023-06-13T17:01:55.029630",
+        "generated": "2023-06-16T15:41:14.351439",
         "generator": {
             "id": "https://github.com/knaw-huc/un-t-ann-gle",
             "type": "Software",
@@ -944,44 +677,134 @@
         },
         "body": {
             "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:session-1728-06-25-ordinaris-num-1-attendance_list",
-            "type": "AttendanceList",
+            "id": "urn:republic:session-1735-07-01-num-1-para-2",
+            "type": "Reviewed",
             "metadata": {
-                "inventoryNum": 3783,
-                "sourceId": "urn:republic:session-1728-06-25-ordinaris-num-1",
-                "sessionDate": "1728-06-25",
-                "sessionId": "urn:republic:session-1728-06-25-ordinaris-num-1",
-                "sessionNum": 1,
-                "sessionYear": 1728,
-                "sessionMonth": 6,
-                "sessionDay": 25,
-                "sessionWeekday": "Veneris",
+                "inventoryNum": 3790,
+                "sourceId": "urn:republic:session-1735-07-01-ordinaris-num-1",
                 "textPageNum": [
-                    486
+                    403
                 ],
                 "pageNum": [
-                    586
+                    489
                 ],
-                "indexTimestamp": "2023-05-20T01:59:29.526921Z",
-                "provUrl": "https://provenance.sd.di.huc.knaw.nl/prov/2277562",
+                "startOffset": 323,
+                "iiifUrl": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0245.jpg/2333,594,1113,2820/full/0/default.jpg",
+                "docId": "urn:republic:session-1735-07-01-ordinaris-num-1",
+                "lang": "nl",
+                "paragraphIndex": 1,
+                "pageIds": [
+                    "NL-HaNA_1.01.02_3790_0245-page-489"
+                ]
+            },
+            "text": "DE Resolutien gisteren genomen, zyn gelesen en geresumeert gelyck oock geresumeert en gearresteert zyn de Depesches daar uyt resulteerende."
+        },
+        "target": [
+            {
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0245.jpg/2449,1540,893,263/full/0/default.jpg",
+                "type": "Image"
+            },
+            {
+                "@context": "https://brambg.github.io/ns/republic.jsonld",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/2b6b34e7-e2b5-48f3-bb3e-fead2c61a7b3",
+                "type": "Canvas",
+                "selector": [
+                    {
+                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
+                        "type": "iiif:ImageApiSelector",
+                        "region": "2449,1540,893,263"
+                    },
+                    {
+                        "type": "SvgSelector",
+                        "value": "<svg height=\"1803\" width=\"3342\"><path d=\"M2449 1540 L3342 1540 L3342 1803 L2449 1803 Z\"/></svg>"
+                    }
+                ]
+            },
+            {
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0245.jpg/full/full/0/default.jpg",
+                "type": "Image",
+                "selector": [
+                    {
+                        "type": "FragmentSelector",
+                        "conformsTo": "http://www.w3.org/TR/media-frags/",
+                        "value": "xywh=2449,1540,893,263"
+                    },
+                    {
+                        "type": "SvgSelector",
+                        "value": "<svg height=\"1803\" width=\"3342\"><path d=\"M2449 1540 L3342 1540 L3342 1803 L2449 1803 Z\"/></svg>"
+                    }
+                ]
+            },
+            {
+                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
+                "type": "Text",
+                "selector": {
+                    "@context": "https://brambg.github.io/ns/republic.jsonld",
+                    "type": "urn:republic:TextAnchorSelector",
+                    "start": 42639,
+                    "end": 42643
+                }
+            },
+            {
+                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/segments/index/42639/42643",
+                "type": "Text"
+            }
+        ]
+    },
+    {
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:43c7edea-ea2c-4ffc-a680-4bad86e0c11e",
+        "type": "Annotation",
+        "motivation": "classifying",
+        "generated": "2023-06-16T15:41:14.900767",
+        "generator": {
+            "id": "https://github.com/knaw-huc/un-t-ann-gle",
+            "type": "Software",
+            "name": "un-t-ann-gle"
+        },
+        "body": {
+            "@context": "https://brambg.github.io/ns/republic.jsonld",
+            "id": "urn:republic:session-1735-08-08-ordinaris-num-1-attendance_list",
+            "type": "AttendanceList",
+            "metadata": {
+                "inventoryNum": 3790,
+                "sourceId": "urn:republic:session-1735-08-08-ordinaris-num-1",
+                "sessionDate": "1735-08-08",
+                "sessionId": "urn:republic:session-1735-08-08-ordinaris-num-1",
+                "sessionNum": 1,
+                "sessionYear": 1735,
+                "sessionMonth": 8,
+                "sessionDay": 8,
+                "sessionWeekday": "Lunæ",
+                "textPageNum": [
+                    472,
+                    473
+                ],
+                "pageNum": [
+                    558,
+                    559
+                ],
+                "indexTimestamp": "2023-05-20T01:48:53.186525Z",
+                "provUrl": "https://provenance.sd.di.huc.knaw.nl/prov/2284482",
                 "codeCommit": "https://github.com/HuygensING/republic-project/commit/c0f2e5d64625e6e9255f7f6cae6a0ccbee22e821",
                 "pageIds": [
-                    "NL-HaNA_1.01.02_3783_0294-page-586"
+                    "NL-HaNA_1.01.02_3790_0280-page-558",
+                    "NL-HaNA_1.01.02_3790_0280-page-559"
                 ]
             },
             "attendanceSpans": [
                 {
-                    "offset": 0,
-                    "end": 27,
-                    "class": "preamble",
-                    "pattern": "Veneris den 25. Junii 1728.",
+                    "offset": 6,
+                    "end": 21,
+                    "class": "nihil",
+                    "pattern": "Nihil actum est",
                     "delegateId": 0,
                     "delegateName": "",
                     "delegateScore": 0
                 },
                 {
-                    "offset": 38,
-                    "end": 47,
+                    "offset": 60,
+                    "end": 69,
                     "class": "heere",
                     "pattern": "Den Heere",
                     "delegateId": 0,
@@ -989,17 +812,17 @@
                     "delegateScore": 0
                 },
                 {
-                    "offset": 48,
-                    "end": 61,
+                    "offset": 70,
+                    "end": 83,
                     "class": "president",
-                    "pattern": "Van Rechteren",
+                    "pattern": "vander Waayen",
                     "delegateId": 0,
                     "delegateName": "",
                     "delegateScore": 0
                 },
                 {
-                    "offset": 63,
-                    "end": 75,
+                    "offset": 85,
+                    "end": 97,
                     "class": "presentibus",
                     "pattern": "PRAESENTIBUS",
                     "delegateId": 0,
@@ -1007,8 +830,8 @@
                     "delegateScore": 0
                 },
                 {
-                    "offset": 77,
-                    "end": 86,
+                    "offset": 99,
+                    "end": 108,
                     "class": "heere",
                     "pattern": "De Heeren",
                     "delegateId": 0,
@@ -1016,35 +839,80 @@
                     "delegateScore": 0
                 },
                 {
-                    "offset": 125,
-                    "end": 195,
+                    "offset": 173,
+                    "end": 241,
                     "class": "province",
-                    "pattern": "met twee extraordinaris Gedeputeerden uyt de Provincie van Gelderlandt",
+                    "pattern": "met een extraordinaris Gedeputeerde uyt de Provincie van Gelderlandt",
                     "delegateId": 0,
                     "delegateName": "",
                     "delegateScore": 0
                 },
                 {
-                    "offset": 278,
-                    "end": 345,
-                    "class": "province",
-                    "pattern": "met twee extraordinaris Gedeputeerden uyt de Provincie van Zeelandt",
-                    "delegateId": 0,
-                    "delegateName": "",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 418,
-                    "end": 449,
+                    "offset": 371,
+                    "end": 404,
                     "class": "resumption",
-                    "pattern": "DE Resolutien, gisteren genomen",
+                    "pattern": "DE Resolutien eergisteren genomen",
                     "delegateId": 0,
                     "delegateName": "",
                     "delegateScore": 0
                 },
                 {
-                    "offset": 197,
-                    "end": 210,
+                    "offset": 283,
+                    "end": 300,
+                    "class": "delegate",
+                    "pattern": "De Milan-Visconti",
+                    "delegateId": 16398,
+                    "delegateName": "Nilant",
+                    "delegateScore": 0
+                },
+                {
+                    "offset": 350,
+                    "end": 369,
+                    "class": "delegate",
+                    "pattern": "Lewe van Hooghkerck",
+                    "delegateId": 17405,
+                    "delegateName": "Lewe",
+                    "delegateScore": 0
+                },
+                {
+                    "offset": 311,
+                    "end": 321,
+                    "class": "delegate",
+                    "pattern": "van Haaren",
+                    "delegateId": 12358,
+                    "delegateName": "van Haren",
+                    "delegateScore": 0
+                },
+                {
+                    "offset": 335,
+                    "end": 348,
+                    "class": "delegate",
+                    "pattern": "Van Haarsolte",
+                    "delegateId": 302,
+                    "delegateName": "van Haersolte",
+                    "delegateScore": 0
+                },
+                {
+                    "offset": 121,
+                    "end": 133,
+                    "class": "delegate",
+                    "pattern": "van Welderen",
+                    "delegateId": 17862,
+                    "delegateName": "van Welderen",
+                    "delegateScore": 0
+                },
+                {
+                    "offset": 272,
+                    "end": 281,
+                    "class": "delegate",
+                    "pattern": "Van Hoorn",
+                    "delegateId": 14078,
+                    "delegateName": "van Hoornbeek",
+                    "delegateScore": 0
+                },
+                {
+                    "offset": 243,
+                    "end": 256,
                     "class": "delegate",
                     "pattern": "Van Wassenaer",
                     "delegateId": 13477,
@@ -1052,197 +920,115 @@
                     "delegateScore": 0
                 },
                 {
-                    "offset": 403,
-                    "end": 408,
-                    "class": "delegate",
-                    "pattern": "Banga",
-                    "delegateId": 12744,
-                    "delegateName": "Banga",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 272,
-                    "end": 276,
-                    "class": "delegate",
-                    "pattern": "Bout",
-                    "delegateId": 16901,
-                    "delegateName": "Bout",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 243,
-                    "end": 259,
-                    "class": "delegate",
-                    "pattern": "Bors van Waveren",
-                    "delegateId": 14821,
-                    "delegateName": "Bors van Waveren",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 116,
-                    "end": 123,
-                    "class": "delegate",
-                    "pattern": "Coulman",
-                    "delegateId": 19130,
-                    "delegateName": "Coulman",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 410,
-                    "end": 416,
-                    "class": "delegate",
-                    "pattern": "Lohman",
-                    "delegateId": 17379,
-                    "delegateName": "Lohman",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 347,
-                    "end": 366,
-                    "class": "delegate",
-                    "pattern": "Taats van Amerongen",
-                    "delegateId": 17821,
-                    "delegateName": "Borre van Amerongen",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 212,
-                    "end": 226,
-                    "class": "delegate",
-                    "pattern": "van Blocklandt",
-                    "delegateId": 15268,
-                    "delegateName": "Brandwijk van Blokland",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 368,
-                    "end": 380,
-                    "class": "delegate",
-                    "pattern": "Van Glinstra",
-                    "delegateId": 13046,
-                    "delegateName": "van Glinstra",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 101,
-                    "end": 114,
-                    "class": "delegate",
-                    "pattern": "van Heuckelom",
-                    "delegateId": 19092,
-                    "delegateName": "van Heukelom",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 382,
-                    "end": 401,
-                    "class": "delegate",
-                    "pattern": "van Schwartzenbergh",
-                    "delegateId": 12367,
-                    "delegateName": "thoe Schwartzenbergh",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 87,
-                    "end": 99,
-                    "class": "delegate",
-                    "pattern": "Van Welderen",
-                    "delegateId": 17862,
-                    "delegateName": "van Welderen",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 228,
-                    "end": 241,
-                    "class": "delegate",
-                    "pattern": "vander Dussen",
-                    "delegateId": 398,
-                    "delegateName": "Duijvensz.",
-                    "delegateScore": 0
-                },
-                {
-                    "offset": 261,
+                    "offset": 258,
                     "end": 270,
                     "class": "delegate",
-                    "pattern": "Veckhoven",
-                    "delegateId": 14436,
-                    "delegateName": "van Vechoven",
+                    "pattern": "van Zeebergh",
+                    "delegateId": 13648,
+                    "delegateName": "van Zeebergh",
+                    "delegateScore": 0
+                },
+                {
+                    "offset": 302,
+                    "end": 309,
+                    "class": "delegate",
+                    "pattern": "Vegilin",
+                    "delegateId": 12332,
+                    "delegateName": "Vegelin van Claerbergen",
+                    "delegateScore": 0
+                },
+                {
+                    "offset": 135,
+                    "end": 171,
+                    "class": "delegate",
+                    "pattern": "van Heeckeren tot den Brandtzenburgh",
+                    "delegateId": 17505,
+                    "delegateName": "van Heeckeren tot Brandsenburg",
+                    "delegateScore": 0
+                },
+                {
+                    "offset": 109,
+                    "end": 119,
+                    "class": "delegate",
+                    "pattern": "van Lynden",
+                    "delegateId": 18599,
+                    "delegateName": "van Lynden",
                     "delegateScore": 0
                 }
             ]
         },
         "target": [
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0294.jpg/354,1869,912,1208/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0280.jpg/1335,2297,856,899/full/0/default.jpg",
+                "type": "Image"
+            },
+            {
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0280.jpg/2378,426,913,266/full/0/default.jpg",
                 "type": "Image"
             },
             {
                 "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/9f113368-0b0b-49cc-b9d9-3398ae53fa53",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/fa935006-8bfd-4013-b7f1-ec31502f1731",
                 "type": "Canvas",
                 "selector": [
                     {
                         "@context": "http://iiif.io/api/annex/openannotation/context.json",
                         "type": "iiif:ImageApiSelector",
-                        "region": "354,1869,912,1208"
+                        "region": "1335,2297,856,899"
+                    },
+                    {
+                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
+                        "type": "iiif:ImageApiSelector",
+                        "region": "2378,426,913,266"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"3077\" width=\"1266\"><path d=\"M354 1869 L1266 1869 L1266 3077 L354 3077 Z\"/></svg>"
+                        "value": "<svg height=\"3196\" width=\"3291\"><path d=\"M1335 2297 L2191 2297 L2191 3196 L1335 3196 Z M2378 426 L3291 426 L3291 692 L2378 692 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0294.jpg/full/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0280.jpg/full/full/0/default.jpg",
                 "type": "Image",
                 "selector": [
                     {
                         "type": "FragmentSelector",
                         "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=354,1869,912,1208"
+                        "value": "xywh=1335,2297,856,899"
+                    },
+                    {
+                        "type": "FragmentSelector",
+                        "conformsTo": "http://www.w3.org/TR/media-frags/",
+                        "value": "xywh=2378,426,913,266"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"3077\" width=\"1266\"><path d=\"M354 1869 L1266 1869 L1266 3077 L354 3077 Z\"/></svg>"
+                        "value": "<svg height=\"3196\" width=\"3291\"><path d=\"M1335 2297 L2191 2297 L2191 3196 L1335 3196 Z M2378 426 L3291 426 L3291 692 L2378 692 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
                 "type": "Text",
                 "selector": {
                     "@context": "https://brambg.github.io/ns/republic.jsonld",
                     "type": "urn:republic:TextAnchorSelector",
-                    "start": 47476,
-                    "end": 47498
+                    "start": 49675,
+                    "end": 49696
                 }
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/segments/index/47476/47498",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/segments/index/49675/49696",
                 "type": "Text"
             }
-        ],
-        "provenance": {
-            "source": "CAF 'session_lines' and 'resolutions' indexes",
-            "target": "json text array plus standoff annotation info in custom untanngle json format",
-            "harvestingDate": "2023-06-01",
-            "conversionDate": "2023-06-01",
-            "toolId": "untanngle dd 15 maart 2023",
-            "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work",
-            "indexTimestamp": "2023-05-20T01:59:36.931468Z",
-            "@context": "https://brambg.github.io/ns/provenance.jsonld"
-        }
+        ]
     },
     {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:343428a1-9372-4795-ac7f-f5b022a27f89",
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:a3387433-11a0-4def-bc5c-b9229388a32c",
         "type": "Annotation",
         "motivation": "classifying",
-        "generated": "2023-06-13T17:01:23.246491",
+        "generated": "2023-06-16T15:41:10.780190",
         "generator": {
             "id": "https://github.com/knaw-huc/un-t-ann-gle",
             "type": "Software",
@@ -1250,60 +1036,90 @@
         },
         "body": {
             "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:session-1728-05-08-ordinaris-num-1",
+            "id": "urn:republic:NL-HaNA_1.01.02_3790_0167",
+            "type": "Scan",
+            "metadata": {
+                "type": "tt:ScanMetadata",
+                "volume": "1728",
+                "opening": 167
+            }
+        },
+        "target": [
+            {
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0167.jpg/full/,3064/0/default.jpg",
+                "type": "Image"
+            },
+            {
+                "@context": "https://brambg.github.io/ns/republic.jsonld",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/b5146783-7f31-4d15-960e-f2e125c3cfa0",
+                "type": "Canvas"
+            },
+            {
+                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
+                "type": "Text",
+                "selector": {
+                    "@context": "https://brambg.github.io/ns/republic.jsonld",
+                    "type": "urn:republic:TextAnchorSelector",
+                    "start": 27221,
+                    "end": 27333
+                }
+            },
+            {
+                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/segments/index/27221/27333",
+                "type": "Text"
+            }
+        ]
+    },
+    {
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:4885d656-8951-4131-8450-7d0faa8f6af6",
+        "type": "Annotation",
+        "motivation": "classifying",
+        "generated": "2023-06-16T15:41:02.934241",
+        "generator": {
+            "id": "https://github.com/knaw-huc/un-t-ann-gle",
+            "type": "Software",
+            "name": "un-t-ann-gle"
+        },
+        "body": {
+            "@context": "https://brambg.github.io/ns/republic.jsonld",
+            "id": "urn:republic:session-1735-08-27-ordinaris-num-1",
             "type": "Session",
             "metadata": {
                 "dateShiftStatus": "normal",
-                "hasSessionDateElement": true,
-                "indexTimestamp": "2023-05-18T00:06:41.651051Z",
-                "inventoryNum": 3783,
+                "hasSessionDateElement": false,
+                "indexTimestamp": "2023-05-18T00:15:25.558841Z",
+                "inventoryNum": 3790,
                 "isWorkday": true,
                 "linesIncludeRestDay": false,
                 "resolutionIds": [],
-                "sessionDate": "1728-05-08",
-                "sessionDay": 8,
-                "sessionMonth": 5,
+                "sessionDate": "1735-08-27",
+                "sessionDay": 27,
+                "sessionMonth": 8,
                 "sessionNum": 1,
                 "sessionWeekday": "Sabbathi",
-                "sessionYear": 1728,
+                "sessionYear": 1735,
                 "textPageNum": [
-                    341,
-                    342,
-                    343
+                    510,
+                    512
                 ],
                 "pageIds": [
-                    "NL-HaNA_1.01.02_3783_0221-page-441",
-                    "NL-HaNA_1.01.02_3783_0222-page-442",
-                    "NL-HaNA_1.01.02_3783_0222-page-443"
+                    "NL-HaNA_1.01.02_3790_0299-page-596",
+                    "NL-HaNA_1.01.02_3790_0300-page-598"
                 ],
-                "provUrl": "https://provenance.sd.di.huc.knaw.nl/prov/1869719",
+                "provUrl": "https://provenance.sd.di.huc.knaw.nl/prov/1871947",
                 "codeCommit": "https://github.com/HuygensING/republic-project/commit/4b16dda07f0526e67529ae2e49422e1afe1a5c83"
             },
             "evidence": [
                 {
                     "type": "PhraseMatch",
-                    "phrase": "Sabbathi den 8 Mey",
-                    "variant": "Sabbathi den 8 Mey",
-                    "string": "Sabbathi den 8. Mey",
-                    "offset": 0,
-                    "label": "session_date",
-                    "ignorecase": false,
-                    "textId": "urn:republic:NL-HaNA_1.01.02_3783_0221-line-2740-2350-487-57",
-                    "matchScores": {
-                        "charMatch": 1.0,
-                        "ngramMatch": 0.8888888888888888,
-                        "levenshteinSimilarity": 0.9473684210526316
-                    }
-                },
-                {
-                    "type": "PhraseMatch",
-                    "phrase": "1728",
-                    "variant": "1728",
-                    "string": "1728",
+                    "phrase": "1735",
+                    "variant": "1735",
+                    "string": "1735",
                     "offset": 0,
                     "label": "session_year",
                     "ignorecase": false,
-                    "textId": "urn:republic:NL-HaNA_1.01.02_3783_0221-line-2925-2406-157-54",
+                    "textId": "urn:republic:NL-HaNA_1.01.02_3790_0299-line-1753-1618-157-39",
                     "matchScores": {
                         "charMatch": 1.0,
                         "ngramMatch": 1.0,
@@ -1318,7 +1134,7 @@
                     "offset": 0,
                     "label": "presiding",
                     "ignorecase": false,
-                    "textId": "urn:republic:NL-HaNA_1.01.02_3783_0221-line-2747-2462-494-49",
+                    "textId": "urn:republic:NL-HaNA_1.01.02_3790_0299-line-1556-1655-475-54",
                     "matchScores": {
                         "charMatch": 1.0,
                         "ngramMatch": 1.0,
@@ -1333,7 +1149,7 @@
                     "offset": 0,
                     "label": "president",
                     "ignorecase": false,
-                    "textId": "urn:republic:NL-HaNA_1.01.02_3783_0221-line-2586-2510-565-47",
+                    "textId": "urn:republic:NL-HaNA_1.01.02_3790_0299-line-1402-1701-551-54",
                     "matchScores": {
                         "charMatch": 1.0,
                         "ngramMatch": 1.0,
@@ -1348,7 +1164,7 @@
                     "offset": 0,
                     "label": "president",
                     "ignorecase": false,
-                    "textId": "urn:republic:NL-HaNA_1.01.02_3783_0221-line-2595-2607-849-47",
+                    "textId": "urn:republic:NL-HaNA_1.01.02_3790_0299-line-1402-1797-832-55",
                     "matchScores": {
                         "charMatch": 0.8888888888888888,
                         "ngramMatch": 0.6666666666666666,
@@ -1363,11 +1179,41 @@
                     "offset": 0,
                     "label": "president",
                     "ignorecase": false,
-                    "textId": "urn:republic:NL-HaNA_1.01.02_3783_0221-line-2595-2607-849-47",
+                    "textId": "urn:republic:NL-HaNA_1.01.02_3790_0299-line-1402-1797-832-55",
                     "matchScores": {
                         "charMatch": 1.0,
                         "ngramMatch": 1.0,
                         "levenshteinSimilarity": 1.0
+                    }
+                },
+                {
+                    "type": "PhraseMatch",
+                    "phrase": "Den Heere",
+                    "variant": "Den Heere",
+                    "string": "den Heere",
+                    "offset": 26,
+                    "label": "president",
+                    "ignorecase": false,
+                    "textId": "urn:republic:NL-HaNA_1.01.02_3790_0299-line-1355-2538-875-92",
+                    "matchScores": {
+                        "charMatch": 0.8888888888888888,
+                        "ngramMatch": 0.7777777777777778,
+                        "levenshteinSimilarity": 0.8888888888888888
+                    }
+                },
+                {
+                    "type": "PhraseMatch",
+                    "phrase": "Den Heere",
+                    "variant": "Den Heere",
+                    "string": "den Heere",
+                    "offset": 26,
+                    "label": "president",
+                    "ignorecase": false,
+                    "textId": "urn:republic:NL-HaNA_1.01.02_3790_0299-line-1348-2976-878-90",
+                    "matchScores": {
+                        "charMatch": 0.8888888888888888,
+                        "ngramMatch": 0.7777777777777778,
+                        "levenshteinSimilarity": 0.8888888888888888
                     }
                 },
                 {
@@ -1378,7 +1224,7 @@
                     "offset": 0,
                     "label": "attending",
                     "ignorecase": false,
-                    "textId": "urn:republic:NL-HaNA_1.01.02_3783_0221-line-2648-2558-678-47",
+                    "textId": "urn:republic:NL-HaNA_1.01.02_3790_0299-line-1451-1752-674-55",
                     "matchScores": {
                         "charMatch": 1.0,
                         "ngramMatch": 1.0,
@@ -1393,7 +1239,7 @@
                     "offset": 0,
                     "label": "attendants",
                     "ignorecase": false,
-                    "textId": "urn:republic:NL-HaNA_1.01.02_3783_0221-line-2595-2607-849-47",
+                    "textId": "urn:republic:NL-HaNA_1.01.02_3790_0299-line-1402-1797-832-55",
                     "matchScores": {
                         "charMatch": 1.0,
                         "ngramMatch": 1.0,
@@ -1404,11 +1250,11 @@
                     "type": "PhraseMatch",
                     "phrase": "DE Resolutien gisteren genomen",
                     "variant": "DE Resolutien gisteren ge-",
-                    "string": "DE Resolutien gisteren, ge",
+                    "string": "DE Resolustien gisteren ge",
                     "offset": 0,
                     "label": "reviewed",
                     "ignorecase": false,
-                    "textId": "urn:republic:NL-HaNA_1.01.02_3783_0221-line-2544-3185-897-146",
+                    "textId": "urn:republic:NL-HaNA_1.01.02_3790_0299-line-1353-2232-877-137",
                     "matchScores": {
                         "charMatch": 0.9615384615384616,
                         "ngramMatch": 0.8461538461538461,
@@ -1419,154 +1265,97 @@
         },
         "target": [
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0221.jpg/2544,2350,902,1010/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0299.jpg/1324,1618,910,1705/full/0/default.jpg",
                 "type": "Image"
             },
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0221.jpg/3448,444,920,2901/full/0/default.jpg",
-                "type": "Image"
-            },
-            {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0222.jpg/341,442,922,2898/full/0/default.jpg",
-                "type": "Image"
-            },
-            {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0222.jpg/1263,443,920,2900/full/0/default.jpg",
-                "type": "Image"
-            },
-            {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0222.jpg/2520,451,917,1503/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0300.jpg/580,400,580,64/full/0/default.jpg",
                 "type": "Image"
             },
             {
                 "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/84fc6def-1efb-44db-b9b7-da8865d3555f",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/b4cc5ca3-dfbf-4923-bd7b-46eaa2fc8a77",
                 "type": "Canvas",
                 "selector": [
                     {
                         "@context": "http://iiif.io/api/annex/openannotation/context.json",
                         "type": "iiif:ImageApiSelector",
-                        "region": "2544,2350,902,1010"
-                    },
-                    {
-                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
-                        "type": "iiif:ImageApiSelector",
-                        "region": "3448,444,920,2901"
+                        "region": "1324,1618,910,1705"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"3360\" width=\"4368\"><path d=\"M2544 2350 L3446 2350 L3446 3360 L2544 3360 Z M3448 444 L4368 444 L4368 3345 L3448 3345 Z\"/></svg>"
+                        "value": "<svg height=\"3323\" width=\"2234\"><path d=\"M1324 1618 L2234 1618 L2234 3323 L1324 3323 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0221.jpg/full/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0299.jpg/full/full/0/default.jpg",
                 "type": "Image",
                 "selector": [
                     {
                         "type": "FragmentSelector",
                         "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=2544,2350,902,1010"
-                    },
-                    {
-                        "type": "FragmentSelector",
-                        "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=3448,444,920,2901"
+                        "value": "xywh=1324,1618,910,1705"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"3360\" width=\"4368\"><path d=\"M2544 2350 L3446 2350 L3446 3360 L2544 3360 Z M3448 444 L4368 444 L4368 3345 L3448 3345 Z\"/></svg>"
+                        "value": "<svg height=\"3323\" width=\"2234\"><path d=\"M1324 1618 L2234 1618 L2234 3323 L1324 3323 Z\"/></svg>"
                     }
                 ]
             },
             {
                 "@context": "https://brambg.github.io/ns/republic.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/9883bde6-b15b-4b7c-9b34-a8ef4c30821e",
+                "source": "https://images.diginfra.net/api/pim/iiif/8d608d2f-df2b-437f-936a-e002ab9d5d08/canvas/7959998f-d392-46f7-a084-8d8b99a71c9d",
                 "type": "Canvas",
                 "selector": [
                     {
                         "@context": "http://iiif.io/api/annex/openannotation/context.json",
                         "type": "iiif:ImageApiSelector",
-                        "region": "341,442,922,2898"
-                    },
-                    {
-                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
-                        "type": "iiif:ImageApiSelector",
-                        "region": "1263,443,920,2900"
-                    },
-                    {
-                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
-                        "type": "iiif:ImageApiSelector",
-                        "region": "2520,451,917,1503"
+                        "region": "580,400,580,64"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"3343\" width=\"3437\"><path d=\"M341 442 L1263 442 L1263 3340 L341 3340 Z M1263 443 L2183 443 L2183 3343 L1263 3343 Z M2520 451 L3437 451 L3437 1954 L2520 1954 Z\"/></svg>"
+                        "value": "<svg height=\"464\" width=\"1160\"><path d=\"M580 400 L1160 400 L1160 464 L580 464 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3783/NL-HaNA_1.01.02_3783_0222.jpg/full/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02/3790/NL-HaNA_1.01.02_3790_0300.jpg/full/full/0/default.jpg",
                 "type": "Image",
                 "selector": [
                     {
                         "type": "FragmentSelector",
                         "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=341,442,922,2898"
-                    },
-                    {
-                        "type": "FragmentSelector",
-                        "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=1263,443,920,2900"
-                    },
-                    {
-                        "type": "FragmentSelector",
-                        "conformsTo": "http://www.w3.org/TR/media-frags/",
-                        "value": "xywh=2520,451,917,1503"
+                        "value": "xywh=580,400,580,64"
                     },
                     {
                         "type": "SvgSelector",
-                        "value": "<svg height=\"3343\" width=\"3437\"><path d=\"M341 442 L1263 442 L1263 3340 L341 3340 Z M1263 443 L2183 443 L2183 3343 L1263 3343 Z M2520 451 L3437 451 L3437 1954 L2520 1954 Z\"/></svg>"
+                        "value": "<svg height=\"464\" width=\"1160\"><path d=\"M580 400 L1160 400 L1160 464 L580 464 Z\"/></svg>"
                     }
                 ]
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
                 "type": "Text",
                 "selector": {
                     "@context": "https://brambg.github.io/ns/republic.jsonld",
                     "type": "urn:republic:TextAnchorSelector",
-                    "start": 33209,
-                    "end": 33429
+                    "start": 53587,
+                    "end": 53620
                 }
             },
             {
-                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/segments/index/33209/33429",
+                "source": "https://textrepo.republic-caf.diginfra.org/api/view/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/segments/index/53587/53620",
                 "type": "Text"
             }
-        ],
-        "provenance": {
-            "source": "CAF 'session_lines' and 'resolutions' indexes",
-            "target": "json text array plus standoff annotation info in custom untanngle json format",
-            "harvestingDate": "2023-06-01",
-            "conversionDate": "2023-06-01",
-            "toolId": "untanngle dd 15 maart 2023",
-            "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work",
-            "indexTimestamp": "2023-05-20T01:59:36.931468Z",
-            "@context": "https://brambg.github.io/ns/provenance.jsonld"
-        }
+        ]
     },
     {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"
-            }
-        ],
-        "id": "urn:republic:annotation:12fdf52a-6991-4dcf-91a9-2948bdf402e2",
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": "urn:republic:annotation:9cc6a46d-bbc9-4fd3-a8e4-605cdfccaae9",
         "type": "Annotation",
         "motivation": "classifying",
-        "generated": "2023-06-13T17:01:08.286811",
+        "generated": "2023-06-16T15:41:17.662397",
         "generator": {
             "id": "https://github.com/knaw-huc/un-t-ann-gle",
             "type": "Software",
@@ -1574,21 +1363,21 @@
         },
         "body": {
             "@context": "https://brambg.github.io/ns/republic.jsonld",
-            "id": "urn:republic:volume:1728",
+            "id": "urn:republic:volume:NL-HaNA_1.01.02_3790",
             "type": "Volume",
             "metadata": {
-                "volume": "1728",
-                "manifest": "https://images.diginfra.net/api/pim/imageset/67533019-4ca0-4b08-b87e-fd5590e7a077/manifest"
+                "volume": "NL-HaNA_1.01.02_3790",
+                "manifest": "https://images.diginfra.net/api/pim/imageset/8d608d2f-df2b-437f-936a-e002ab9d5d08/manifest"
             }
         },
         "target": {
-            "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/6fc42339-e5ac-4598-a00d-096b068f5c73/contents",
+            "source": "https://textrepo.republic-caf.diginfra.org/api/rest/versions/e6eef2d7-961c-4d45-96da-dd802f23fdb3/contents",
             "type": "Text",
             "selector": {
                 "@context": "https://brambg.github.io/ns/republic.jsonld",
                 "type": "urn:republic:TextAnchorSelector",
-                "start": 0,
-                "end": 94808
+                "start": 71469,
+                "end": 71469
             }
         }
     }

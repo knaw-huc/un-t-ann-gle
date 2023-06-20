@@ -21,6 +21,8 @@ setuptools = "^67.8.0"
 pygithub = "^1.58.2"
 pyyaml = "^6.0"
 elasticsearch7 = "^7.17.9"
+stam = "^0.2.0"
+alive-progress = "^3.1.4"
 
 [tool.poetry.group.dev.dependencies]
 annorepo-client = {path = "/Users/bram/workspaces/elucidate/annorepo-client"}
