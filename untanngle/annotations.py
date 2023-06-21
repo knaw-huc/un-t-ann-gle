@@ -28,10 +28,14 @@ class Annotation:
 
     def annotation_body(self):
         body = self.body()
-        if "metadata" in body.keys():
-            if "id" in body["metadata"].keys():
+        body_keys = body.keys()
+        if "metadata" in body_keys:
+            body_metadata_keys = body["metadata"].keys()
+            if "id" in body_metadata_keys:
                 body["metadata"].pop("id")
-                body["metadata"].pop("type")
+            if "type" in body_metadata_keys:
+                body["metadata"]["rp:type"] = body["metadata"]["type"]
+            body["metadata"]["type"] = f"rp:{body['type']}Metadata"
         return body
 
     def annotation_target(self, canvas_idx, textrepo_base_url, version_id) -> List[Any]:
@@ -205,6 +209,7 @@ class VolumeAnnotation:
             "id": as_urn(f"volume:{self.title}"),
             "type": "Volume",
             "metadata": {
+                "type": "rp:VolumeMetadata",
                 "volume": self.title,
                 "manifest": self.manifest_url
             }}
@@ -268,9 +273,15 @@ class ColumnAnnotation:
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
+class ReadingOrder:
+    index: str
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass
 class TextRegionMetadata:
     id: str
-    type: List[str]
+    type: str | List[str]
     parent_type: str
     parent_id: str
     scan_id: str
@@ -278,6 +289,7 @@ class TextRegionMetadata:
     iiif_url: str
     page_num: int
     text_page_num: int
+    reading_order: Optional[ReadingOrder] = field(metadata=config(exclude=exclude_if_none), default=None)
     median_normal_left: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
     median_normal_right: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
     median_normal_width: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
@@ -358,7 +370,6 @@ class HeightMetadata:
     min: int
     mean: int
     median: int
-    type: str = "HeightMetadata"
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -372,6 +383,7 @@ class LineMetadata:
     page_id: str
     text_region_id: str
     column_id: str
+    reading_order: Optional[ReadingOrder] = field(metadata=config(exclude=exclude_if_none), default=None)
     height: Optional[HeightMetadata] = field(metadata=config(exclude=exclude_if_none), default=None)
     header_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     left_alignment: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
@@ -624,7 +636,6 @@ class AttendantMetadata:
     delegate_id: int
     delegate_name: str
     delegate_score: int
-    type: str = "AttendantMetadata"
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -850,7 +861,6 @@ class ReviewedAnnotation(Annotation):
 class PageMetadata:
     page_id: str
     scan_id: str
-    type: str = "PageMetadata"
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -880,7 +890,6 @@ class PageAnnotation(Annotation):
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class ScanMetadata:
-    type: str
     volume: str
     opening: int
 

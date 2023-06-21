@@ -33,8 +33,10 @@ def as_web_annotation(annotation: dict, textrepo_url: str, version_id: str, canv
     try:
         a_type = annotation.get('type')
         a_class = annotation_class_mapper[a_type]
-        return a_class.from_dict(annotation).as_web_annotation(textrepo_base_url=textrepo_url, version_id=version_id,
-                                                               canvas_idx=canvas_idx)
+        return a_class.from_dict(annotation).as_web_annotation(
+            textrepo_base_url=textrepo_url,
+            version_id=version_id,
+            canvas_idx=canvas_idx)
     except Exception as e:
         print("failing input json:")
         print(json.dumps(annotation))
@@ -54,7 +56,6 @@ def normalize_annotation(annotation: dict, scanpage_iiif: dict) -> dict:
         opening = int(id_parts[-1])
         volume = "_".join(id_parts[:-1])
         annotation["metadata"] = {
-            "type": "tt:ScanMetadata",
             "volume": volume,
             "opening": opening
         }
