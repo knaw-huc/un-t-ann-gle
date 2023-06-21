@@ -575,6 +575,8 @@ def untanngle_year(year: int, data_dir: str):
     logging.info(f"add_region_links_to_line_annotations({resource_id})")
     add_region_links_to_line_annotations(resource_id)
 
+    # with open(f"{datadir}/ut_annotations.json", "w") as f:
+    #     json.dump(all_annotations, f, indent=2)
     logging.info(f"process_line_based_types({resource_id})")
     process_line_based_types(resource_id)
 
