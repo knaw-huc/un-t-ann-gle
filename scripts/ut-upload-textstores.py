@@ -42,7 +42,7 @@ def store_provenance(textrepo_version_url: str,
             software=URI(
                 f'https://raw.githubusercontent.com/knaw-huc/un-t-ann-gle/{commit_id}/scripts/ut-run-republic-pipeline-for-year.sh'),
             init=str(year)),
-        why=ProvenanceWhy(motivation="conversion"),
+        why=ProvenanceWhy(motivation="text extraction"),
         sources=[ProvenanceResource(resource=URI(u), relation='primary') for u in session_urls],
         targets=[ProvenanceResource(resource=URI(textrepo_version_url), relation='primary')]
     )
