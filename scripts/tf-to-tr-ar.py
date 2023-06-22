@@ -62,7 +62,7 @@ def load_config(conf_path: str) -> Config:
         annorepo_api_key=config['annorepo']['api_key'],
         annorepo_container_id=config['annorepo']['container_id'],
         annorepo_container_label=config['annorepo']['container_label'],
-        provenance_base_uri=config['provenance']['base_uri'].rstrip('/'),
+        provenance_base_uri=config['provenance']['base_uri'],
         provenance_api_key=config['provenance']['api_key'],
         provenance_who=config['provenance']['who'],
         provenance_where=config['provenance']['where'],
