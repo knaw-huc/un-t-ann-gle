@@ -36,7 +36,7 @@ def process(path: str):
                 sleep(1)
             case _:
                 ic(status_response)
-                raise Exception("unexpected response")
+                raise Exception(f"unexpected response: {response.headers}")
 
     result_location = status_response.headers['Location']
     result_response = requests.get(result_location)
