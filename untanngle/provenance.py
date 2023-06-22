@@ -91,7 +91,7 @@ def log_curl_command(authorization, data, url):
 class ProvenanceClient:
 
     def __init__(self, base_url: str, api_key: str):
-        self.base_url = base_url
+        self.base_url = base_url.rstrip('/')
         self.api_key = api_key
 
     def add_provenance(self, provenance_data: ProvenanceData) -> ProvenanceIdentifier:
