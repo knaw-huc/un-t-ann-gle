@@ -6,11 +6,13 @@ import json
 import logging
 import re
 import time
+import uuid
 from enum import Enum
 from typing import List, Dict, Any
 
 from alive_progress import alive_bar
 from loguru import logger
+from stam import AnnotationStore, Selector, Offset, TextSelectionOperator
 
 from untanngle.annotation import asearch
 from untanngle.textservice import segmentedtext
@@ -269,7 +271,7 @@ def res_traverse(node, resource_id: str):
     config = untanngle_config[AnnTypes(node_label)]
 
     key_of_children = config['child_key']
-    type_of_children = config['child_type']
+    # type_of_children = config['child_type']
 
     children = [] if key_of_children is None else node[key_of_children]
 
@@ -577,8 +579,8 @@ def untanngle_year(year: int, data_dir: str):
 
     # with open(f"{datadir}/ut_annotations.json", "w") as f:
     #     json.dump(all_annotations, f, indent=2)
-    logging.info(f"process_line_based_types({resource_id})")
-    process_line_based_types(resource_id)
+    logging.info(f"process_line_based_types()")
+    process_line_based_types()
 
     logging.info(f"add_region_links_to_text_region_annotations({resource_id})")
     add_region_links_to_text_region_annotations(resource_id)
@@ -746,54 +748,84 @@ def calculate_region_links_for_line_annotation(line):
     return [region_url]
 
 
-def process_line_based_types(resource_id):
+class AnnotationsWrapper:
+    def __init__(self, annotations: List):
+        self.annotations = annotations
+        self.annotation_idx = {a["id"]: a for a in annotations}
+        max_anchor = max([a['end_anchor'] for a in annotations]) + 1
+        store = AnnotationStore(id=uuid.uuid4())
+        resource = store.add_resource(id="dummy", text="*" * max_anchor)
+        annotation_set = store.add_annotationset(id="type_set")
+        annotation_set.add_key("type")
+        for a in self.annotations:
+            a_type = a['type']
+            type_data = annotation_set.add_data(key="type", value=a_type)
+            store.annotate(
+                id=a['id'],
+                target=Selector.textselector(resource, Offset.simple(a['begin_anchor'], a['end_anchor'] + 1)),
+                data=type_data
+            )
+        store.set_filename("out/store.json")
+        store.save()
+        self.resource = resource
+
+    def get_annotations_overlapping_with_anchor_range(self, begin_anchor, end_anchor):
+        selection = self.resource.textselection(Offset.simple(begin_anchor, end_anchor + 1))
+        overlapping = [self.annotation_idx[a.id()] for a in
+                       selection.find_annotations(TextSelectionOperator.overlaps())]
+        exact = [self.annotation_idx[a.id()] for a in selection.annotations()]
+        return overlapping + exact
+
+    def xget(self, line_id):
+        return self.annotation_idx[line_id]
+
+
+def process_line_based_types():
     types = {at.value for at in line_based_types}
-    relevant_annotations = [a for a in all_annotations if a['type'] in types and a['resource_id'] == resource_id]
+    relevant_annotations = [a for a in all_annotations if a['type'] in types]
+    text_region_annotations = [a for a in all_annotations if a['type'] == 'text_region']
+    text_region_annotation_wrapper = AnnotationsWrapper(text_region_annotations)
+    line_annotations = [a for a in all_annotations if a['type'] == 'line']
+    line_annotation_wrapper = AnnotationsWrapper(line_annotations)
     with alive_bar(len(relevant_annotations), title="Processing line-based annotations", spinner=None) as bar:
-        for ann in relevant_annotations:
-            ann['region_links'] = calculate_region_links(ann, resource_id)
+        for annotation in relevant_annotations:
+            annotation['region_links'] = calculate_region_links(
+                annotation,
+                line_annotation_wrapper,
+                text_region_annotation_wrapper
+            )
             bar()
 
 
-def calculate_region_links(ann, resource_id):
+def calculate_region_links(ann, line_annotation_wrapper, text_region_annotation_wrapper):
     ann_region_links = []
     # voor iedere resolutie, vraag overlappende regions
+    begin_anchor = ann['begin_anchor']
+    end_anchor = ann['end_anchor']
+    with_anchor_range = text_region_annotation_wrapper.get_annotations_overlapping_with_anchor_range(begin_anchor,
+                                                                                                     end_anchor)
     overlapping_regions = sorted(
-        asearch.get_annotations_of_type_overlapping(
-            'text_region',
-            ann['begin_anchor'],
-            ann['end_anchor'],
-            all_annotations,
-            resource_id
-        ),
+        with_anchor_range,
         key=lambda reg_ann: reg_ann['begin_anchor']
     )
-    lines_in_annotation = list(
-        asearch.get_annotations_of_type_overlapping(
-            'line',
-            ann['begin_anchor'],
-            ann['end_anchor'],
-            all_annotations,
-            resource_id
-        )
-    )
+    lines_in_annotation = line_annotation_wrapper.get_annotations_overlapping_with_anchor_range(begin_anchor,
+                                                                                                end_anchor)
     # bepaal bounding box voor met RESOLUTION overlappende lines, per text_region
     for tr in overlapping_regions:
         line_ids_in_region = {
-            a["id"] for a in asearch.get_annotations_of_type_overlapping(
-                'line',
-                tr['begin_anchor'],
-                tr['end_anchor'],
-                all_annotations,
-                resource_id
-            )}
-
-        lines_in_intersection = (line for line in lines_in_annotation if line["id"] in line_ids_in_region)
+            a["id"] for a in
+            line_annotation_wrapper.get_annotations_overlapping_with_anchor_range(tr['begin_anchor'], tr['end_anchor'])
+        }
+        lines_in_intersection = (line_a for line_a in lines_in_annotation if line_a["id"] in line_ids_in_region)
 
         # determine iiif url region enclosing the line boxes, assume each line has only one url
         urls = [line['region_links'][0] for line in lines_in_intersection]
-        region_url = union_of_iiif_urls(urls)
-        ann_region_links.append(region_url)
+        if not urls:
+            logger.error(f"no urls found for {tr['id']} {tr['begin_anchor']}:{tr['end_anchor']}")
+            logger.info(f"line_ids_in_region={lines_in_intersection}")
+        else:
+            region_url = union_of_iiif_urls(urls)
+            ann_region_links.append(region_url)
 
         # # generate output to report potential issues with layout of text_regions
         # region_string = region_pattern.search(region_url)
