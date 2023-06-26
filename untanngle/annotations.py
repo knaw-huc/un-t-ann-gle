@@ -288,12 +288,14 @@ class TextRegionMetadata:
     page_id: str
     iiif_url: str
     page_num: int
-    text_page_num: int
+    text_page_num: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
     reading_order: Optional[ReadingOrder] = field(metadata=config(exclude=exclude_if_none), default=None)
     median_normal_left: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
     median_normal_right: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
     median_normal_width: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
     median_normal_length: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
+    normal_odd_end: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
+    normal_even_end: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
     structure: Optional[Structure] = field(metadata=config(exclude=exclude_if_none), default=None)
     text_region_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
 
@@ -783,8 +785,8 @@ class LineRange:
     start: int
     end: int
     line_id: str
-    text_page_num: int
     page_num: int
+    text_page_num: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
 
 
 @dataclass_json(undefined=Undefined.RAISE)
