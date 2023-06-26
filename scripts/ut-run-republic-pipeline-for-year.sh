@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+set -e
+
 year=$1
 envfile=$2
 startstage=$3
@@ -36,13 +39,13 @@ echo "starting pipeline for $year"
 
 if [[ $startstage -le 1 ]]; then
   echo "[1/6] harvesting data from CAF"
-  poetry run scripts/caf-harvest.py $year || exit 1
+  poetry run scripts/caf-harvest.py $year
   echo
 fi
 
 if [[ $startstage -le 2 ]]; then
   echo "[2/6] untanngling caf harvest"
-  poetry run scripts/ut-untanngle-republic.py -d $harvestdir $year || exit 1
+  poetry run scripts/ut-untanngle-republic.py -d $harvestdir $year
   echo
 fi
 
@@ -53,7 +56,7 @@ if [[ $startstage -le 3 ]]; then
     -t https://textrepo.republic-caf.diginfra.org/api \
     --provenance-base-url $PROV_URL \
     --provenance-api-key $PROV_KEY \
-    $year || exit 1
+    $year
   echo
 fi
 
@@ -65,7 +68,7 @@ if [[ $startstage -le 4 ]]; then
     -v $version \
     -c data/image-to-canvas.csv \
     -o $harvestdir/$year \
-    $harvestdir/$year/annotationstore-$year.json || exit 1
+    $harvestdir/$year/annotationstore-$year.json
   echo
 fi
 
