@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 year=$1
 envfile=$2
+startstage=$3
+if [[ -z "$startstage" ]]; then
+  startstage=1
+fi
 
 check_env_var_is_set(){
   name=$1
@@ -30,18 +34,49 @@ fi
 
 echo "starting pipeline for $year"
 
-echo "[1/5] harvesting data from CAF"
-poetry run scripts/caf-harvest.py $year
+if [[ $startstage -le 1 ]]; then
+  echo "[1/6] harvesting data from CAF"
+  poetry run scripts/caf-harvest.py $year || exit 1
+  echo
+fi
 
-echo "[2/5] untanngling caf harvest"
-poetry run scripts/ut-untanngle-republic.py -d $harvestdir $year
+if [[ $startstage -le 2 ]]; then
+  echo "[2/6] untanngling caf harvest"
+  poetry run scripts/ut-untanngle-republic.py -d $harvestdir $year || exit 1
+  echo
+fi
 
-echo "[3/5] uploading extracted textstore"
-poetry run scripts/ut-upload-textstores.py -d $harvestdir -t https://textrepo.republic-caf.diginfra.org/api --provenance-base-url $PROV_URL -provenance-api-key $PROV_KEY $year
+if [[ $startstage -le 3 ]]; then
+  echo "[3/6] uploading extracted textstore"
+  poetry run scripts/ut-upload-textstores.py \
+    -d $harvestdir \
+    -t https://textrepo.republic-caf.diginfra.org/api \
+    --provenance-base-url $PROV_URL \
+    --provenance-api-key $PROV_KEY \
+    $year || exit 1
+  echo
+fi
 
-version=$(jq -r ".[\"$year\"]" out/version_id_idx.json)
-echo "[4/5] converting annotationstore to web annotations"
-poetry run scripts/rp-convert-to-web-annotations.py -t https://textrepo.republic-caf.diginfra.org/api/ -v $version -c data/image-to-canvas.csv -o $harvestdir/$year $harvestdir/$year/annotationstore-$year.json
+if [[ $startstage -le 4 ]]; then
+  version=$(jq -r ".[\"$year\"]" out/version_id_idx.json)
+  echo "[4/5] converting annotationstore to web annotations"
+  poetry run scripts/rp-convert-to-web-annotations.py \
+    -t https://textrepo.republic-caf.diginfra.org/api/ \
+    -v $version \
+    -c data/image-to-canvas.csv \
+    -o $harvestdir/$year \
+    $harvestdir/$year/annotationstore-$year.json || exit 1
+  echo
+fi
 
-echo "[5/5] uploading web annotations to annorepo server"
-poetry run scripts/upload-to-annorepo.py -a $ANNO_URL -c republic -k root $harvestdir/$year/web_annotations.json
+if [[ $startstage -le 5 ]]; then
+  echo "[5/6] uploading web annotations to annorepo server"
+  poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic -k root $harvestdir/$year/web_annotations.json
+  echo
+fi
+
+if [[ $startstage -le 6 ]]; then
+  echo "[6/6] uploading provenance for web annotations"
+  poetry run scripts/rp-upload-annotation-provenance.py $year
+  echo
+fi
