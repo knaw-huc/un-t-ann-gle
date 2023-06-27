@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 set -e
-
+[[ -t 1 ]] || export TERM=dumb
+txtylw=$(tput setaf 11)
+txtwht=$(tput setaf 7)
 year=$1
 envfile=$2
 startstage=$3
@@ -38,19 +40,19 @@ fi
 echo "starting pipeline for $year"
 
 if [[ $startstage -le 1 ]]; then
-  echo "[1/6] harvesting data from CAF"
+  echo "${txtylw}[1/6] harvesting data from CAF${txtwht}"
   poetry run scripts/caf-harvest.py $year
   echo
 fi
 
 if [[ $startstage -le 2 ]]; then
-  echo "[2/6] untanngling caf harvest"
+  echo "${txtylw}[2/6] untanngling caf harvest${txtwht}"
   poetry run scripts/ut-untanngle-republic.py -d $harvestdir $year
   echo
 fi
 
 if [[ $startstage -le 3 ]]; then
-  echo "[3/6] uploading extracted textstore"
+  echo "${txtylw}[3/6] uploading extracted textstore${txtwht}"
   poetry run scripts/ut-upload-textstores.py \
     -d $harvestdir \
     -t https://textrepo.republic-caf.diginfra.org/api \
@@ -62,7 +64,7 @@ fi
 
 if [[ $startstage -le 4 ]]; then
   version=$(jq -r ".[\"$year\"]" out/version_id_idx.json)
-  echo "[4/5] converting annotationstore to web annotations"
+  echo "${txtylw}[4/5] converting annotationstore to web annotations${txtwht}"
   poetry run scripts/rp-convert-to-web-annotations.py \
     -t https://textrepo.republic-caf.diginfra.org/api/ \
     -v $version \
@@ -73,13 +75,13 @@ if [[ $startstage -le 4 ]]; then
 fi
 
 if [[ $startstage -le 5 ]]; then
-  echo "[5/6] uploading web annotations to annorepo server"
+  echo "${txtylw}[5/6] uploading web annotations to annorepo server${txtwht}"
   poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic -k root $harvestdir/$year/web_annotations.json
   echo
 fi
 
 if [[ $startstage -le 6 ]]; then
-  echo "[6/6] uploading provenance for web annotations"
+  echo "${txtylw}[6/6] uploading provenance for web annotations${txtwht}"
   poetry run scripts/rp-upload-annotation-provenance.py $year
   echo
 fi
