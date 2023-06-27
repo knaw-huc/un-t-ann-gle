@@ -8,6 +8,7 @@ import re
 import time
 import uuid
 from enum import Enum
+from functools import cache
 from typing import List, Dict, Any
 
 from alive_progress import alive_bar
@@ -769,15 +770,13 @@ class AnnotationsWrapper:
         store.save()
         self.resource = resource
 
+    @cache
     def get_annotations_overlapping_with_anchor_range(self, begin_anchor, end_anchor):
         selection = self.resource.textselection(Offset.simple(begin_anchor, end_anchor + 1))
         overlapping = [self.annotation_idx[a.id()] for a in
                        selection.find_annotations(TextSelectionOperator.overlaps())]
         exact = [self.annotation_idx[a.id()] for a in selection.annotations()]
         return overlapping + exact
-
-    def xget(self, line_id):
-        return self.annotation_idx[line_id]
 
 
 def process_line_based_types():
