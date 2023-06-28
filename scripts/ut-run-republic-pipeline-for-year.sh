@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-[[ -t 1 ]] || export TERM=dumb
+#[[ -t 1 ]] || export TERM=dumb
 txtylw=$(tput setaf 11)
 txtwht=$(tput setaf 7)
 year=$1

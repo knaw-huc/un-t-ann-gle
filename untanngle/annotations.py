@@ -7,6 +7,7 @@ from typing import Any, List, Union, Dict, Set, Optional
 
 import requests
 from dataclasses_json import dataclass_json, Undefined, config
+from loguru import logger
 from rfc3987 import parse
 
 from untanngle.camel_casing import keys_to_camel_case, types_to_camel_case
@@ -65,17 +66,21 @@ class Annotation:
                 xywh = rl.split('/')[-4]
                 if "," in xywh:
                     (x, y, w, h) = xywh.split(',')
-                    image_coords = ImageCoords(left=int(x), right=int(x) + int(w),
-                                               top=int(y), bottom=int(y) + int(h),
-                                               width=int(w), height=int(h))
-                    coords = [
-                        [image_coords.left, image_coords.top],
-                        [image_coords.right, image_coords.top],
-                        [image_coords.right, image_coords.bottom],
-                        [image_coords.left, image_coords.bottom]
-                    ]
-                    iiif_url = re.sub(r"jpg/[\d,]+/", 'jpg/full/', rl)
-                    regions_per_scan[iiif_url].append(Region(image_coords=image_coords, coords_list=coords, xywh=xywh))
+                    if x.isnumeric() and y.isnumeric() and w.isnumeric() and h.isnumeric():
+                        image_coords = ImageCoords(left=int(x), right=int(x) + int(w),
+                                                   top=int(y), bottom=int(y) + int(h),
+                                                   width=int(w), height=int(h))
+                        coords = [
+                            [image_coords.left, image_coords.top],
+                            [image_coords.right, image_coords.top],
+                            [image_coords.right, image_coords.bottom],
+                            [image_coords.left, image_coords.bottom]
+                        ]
+                        iiif_url = re.sub(r"jpg/[\d,]+/", 'jpg/full/', rl)
+                        regions_per_scan[iiif_url].append(
+                            Region(image_coords=image_coords, coords_list=coords, xywh=xywh))
+                    else:
+                        logger.error(f"Badly formatted region_link: {rl}")
 
             for (iiif_url, regions) in regions_per_scan.items():
                 img_url = re.sub(".jpg.*", ".jpg", iiif_url)
@@ -223,6 +228,7 @@ class VolumeAnnotation:
 class ScanPageAnnotation:
     label: str
     scan_id: str
+    provenance_source: str
     begin_anchor: int
     end_anchor: int
     resource_id: str
@@ -249,6 +255,7 @@ class ScanPageAnnotation:
 class ColumnAnnotation:
     label: str
     id: str
+    provenance_source: str
     begin_anchor: int
     end_anchor: int
     resource_id: str
@@ -307,6 +314,7 @@ class TextRegionAnnotation(Annotation):
     type: str
     resource_id: str
     inventory_id: str
+    provenance_source: str
     metadata: TextRegionMetadata
     begin_anchor: int
     end_anchor: int
@@ -400,6 +408,7 @@ class LineAnnotation(Annotation):
     type: str
     resource_id: str
     inventory_id: str
+    provenance_source: str
     metadata: LineMetadata
     begin_anchor: int
     end_anchor: int
@@ -491,7 +500,7 @@ class SessionAnnotation(Annotation):
     end_anchor: int
     evidence: List[Evidence]
     metadata: SessionMetadata
-    # provenance: Provenance
+    provenance_source: str
     region_links: List[str]
     coords: Optional[List[List[int]]] = field(metadata=config(exclude=exclude_if_none), default=None)
 
@@ -581,6 +590,7 @@ class AttendantsListAnnotation(Annotation):
     type: str
     resource_id: str
     inventory_id: str
+    provenance_source: str
     begin_anchor: int
     end_anchor: int
     metadata: AttendantsListMetadata
@@ -646,6 +656,7 @@ class AttendantAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
+    provenance_source: str
     # inventory_id: str
     metadata: AttendantMetadata
     begin_anchor: int
@@ -713,6 +724,7 @@ class ResolutionAnnotation(Annotation):
     type: str
     resource_id: str
     inventory_id: str
+    provenance_source: str
     begin_anchor: int
     end_anchor: int
     region_links: List[str]
@@ -796,6 +808,7 @@ class RepublicParagraphAnnotation(Annotation):
     type: str
     resource_id: str
     inventory_id: str
+    provenance_source: str
     begin_anchor: int
     end_anchor: int
     metadata: RepublicParagraphMetadata
@@ -839,6 +852,7 @@ class ReviewedAnnotation(Annotation):
     type: str
     resource_id: str
     inventory_id: str
+    provenance_source: str
     begin_anchor: int
     end_anchor: int
     metadata: ReviewedMetadata
@@ -871,14 +885,11 @@ class PageAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
-    # inventory_id: str
     begin_anchor: int
     end_anchor: int
     metadata: PageMetadata
     coords: List[List[int]]
     region_links: List[str]
-
-    # provenance: Provenance
 
     def body(self) -> Dict[str, Any]:
         return {
@@ -902,14 +913,11 @@ class ScanAnnotation(Annotation):
     id: str
     type: str
     resource_id: str
-    # inventory_id: str
     iiif_url: str
     begin_anchor: int
     end_anchor: int
     metadata: ScanMetadata
     region_links: List[str]
-
-    # provenance: Provenance
 
     def body(self) -> Dict[str, Any]:
         return {
@@ -1069,13 +1077,11 @@ def create_context(custom_fields: Set[str]) -> Dict[str, str]:
 def web_annotation(body: Any,
                    target: Any,
                    anno_id: str = None,
-                   # provenance: Provenance = None,
                    custom: dict = None) -> dict:
     if not anno_id:
         anno_id = f"urn:republic:annotation:{uuid.uuid4()}"
     contexts = [
-        "http://www.w3.org/ns/anno.jsonld",
-        # {"provenance": "https://humanities.knaw.nl/ns/provenance#hasProvenance"}
+        "http://www.w3.org/ns/anno.jsonld"
     ]
 
     context = contexts[0] if len(contexts) == 1 else contexts
@@ -1095,9 +1101,6 @@ def web_annotation(body: Any,
     }
     if custom:
         annotation.update(custom)
-    # if provenance:
-    #     annotation["provenance"] = provenance.to_dict()
-    #     annotation["provenance"]["@context"] = "https://brambg.github.io/ns/provenance.jsonld"
 
     # ic(annotation)
     camel_cased = keys_to_camel_case(annotation)

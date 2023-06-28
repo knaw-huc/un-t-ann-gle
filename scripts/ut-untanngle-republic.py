@@ -21,7 +21,6 @@ from untanngle.textservice.segmentedtext import IndexedSegmentedText
 
 # untanngle process
 
-
 # selected classes that refer to persons
 attendant_classes = ('president', 'delegate', 'raadpensionaris')
 
@@ -30,6 +29,9 @@ region_pattern = re.compile(r'(.jpg/)(\d+),(\d+),(\d+),(\d+)')
 image_id_pattern = re.compile(r'(images.diginfra.net/iiif/)(.*)(\/)(\d+),(\d+),(\d+),(\d+)')
 iiif_base = 'https://images.diginfra.net/iiif/'
 iiif_extension = '/full/0/default.jpg'
+
+resolution_es_index = "https://annotation.republic-caf.diginfra.org/elasticsearch/full_resolutions"
+session_es_index = "https://annotation.republic-caf.diginfra.org/elasticsearch/session_lines"
 
 
 class AnnTypes(Enum):
@@ -54,14 +56,14 @@ line_based_types = [
     AnnTypes.ATTENDANT
 ]
 
-provenance_data = {
-    "source": "CAF 'session_lines' and 'resolutions' indexes",
-    "target": "json text array plus standoff annotation info in custom untanngle json format",
-    "harvesting_date": "2023-06-01",
-    "conversion_date": "2023-06-01",
-    "tool_id": "untanngle dd 15 maart 2023",
-    "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work"
-}
+# provenance_data = {
+#     "source": "CAF 'session_lines' and 'resolutions' indexes",
+#     "target": "json text array plus standoff annotation info in custom untanngle json format",
+#     "harvesting_date": datetime.date.today(),
+#     "conversion_date": datetime.date.today(),
+#     "tool_id": "untanngle dd 15 maart 2023",
+#     "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work"
+# }
 
 all_annotations = []
 
@@ -167,25 +169,38 @@ def get_session_files(sessions_folder: str) -> List[str]:
     return sorted(session_file_names)
 
 
+def sanity_check(node):
+    if "metadata" in node and "iiif_url" in node["metadata"]:
+        urls = node["metadata"]["iiif_url"]
+        if isinstance(urls, str):
+            urls = [urls]
+        for url in urls:
+            if not image_id_pattern.search(url):
+                logger.error(f"invalid iiif_url: {url}")
+
+
 # Many file types contain a hierarchy of ordered text and/or annotation elements of different types. Some form of
 # depth-first, post order traversal is necessary. Examples: processing a json hierarchy with dictionaries
 # and lists (republic) or parsing TEI XML (DBNL document).
-def traverse(node: Dict[str, Any], node_type: AnnTypes, text: IndexedSegmentedText, annotations, resource_id: str):
+def traverse(node: Dict[str, Any], node_type: AnnTypes, text: IndexedSegmentedText, annotations, resource_id: str,
+             provenance_source: str):
     # find the list that represents the children, each child is a dict
     config = untanngle_config[node_type]
     key_of_children = config['child_key']
     type_of_children = config['child_type']
 
     metadata = node['metadata'] if 'metadata' in node else None
+    sanity_check(node)
     inventory_id = get_inventory_id(node)
     begin_index = text.len()
     annotation_info = {
+        'id': node['id'],
+        'type': node_type.value,
         'inventory_id': inventory_id,
         'resource_id': resource_id,
-        'type': node_type.value,
+        'provenance_source': provenance_source,
+        'begin_anchor': begin_index,
         'metadata': metadata,
-        'id': node['id'],
-        'begin_anchor': begin_index
     }
 
     # add selected extra_fields to annotation_info
@@ -204,7 +219,7 @@ def traverse(node: Dict[str, Any], node_type: AnnTypes, text: IndexedSegmentedTe
         text.append(node_text)
     else:  # if non-leaf node, first visit children
         for child in children:
-            traverse(child, type_of_children, text, annotations, resource_id)
+            traverse(child, type_of_children, text, annotations, resource_id, provenance_source)
 
         end_index = text.len() - 1
         annotation_info['end_anchor'] = end_index  # after child text segments are added
@@ -266,7 +281,7 @@ def get_resolution_files(resolutions_folder: str):
     return sorted(resolution_file_names)
 
 
-def res_traverse(node, resource_id: str):
+def res_traverse(node, resource_id: str, provenance_source: str):
     # find the list that represents the children, each child is a dict, assume first list is the correct one
     node_label = node['type'][-1]
     config = untanngle_config[AnnTypes(node_label)]
@@ -287,7 +302,7 @@ def res_traverse(node, resource_id: str):
         begin_line_id = children[0]['line_ranges'][0]['line_id']
         end_line_id = children[-1]['line_ranges'][-1]['line_id']
         for child in children:
-            res_traverse(child, resource_id)
+            res_traverse(child, resource_id, provenance_source)
 
     if 'additional_processing' in config:
         config['additional_processing'](node)
@@ -295,13 +310,14 @@ def res_traverse(node, resource_id: str):
     inventory_id = get_inventory_id(node)
 
     annotation_info = {
+        'id': node['id'],
+        'type': node_label,
         'inventory_id': inventory_id,
         'resource_id': resource_id,
-        'type': node_label,
+        'provenance_source': provenance_source,
         'begin_anchor': begin_line_id,
         'end_anchor': end_line_id,
-        'metadata': node['metadata'],
-        'id': node['id']
+        'metadata': node['metadata']
     }
 
     # add selected extra_fields to annotation_info
@@ -452,21 +468,24 @@ def union_of_iiif_urls(urls):
 
     # for each url, find left, right, top, bottom
     for url in urls:
-        if image_id_pattern.search(url).group(2) != img_id:
-            # print(f'\t{urls[0]}')
-            logging.error(f"{url} refers to other image than {img_id}")
-            break
+        if not image_id_pattern.match(url):
+            logging.error(f"{url} doesn't match expected pattern, skipping")
+        else:
+            if image_id_pattern.search(url).group(2) != img_id:
+                # print(f'\t{urls[0]}')
+                logging.error(f"{url} refers to other image than {img_id}")
+                break
 
-        region_string = region_pattern.search(url)
-        left, top, width, height = map(int, region_string.groups()[1:5])
-        right = left + width
-        bottom = top + height
+            region_string = region_pattern.search(url)
+            left, top, width, height = map(int, region_string.groups()[1:5])
+            right = left + width
+            bottom = top + height
 
-        # Update the bounding region coordinates
-        min_left = min(min_left, left)
-        max_right = max(max_right, right)
-        min_top = min(min_top, top)
-        max_bottom = max(max_bottom, bottom)
+            # Update the bounding region coordinates
+            min_left = min(min_left, left)
+            max_right = max(max_right, right)
+            min_top = min(min_top, top)
+            max_bottom = max(max_bottom, bottom)
 
     height = max_bottom - min_top
     width = max_right - min_left
@@ -495,14 +514,6 @@ def get_bounding_box_for_coords(coords):
 
 
 def store_segmented_text(segmented_text: IndexedSegmentedText, store_path: str):
-    # try:
-    #     logging.info(f"<= {store_path}")
-    #     with open(store_path, 'r') as filehandle:
-    #         data = json.loads(filehandle.read())
-    # except FileNotFoundError:
-    #     data = {'_resources': []}
-    #
-    # data['_resources'].append(segmented_text)
     data = segmented_text.__dict__
     data.pop("text_grid_spec")
 
@@ -512,18 +523,19 @@ def store_segmented_text(segmented_text: IndexedSegmentedText, store_path: str):
 
 
 def store_annotations(annotations, store_path: str):
-    # try:
-    #     logging.info(f"<= {store_path}")
-    #     with open(store_path, 'r') as filehandle:
-    #         data = json.loads(filehandle.read())
-    # except FileNotFoundError:
-    #     data = []
-    #
-    # data.extend(annotations)
-
     logging.info(f"=> {store_path}")
     with open(store_path, 'w', encoding='UTF8') as filehandle:
         json.dump(annotations, filehandle, indent=4, cls=segmentedtext.AnchorEncoder, ensure_ascii=False)
+
+
+def check_annotations(annotations):
+    id_set = set()
+    for a in annotations:
+        a_id=a["id"]
+        if a_id in id_set:
+            logger.error(f"duplicate id: {a_id}")
+        else:
+            id_set.add(a_id)
 
 
 def untanngle_year(year: int, data_dir: str):
@@ -592,6 +604,8 @@ def untanngle_year(year: int, data_dir: str):
     # logging.info("add_provenance()")
     # add_provenance()
 
+    check_annotations(all_annotations)
+
     store_annotations(all_annotations, f'{datadir}/{annotation_store}')
 
 
@@ -604,8 +618,9 @@ def traverse_session_files(sessions_folder, resource_id):
         source_data = get_root_tree_element(f_name)
         text_array = segmentedtext.IndexedSegmentedText()
         annotation_array = []
+        provenance_source = f"{session_es_index}/_doc/{source_data['id']}"
 
-        traverse(source_data, AnnTypes.SESSION, text_array, annotation_array, resource_id)
+        traverse(source_data, AnnTypes.SESSION, text_array, annotation_array, resource_id, provenance_source)
 
         # properly concatenate annotation info taking ongoing line indexes into account
         for ai in annotation_array:
@@ -624,7 +639,9 @@ def traverse_resolution_files(resolutions_folder, resource_id):
         hits = get_res_root_element(f_name)
         for hit in hits:
             # each hit corresponds with a resolution
-            res_traverse(hit['_source'], resource_id)
+            resolution = hit['_source']
+            res_traverse(resolution, resource_id,
+                         f"{resolution_es_index}/_doc/{resolution['id']}", )
 
 
 def sanity_check_line_id_occurrences():
@@ -905,12 +922,12 @@ def fix_scan_annotations(resource_id):
         sa['region_links'] = [sa['iiif_url']]
 
 
-def add_provenance():
-    for a in all_annotations:
-        a["provenance"] = provenance_data
-        if "metadata" in a and "index_timestamp" in a["metadata"]:
-            # logging.debug(a["id"])
-            a["provenance"]["index_timestamp"] = a["metadata"]["index_timestamp"]
+# def add_provenance():
+#     for a in all_annotations:
+#         a["provenance"] = provenance_data
+#         if "metadata" in a and "index_timestamp" in a["metadata"]:
+#             # logging.debug(a["id"])
+#             a["provenance"]["index_timestamp"] = a["metadata"]["index_timestamp"]
 
 
 @logger.catch
