@@ -26,7 +26,7 @@ attendant_classes = ('president', 'delegate', 'raadpensionaris')
 
 # constants used for compilation of iiif urls
 region_pattern = re.compile(r'(.jpg/)(\d+),(\d+),(\d+),(\d+)')
-image_id_pattern = re.compile(r'(images.diginfra.net/iiif/)(.*)(\/)(\d+),(\d+),(\d+),(\d+)')
+image_id_pattern = re.compile(r'(images.diginfra.net/iiif/)(.*)(/)(\d+),(\d+),(\d+),(\d+)')
 iiif_base = 'https://images.diginfra.net/iiif/'
 iiif_extension = '/full/0/default.jpg'
 
@@ -56,15 +56,6 @@ line_based_types = [
     AnnTypes.ATTENDANT
 ]
 
-# provenance_data = {
-#     "source": "CAF 'session_lines' and 'resolutions' indexes",
-#     "target": "json text array plus standoff annotation info in custom untanngle json format",
-#     "harvesting_date": datetime.date.today(),
-#     "conversion_date": datetime.date.today(),
-#     "tool_id": "untanngle dd 15 maart 2023",
-#     "motivation": "input for TextRepo and AnnoRepo, test in how far scripts work"
-# }
-
 all_annotations = []
 
 line_ids_to_anchors = {}
@@ -72,32 +63,32 @@ line_ids_vs_occurrences = {}
 resolution_annotations = []
 
 
-def text_region_handler(node, begin_index, end_index, annotations, resource_id: str):
+def text_region_handler(text_region, begin_index, end_index, annotations, resource_id: str):
     # text_region['metadata'] contains enough info to construct annotations for page and scan.
     # this will result in duplicates, so deduplication at a later stage is necessary.
 
-    if 'iiif_url' in node['metadata']:
+    if 'iiif_url' in text_region['metadata']:
         scan_annot_info = {
-            'resource_id': resource_id,
+            'id': text_region['metadata']['scan_id'],
             'type': AnnTypes.SCAN.value,
-            'iiif_url': node['metadata']['iiif_url'],
+            'resource_id': resource_id,
+            'iiif_url': text_region['metadata']['iiif_url'],
             'begin_anchor': begin_index,
-            'end_anchor': end_index,
-            'id': node['metadata']['scan_id']
+            'end_anchor': end_index
         }
         annotations.append(scan_annot_info)
 
         page_annot_info = {
-            'resource_id': resource_id,
+            'id': text_region['metadata']['page_id'],
             'type': AnnTypes.PAGE.value,
+            'resource_id': resource_id,
             'begin_anchor': begin_index,
             'end_anchor': end_index,
-            'id': node['metadata']['page_id'],
             'metadata': {
-                'page_id': node['metadata']['page_id'],
-                'scan_id': node['metadata']['scan_id']
+                'page_id': text_region['metadata']['page_id'],
+                'scan_id': text_region['metadata']['scan_id']
             },
-            'coords': node['coords']
+            'coords': text_region['coords']
         }
         annotations.append(page_annot_info)
 
@@ -423,7 +414,7 @@ def collect_attendant_info(span, paras):
     return result
 
 
-def create_attendants_for_attlist(attlist, session_id, resource_id):
+def create_attendants_for_attlist(attlist, session_id, resource_id, provenance_source: str):
     attendant_annots = []
 
     spans = attlist['attendance_spans']
@@ -438,9 +429,10 @@ def create_attendants_for_attlist(attlist, session_id, resource_id):
     for index, span in enumerate(spans):
         if span['class'] in attendant_classes:
             attendant = {
-                'resource_id': resource_id,
-                'type': 'attendant',
                 'id': f'{session_id}-attendant-{index}',
+                'type': 'attendant',
+                'resource_id': resource_id,
+                'provenance_source': provenance_source,
                 'metadata': span
             }
 
@@ -468,7 +460,7 @@ def union_of_iiif_urls(urls):
 
     # for each url, find left, right, top, bottom
     for url in urls:
-        if not image_id_pattern.match(url):
+        if not image_id_pattern.search(url):
             logging.error(f"{url} doesn't match expected pattern, skipping")
         else:
             if image_id_pattern.search(url).group(2) != img_id:
@@ -502,6 +494,8 @@ def get_bounding_box_for_coords(coords):
     max_right = max([crd[0] for crd in coords])
     min_top = min([crd[1] for crd in coords])
     max_bottom = max([crd[1] for crd in coords])
+    if str(min_left) == "inf":
+        logger.error(f"bounding box failure for {coords}")
 
     return {
         'left': min_left,
@@ -531,9 +525,9 @@ def store_annotations(annotations, store_path: str):
 def check_annotations(annotations):
     id_set = set()
     for a in annotations:
-        a_id=a["id"]
+        a_id = a["id"]
         if a_id in id_set:
-            logger.error(f"duplicate id: {a_id}")
+            logger.error(f"duplicate id: {a_id}, source: {a['provenance_source']}")
         else:
             id_set.add(a_id)
 
@@ -581,6 +575,8 @@ def untanngle_year(year: int, data_dir: str):
     logging.info(f"add_attendant_annotations({resource_id})")
     add_attendant_annotations(resource_id)
 
+    check_annotations(all_annotations)
+
     logging.info(f"add_region_links_to_page_annotations({resource_id})")
     add_region_links_to_page_annotations(resource_id)
 
@@ -603,8 +599,6 @@ def untanngle_year(year: int, data_dir: str):
 
     # logging.info("add_provenance()")
     # add_provenance()
-
-    check_annotations(all_annotations)
 
     store_annotations(all_annotations, f'{datadir}/{annotation_store}')
 
@@ -696,8 +690,7 @@ def add_attendant_annotations(resource_id):
     attendant_annotations = []
     for al in asearch.get_annotations_of_type('attendance_list', all_annotations, resource_id):
         session_id = al['metadata']['session_id']
-        logging.info(session_id)
-        atts = create_attendants_for_attlist(al, session_id, resource_id)
+        atts = create_attendants_for_attlist(al, session_id, resource_id, al['provenance_source'])
         attendant_annotations.extend(atts)
     all_annotations.extend(attendant_annotations)
 

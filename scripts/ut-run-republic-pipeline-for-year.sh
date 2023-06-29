@@ -76,7 +76,7 @@ fi
 
 if [[ $startstage -le 5 ]]; then
   echo "${txtylw}[5/6] uploading web annotations to annorepo server${txtwht}"
-  poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic -k root $harvestdir/$year/web_annotations.json
+    poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic -k root $harvestdir/$year/web_annotations.json
   echo
 fi
 
