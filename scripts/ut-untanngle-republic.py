@@ -761,14 +761,13 @@ def calculate_region_links_for_line_annotation(line):
 
 class AnnotationsWrapper:
     def __init__(self, annotations: List):
-        self.annotations = annotations
         self.annotation_idx = {a["id"]: a for a in annotations}
         max_anchor = max([a['end_anchor'] for a in annotations]) + 1
         store = AnnotationStore(id=uuid.uuid4())
         resource = store.add_resource(id="dummy", text="*" * max_anchor)
         annotation_set = store.add_annotationset(id="type_set")
         annotation_set.add_key("type")
-        for a in self.annotations:
+        for a in annotations:
             a_type = a['type']
             type_data = annotation_set.add_data(key="type", value=a_type)
             store.annotate(
@@ -776,8 +775,8 @@ class AnnotationsWrapper:
                 target=Selector.textselector(resource, Offset.simple(a['begin_anchor'], a['end_anchor'] + 1)),
                 data=type_data
             )
-        store.set_filename("out/store.json")
-        store.save()
+        # store.set_filename("out/store.json")
+        # store.save()
         self.resource = resource
 
     @cache
