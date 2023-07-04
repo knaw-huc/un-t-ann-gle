@@ -218,8 +218,8 @@ class VolumeAnnotation:
                 "volume": self.title,
                 "manifest": self.manifest_url
             }}
-        target = resource_target(textrepo_base_url=textrepo_base_url, version_id=version_id,
-                                 begin_anchor=self.begin_anchor, end_anchor=self.end_anchor)
+        target = [resource_target(textrepo_base_url=textrepo_base_url, version_id=version_id,
+                                  begin_anchor=self.begin_anchor, end_anchor=self.end_anchor)]
         return web_annotation(body=body, target=target)
 
 
@@ -238,7 +238,7 @@ class ScanPageAnnotation:
 
     def as_web_annotation(self) -> dict:
         body = classifying_body(id=as_urn(self.scan_id), value='scanpage')
-        target = [resource_target(self.begin_anchor, self.end_anchor),
+        target = [resource_target(begin_anchor=self.begin_anchor, end_anchor=self.end_anchor),
                   image_target(iiif_url=self.iiif_url)]
         for _range in self.image_range:
             url = _range[0]
@@ -266,8 +266,8 @@ class ColumnAnnotation:
 
     def as_web_annotation(self) -> dict:
         body = classifying_body(as_urn(self.id), 'column')
-        target = [resource_target(self.begin_anchor, self.end_anchor),
-                  image_target(image_coords_list=self.image_coords)]
+        target = [resource_target(begin_anchor=self.begin_anchor, end_anchor=self.end_anchor),
+                  image_target(image_coords_list=[self.image_coords])]
         for range in self.image_range:
             url = range[0]
             image_coords_list = range[1]
@@ -332,35 +332,35 @@ class TextRegionAnnotation(Annotation):
         }
 
 
-@dataclass_json(undefined=Undefined.RAISE)
-@dataclass
-class TextRegionAnnotation0:
-    id: str
-    label: str
-    begin_anchor: int
-    end_anchor: int
-    resource_id: str
-    inventory_id: str
-    image_coords: ImageCoords
-    image_range: List[List[Union[List[ImageCoords], str]]]
-    region_links: List[str]
-    iiif_url: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
-
-    def __post_init__(self):
-        self.id = re.sub(r'-line-.*', '', self.id)
-
-    def as_web_annotation(self) -> dict:
-        body = classifying_body(as_urn(self.id), 'textregion')
-        target = [resource_target(self.begin_anchor, self.end_anchor),
-                  image_target(iiif_url=self.iiif_url, image_coords_list=self.image_coords)]
-        for range in self.image_range:
-            url = range[0]
-            image_coords_list = range[1]
-            for ic in image_coords_list:
-                target.append(image_target(url, ImageCoords.from_dict(ic)))
-        for link in self.region_links:
-            target.append(image_target(iiif_url=link))
-        return web_annotation(body=body, target=target)
+# @dataclass_json(undefined=Undefined.RAISE)
+# @dataclass
+# class TextRegionAnnotation0:
+#     id: str
+#     label: str
+#     begin_anchor: int
+#     end_anchor: int
+#     resource_id: str
+#     inventory_id: str
+#     image_coords: ImageCoords
+#     image_range: List[List[Union[List[ImageCoords], str]]]
+#     region_links: List[str]
+#     iiif_url: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+#
+#     def __post_init__(self):
+#         self.id = re.sub(r'-line-.*', '', self.id)
+#
+#     def as_web_annotation(self) -> dict:
+#         body = classifying_body(as_urn(self.id), 'textregion')
+#         target = [resource_target(self.begin_anchor, self.end_anchor),
+#                   image_target(iiif_url=self.iiif_url, image_coords_list=self.image_coords)]
+#         for range in self.image_range:
+#             url = range[0]
+#             image_coords_list = range[1]
+#             for ic in image_coords_list:
+#                 target.append(image_target(url, ImageCoords.from_dict(ic)))
+#         for link in self.region_links:
+#             target.append(image_target(iiif_url=link))
+#         return web_annotation(body=body, target=target)
 
 
 def to_image_coords(coords: List[List[int]]) -> ImageCoords:
@@ -427,31 +427,31 @@ class LineAnnotation(Annotation):
         }
 
 
-@dataclass_json(undefined=Undefined.RAISE)
-@dataclass
-class LineAnnotation0:
-    id: str
-    label: str
-    begin_anchor: int
-    end_anchor: int
-    resource_id: str
-    image_coords: ImageCoords
-    iiif_url: Optional[str]
-    image_range: List[List[Union[List[ImageCoords], str]]]
-    region_links: List[str]
-
-    def as_web_annotation(self) -> dict:
-        body = classifying_body(as_urn(self.id), 'line')
-        target = [resource_target(self.begin_anchor, self.end_anchor),
-                  image_target(iiif_url=self.iiif_url, image_coords_list=self.image_coords)]
-        for i_range in self.image_range:
-            url = i_range[0]
-            image_coords_list = i_range[1]
-            for ic in image_coords_list:
-                target.append(image_target(url, ImageCoords.from_dict(ic)))
-        for link in self.region_links:
-            target.append(image_target(iiif_url=link))
-        return web_annotation(body=body, target=target)
+# @dataclass_json(undefined=Undefined.RAISE)
+# @dataclass
+# class LineAnnotation0:
+#     id: str
+#     label: str
+#     begin_anchor: int
+#     end_anchor: int
+#     resource_id: str
+#     image_coords: ImageCoords
+#     iiif_url: Optional[str]
+#     image_range: List[List[Union[List[ImageCoords], str]]]
+#     region_links: List[str]
+#
+#     def as_web_annotation(self) -> dict:
+#         body = classifying_body(as_urn(self.id), 'line')
+#         target = [resource_target(self.begin_anchor, self.end_anchor),
+#                   image_target(iiif_url=self.iiif_url, image_coords_list=self.image_coords)]
+#         for i_range in self.image_range:
+#             url = i_range[0]
+#             image_coords_list = i_range[1]
+#             for ic in image_coords_list:
+#                 target.append(image_target(url, ImageCoords.from_dict(ic)))
+#         for link in self.region_links:
+#             target.append(image_target(iiif_url=link))
+#         return web_annotation(body=body, target=target)
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -514,38 +514,38 @@ class SessionAnnotation(Annotation):
         }
 
 
-@dataclass_json(undefined=Undefined.RAISE)
-@dataclass
-class SessionAnnotation0:
-    id: str
-    label: str
-    begin_anchor: int
-    end_anchor: int
-    resource_id: str
-    image_coords: Optional[ImageCoords]
-    image_range: List[List[Union[List[ImageCoords], str]]]
-    region_links: List[str]
-    session_date: str
-    session_year: int
-    session_weekday: str
-    president: Optional[str]
-
-    def as_web_annotation(self) -> dict:
-        body = [classifying_body(as_urn(self.id), 'session'),
-                dataset_body({"date": self.session_date,
-                              "year": self.session_year,
-                              "weekday": self.session_weekday,
-                              "president": self.president})]
-        target = [resource_target(self.begin_anchor, self.end_anchor),
-                  image_target(image_coords_list=self.image_coords)]
-        for range in self.image_range:
-            url = range[0]
-            image_coords_list = range[1]
-            for ic in image_coords_list:
-                target.append(image_target(url, ImageCoords.from_dict(ic)))
-        for link in self.region_links:
-            target.append(image_target(iiif_url=link))
-        return web_annotation(body=body, target=target)
+# @dataclass_json(undefined=Undefined.RAISE)
+# @dataclass
+# class SessionAnnotation0:
+#     id: str
+#     label: str
+#     begin_anchor: int
+#     end_anchor: int
+#     resource_id: str
+#     image_coords: Optional[ImageCoords]
+#     image_range: List[List[Union[List[ImageCoords], str]]]
+#     region_links: List[str]
+#     session_date: str
+#     session_year: int
+#     session_weekday: str
+#     president: Optional[str]
+#
+#     def as_web_annotation(self) -> dict:
+#         body = [classifying_body(as_urn(self.id), 'session'),
+#                 dataset_body({"date": self.session_date,
+#                               "year": self.session_year,
+#                               "weekday": self.session_weekday,
+#                               "president": self.president})]
+#         target = [resource_target(self.begin_anchor, self.end_anchor),
+#                   image_target(image_coords_list=self.image_coords)]
+#         for range in self.image_range:
+#             url = range[0]
+#             image_coords_list = range[1]
+#             for ic in image_coords_list:
+#                 target.append(image_target(url, ImageCoords.from_dict(ic)))
+#         for link in self.region_links:
+#             target.append(image_target(iiif_url=link))
+#         return web_annotation(body=body, target=target)
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -609,33 +609,33 @@ class AttendantsListAnnotation(Annotation):
         }
 
 
-@dataclass_json(undefined=Undefined.RAISE)
-@dataclass
-class AttendantsListAnnotation0:
-    id: str
-    label: str
-    begin_anchor: int
-    end_anchor: int
-    resource_id: str
-    session_id: str
-    image_range: List[List[Union[List[ImageCoords], str]]]
-    region_links: List[str]
-
-    # TODO: add session_id to body, add image_range + region_links to target
-    def as_web_annotation(self) -> dict:
-        body = [
-            classifying_body(as_urn(self.id), 'attendantslist'),
-            {"partOf": as_urn(self.session_id)}
-        ]
-        target = [resource_target(self.begin_anchor, self.end_anchor)]
-        for range in self.image_range:
-            url = range[0]
-            image_coords_list = range[1]
-            for ic in image_coords_list:
-                target.append(image_target(url, ImageCoords.from_dict(ic)))
-        for link in self.region_links:
-            target.append(image_target(iiif_url=link))
-        return web_annotation(body=body, target=target)
+# @dataclass_json(undefined=Undefined.RAISE)
+# @dataclass
+# class AttendantsListAnnotation0:
+#     id: str
+#     label: str
+#     begin_anchor: int
+#     end_anchor: int
+#     resource_id: str
+#     session_id: str
+#     image_range: List[List[Union[List[ImageCoords], str]]]
+#     region_links: List[str]
+#
+#     # TODO: add session_id to body, add image_range + region_links to target
+#     def as_web_annotation(self) -> dict:
+#         body = [
+#             classifying_body(as_urn(self.id), 'attendantslist'),
+#             {"partOf": as_urn(self.session_id)}
+#         ]
+#         target = [resource_target(begin_anchor=self.begin_anchor, end_anchor=self.end_anchor)]
+#         for range in self.image_range:
+#             url = range[0]
+#             image_coords_list = range[1]
+#             for ic in image_coords_list:
+#                 target.append(image_target(url, ImageCoords.from_dict(ic)))
+#         for link in self.region_links:
+#             target.append(image_target(iiif_url=link))
+#         return web_annotation(body=body, target=target)
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -676,30 +676,30 @@ class AttendantAnnotation(Annotation):
         }
 
 
-@dataclass_json(undefined=Undefined.RAISE)
-@dataclass
-class AttendantAnnotation0:
-    id: str
-    label: str
-    begin_anchor: int
-    end_anchor: int
-    resource_id: str
-    metadata: Metadata
-    image_range: List[List[Union[List[ImageCoords], str]]]
-    region_links: List[str]
-
-    def as_web_annotation(self) -> dict:
-        body = [classifying_body(as_urn(self.id), 'attendant'),
-                dataset_body(self.metadata.to_dict())]
-        target = [resource_target(self.begin_anchor, self.end_anchor)]
-        for range in self.image_range:
-            url = range[0]
-            image_coords_list = range[1]
-            for ic in image_coords_list:
-                target.append(image_target(url, ImageCoords.from_dict(ic)))
-        for link in self.region_links:
-            target.append(image_target(iiif_url=link))
-        return web_annotation(body=body, target=target)
+# @dataclass_json(undefined=Undefined.RAISE)
+# @dataclass
+# class AttendantAnnotation0:
+#     id: str
+#     label: str
+#     begin_anchor: int
+#     end_anchor: int
+#     resource_id: str
+#     metadata: Metadata
+#     image_range: List[List[Union[List[ImageCoords], str]]]
+#     region_links: List[str]
+#
+#     def as_web_annotation(self) -> dict:
+#         body = [classifying_body(as_urn(self.id), 'attendant'),
+#                 dataset_body(self.metadata.to_dict())]
+#         target = [resource_target(begin_anchor=self.begin_anchor, end_anchor=self.end_anchor)]
+#         for range in self.image_range:
+#             url = range[0]
+#             image_coords_list = range[1]
+#             for ic in image_coords_list:
+#                 target.append(image_target(url, ImageCoords.from_dict(ic)))
+#         for link in self.region_links:
+#             target.append(image_target(iiif_url=link))
+#         return web_annotation(body=body, target=target)
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -745,33 +745,33 @@ class ResolutionAnnotation(Annotation):
         return body
 
 
-@dataclass_json(undefined=Undefined.RAISE)
-@dataclass
-class ResolutionAnnotation0:
-    id: str
-    label: str
-    begin_anchor: int
-    end_anchor: int
-    resource_id: str
-    proposition_type: Optional[str]
-    image_range: List[List[Union[List[ImageCoords], str]]]
-    region_links: List[str]
-
-    # TODO: add proposition_type to body, image_range + region_links to target
-    def as_web_annotation(self) -> dict:
-        body = [classifying_body(as_urn(self.id), 'resolution')]
-        if self.proposition_type:
-            body.append({"proposition_type": self.proposition_type})
-        target = [resource_target(self.begin_anchor, self.end_anchor)]
-        for range in self.image_range:
-            url = range[0]
-            image_coords_list = range[1]
-            for ic in image_coords_list:
-                target.append(image_target(url, ImageCoords.from_dict(ic)))
-        for link in self.region_links:
-            target.append(image_target(iiif_url=link))
-
-        return web_annotation(body=body, target=target)
+# @dataclass_json(undefined=Undefined.RAISE)
+# @dataclass
+# class ResolutionAnnotation0:
+#     id: str
+#     label: str
+#     begin_anchor: int
+#     end_anchor: int
+#     resource_id: str
+#     proposition_type: Optional[str]
+#     image_range: List[List[Union[List[ImageCoords], str]]]
+#     region_links: List[str]
+#
+#     # TODO: add proposition_type to body, image_range + region_links to target
+#     def as_web_annotation(self) -> dict:
+#         body = [classifying_body(as_urn(self.id), 'resolution')]
+#         if self.proposition_type:
+#             body.append({"proposition_type": self.proposition_type})
+#         target = [resource_target(begin_anchor=self.begin_anchor, end_anchor=self.end_anchor)]
+#         for range in self.image_range:
+#             url = range[0]
+#             image_coords_list = range[1]
+#             for ic in image_coords_list:
+#                 target.append(image_target(url, ImageCoords.from_dict(ic)))
+#         for link in self.region_links:
+#             target.append(image_target(iiif_url=link))
+#
+#         return web_annotation(body=body, target=target)
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -1173,8 +1173,7 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
         }
         targets.append(target)
 
-    target = targets if len(targets) > 1 else targets[0]
-    web_annotation = {
+    _web_annotation = {
         "@context": "http://www.w3.org/ns/anno.jsonld",
         "type": "Annotation",
         "motivation": "classifying",
@@ -1185,11 +1184,11 @@ def classifying_annotation_mapper(annotation: dict, value: str) -> dict:
             "name": "un-t-ann-gle"
         },
         "body": body,
-        "target": target
+        "target": targets
     }
     if annotation:
-        web_annotation["_unused_fields_from_original"] = annotation
-    return web_annotation
+        _web_annotation["_unused_fields_from_original"] = annotation
+    return _web_annotation
 
 
 def as_urn(id: str) -> str:
