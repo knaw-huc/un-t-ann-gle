@@ -4,6 +4,7 @@ set -e
 #[[ -t 1 ]] || export TERM=dumb
 txtylw=$(tput setaf 11)
 txtwht=$(tput setaf 7)
+date=$(date '+%Y.%m.%d')
 year=$1
 envfile=$2
 startstage=$3
@@ -76,7 +77,7 @@ fi
 
 if [[ $startstage -le 5 ]]; then
   echo "${txtylw}[5/6] uploading web annotations to annorepo server${txtwht}"
-    poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic -k root $harvestdir/$year/web_annotations.json
+    poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic-$year-$date -k root $harvestdir/$year/web_annotations.json
   echo
 fi
 
