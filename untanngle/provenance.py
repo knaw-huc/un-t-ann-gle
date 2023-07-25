@@ -92,17 +92,26 @@ class ProvenanceClient:
 
     def __init__(self, base_url: str, api_key: str):
         self.base_url = base_url.rstrip('/')
-        self.api_key = api_key
+        self.session = requests.Session()
+        self.session.headers = {'Authorization': f'Basic: {api_key}'}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        # logger.debug(f"closing session with args: {args}")
+        self.session.close()
+
+    def close(self):
+        self.__exit__()
 
     def add_provenance(self, provenance_data: ProvenanceData) -> ProvenanceIdentifier:
         url = f'{self.base_url}/prov'
         data = provenance_data.to_dict()
-        authorization = f'Basic: {self.api_key}'
         # log_curl_command(authorization, data, url)
         response = requests.post(
             url=url,
-            data=data,
-            headers={'Authorization': authorization}
+            data=data
         )
         # ic(response.request.headers)
         # ic(response.headers)
