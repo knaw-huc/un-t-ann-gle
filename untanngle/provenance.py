@@ -109,7 +109,7 @@ class ProvenanceClient:
         url = f'{self.base_url}/prov'
         data = provenance_data.to_dict()
         # log_curl_command(authorization, data, url)
-        response = requests.post(
+        response = self.session.post(
             url=url,
             data=data
         )
