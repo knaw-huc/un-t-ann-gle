@@ -17,7 +17,7 @@ from textrepo.client import TextRepoClient
 from uri import URI
 
 from untanngle import mondriaan
-from untanngle.provenance import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
+from provenance.client import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
 
 
 @dataclass

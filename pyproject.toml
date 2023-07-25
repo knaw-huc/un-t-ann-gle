@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{ include = "untanngle" }]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
 dataclasses-json = "^0.5.7"
 icecream = "^2.1.3"
 loguru = "^0.7.0"
@@ -25,7 +25,8 @@ stam = "^0.2.0"
 alive-progress = "^3.1.4"
 
 [tool.poetry.group.dev.dependencies]
-annorepo-client = {path = "/Users/bram/workspaces/elucidate/annorepo-client"}
+annorepo-client = { path = "/Users/bram/workspaces/elucidate/annorepo-client", develop = true }
+provenance-client = { path = "/Users/bram/workspaces/provenance/provenance-python-client", develop = true }
 
 [build-system]
 requires = ["poetry-core"]
