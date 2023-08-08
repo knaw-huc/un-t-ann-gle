@@ -33,7 +33,6 @@ def upload(annorepo_base_url: str,
     if not ar.has_container(container_id):
         print(f"container {annorepo_base_url}/w3c/{container_id} not found, creating...")
         ar.create_container(name=container_id, label=container_label)
-        ar.create_index(container_name=container_id, field='id', index_type='hashed')
         ar.create_index(container_name=container_id, field='body.id', index_type='hashed')
         ar.create_index(container_name=container_id, field='body.type', index_type='hashed')
         ar.create_index(container_name=container_id, field='body.metadata.volume', index_type='hashed')
