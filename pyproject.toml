@@ -25,7 +25,7 @@ stam = "^0.2.0"
 alive-progress = "^3.1.4"
 
 [tool.poetry.group.dev.dependencies]
-annorepo-client = { path = "/Users/bram/workspaces/elucidate/annorepo-client", develop = true }
+annorepo-client = { path = "/Users/bram/workspaces/annorepo/annorepo-client", develop = true }
 provenance-client = { path = "/Users/bram/workspaces/provenance/provenance-python-client", develop = true }
 
 [build-system]
