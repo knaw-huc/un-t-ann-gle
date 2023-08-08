@@ -9,10 +9,9 @@ from os.path import exists
 from typing import List
 
 from loguru import logger
+from provenance.client import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
 from textrepo.client import TextRepoClient
 from uri import URI
-
-from untanngle.provenance import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
 
 version_id_idx_path = "out/version_id_idx.json"
 
