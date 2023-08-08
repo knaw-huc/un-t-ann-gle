@@ -156,7 +156,7 @@ def convert(annotation_store_path: str, textrepo_url: str, version_id: str, canv
 
     inventory_ids = {a["inventory_id"] for a in annotations if "inventory_id" in a}
     for inventory_id in inventory_ids:
-        begin_anchor = max(
+        begin_anchor = min(
             a["begin_anchor"] for a in annotations if "inventory_id" in a and a["inventory_id"] == inventory_id)
         end_anchor = max(
             a["end_anchor"] for a in annotations if "inventory_id" in a and a["inventory_id"] == inventory_id)
