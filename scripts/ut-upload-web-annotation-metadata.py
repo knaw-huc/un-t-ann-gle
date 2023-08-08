@@ -11,9 +11,11 @@ url = "https://switch.sd.di.huc.knaw.nl/textanno"
 
 
 def process(path: str):
+    logger.debug(f'<= {path}')
     with open(path) as f:
         annotations = json.load(f)
 
+    logger.debug(f'POST {url}')
     response = requests.post(
         url=url,
         json=annotations
@@ -27,6 +29,7 @@ def process(path: str):
     status_url = response.headers['Location']
     ready = False
     while not ready:
+        logger.debug(f'GET {status_url}')
         status_response = requests.get(status_url)
         match status_response.status_code:
             case 302:
@@ -39,6 +42,7 @@ def process(path: str):
                 raise Exception(f"unexpected response: {response.headers}")
 
     result_location = status_response.headers['Location']
+    logger.debug(f'GET {result_location}')
     result_response = requests.get(result_location)
     metadata_map = result_response.json()
     for a in annotations:
