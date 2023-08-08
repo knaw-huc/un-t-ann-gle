@@ -12,7 +12,10 @@ from rfc3987 import parse
 
 from untanngle.camel_casing import keys_to_camel_case, types_to_camel_case
 
-REPUBLIC_CONTEXT = "https://brambg.github.io/ns/republic.jsonld"
+REPUBLIC_CONTEXT = [
+    "https://brambg.github.io/ns/republic.jsonld",
+    {"rp": "https://humanities.knaw.nl/def/republic/"}
+]
 
 
 def exclude_if_none(value):
