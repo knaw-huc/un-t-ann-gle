@@ -30,7 +30,8 @@ def process(path: str):
     ready = False
     while not ready:
         logger.debug(f'GET {status_url}')
-        status_response = requests.get(status_url)
+        status_response = requests.get(status_url, allow_redirects=False)
+        # logger.debug(f'<{status_response.status_code}>')
         match status_response.status_code:
             case 302:
                 ready = True
@@ -46,10 +47,10 @@ def process(path: str):
     result_response = requests.get(result_location)
     metadata_map = result_response.json()
     for a in annotations:
-        a_id = a["id"]
-        if "metadata" in a:
-            a["metadata"]["tt:url"] = metadata_map[a_id]
-    with open(f"{path}.new", "w") as f:
+        body_id = a['body']['id']
+        if 'metadata' in a['body']:
+            a['body']['metadata']['rp:metadataUrl'] = metadata_map[body_id]
+    with open(f"{path}", "w") as f:
         json.dump(annotations, f)
 
 
