@@ -36,8 +36,8 @@ def upload(annorepo_base_url: str,
         ar.create_index(container_name=container_id, field='body.id', index_type='hashed')
         ar.create_index(container_name=container_id, field='body.type', index_type='hashed')
         ar.create_index(container_name=container_id, field='body.metadata.volume', index_type='hashed')
-        ar.create_index(container_name=container_id, field='target.source', index_type='hashed')
-        ar.create_index(container_name=container_id, field='target.selector.type', index_type='hashed')
+        ar.create_index(container_name=container_id, field='target.source', index_type='ascending')
+        ar.create_index(container_name=container_id, field='target.selector.type', index_type='ascending')
         ar.create_index(container_name=container_id, field='target.selector.start', index_type='ascending')
         ar.create_index(container_name=container_id, field='target.selector.end', index_type='ascending')
 
