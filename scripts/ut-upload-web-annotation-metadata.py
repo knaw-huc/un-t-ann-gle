@@ -11,7 +11,7 @@ from icecream import ic
 from loguru import logger
 
 url = "https://switch.sd.di.huc.knaw.nl/textanno"
-chunk_size = 500
+chunk_size = 1_000_000
 
 
 def process(path: str):
@@ -66,7 +66,8 @@ def upload_and_save_ref(annotations, chunk, path):
         with open(f"{path}", "w") as f:
             json.dump(annotations, f)
     else:
-        ic(result_response, result_response.json())
+        ic(chunk)
+        ic(result_response,result_response.content)
         exit(result_response.status_code)
 
 
