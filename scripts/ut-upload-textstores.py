@@ -93,7 +93,7 @@ def load_version_id_idx():
 def store_version_id_idx(idx):
     logger.info(f"=> {version_id_idx_path}")
     with open(version_id_idx_path, "w") as f:
-        json.dump(idx, fp=f)
+        json.dump(idx, fp=f, ensure_ascii=False)
 
 
 @logger.catch
