@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 import argparse
+import glob
 import json
+import os.path
 from itertools import zip_longest
 from typing import List, Any
 
+import progressbar
 from annorepo.client import AnnoRepoClient
 from loguru import logger
 
@@ -21,14 +24,14 @@ def trim_trailing_slash(url: str):
 
 def upload(annorepo_base_url: str,
            container_id: str,
-           inputfile: str,
+           input: List[str],
            container_label: str = 'A Container for Web Annotations',
            api_key: str = None):
     ar = AnnoRepoClient(annorepo_base_url, verbose=False, api_key=api_key)
-    ar_about = ar.get_about()
-    print(f"AnnoRepo server at {annorepo_base_url}:\n"
-          f"- version {ar_about['version']}\n"
-          f"- running since {ar_about['startedAt']}")
+    # ar_about = ar.get_about()
+    # print(f"AnnoRepo server at {annorepo_base_url}:\n"
+    #       f"- version {ar_about['version']}\n"
+    #       f"- running since {ar_about['startedAt']}")
 
     if not ar.has_container(container_id):
         print(f"container {annorepo_base_url}/w3c/{container_id} not found, creating...")
@@ -41,31 +44,49 @@ def upload(annorepo_base_url: str,
         ar.create_index(container_name=container_id, field='target.selector.start', index_type='ascending')
         ar.create_index(container_name=container_id, field='target.selector.end', index_type='ascending')
 
-    print(f"reading {inputfile}...")
-    with open(inputfile) as f:
-        annotation_list = json.load(f)
-    number_of_annotations = len(annotation_list)
+    inputfiles = []
+    for p in input:
+        if os.path.isdir(p):
+            inputfiles.extend(glob.glob(f'{p}/*.json'))
+        else:
+            inputfiles.append(p)
+    widgets = [
+        '[',
+        progressbar.Percentage(),
+        progressbar.Bar(marker='\x1b[32m#\x1b[39m'),
+        progressbar.Timer(),
+        '|',
+        progressbar.ETA(),
+        ']'
+    ]
+    with progressbar.ProgressBar(widgets=widgets, max_value=len(inputfiles), redirect_stdout=True) as bar:
+        for i, inputfile in enumerate(inputfiles):
+            print(f"reading {inputfile}...")
+            with open(inputfile) as f:
+                annotation_list = json.load(f)
+            number_of_annotations = len(annotation_list)
 
-    print(f"{number_of_annotations} annotations found.")
+            print(f"  {number_of_annotations} annotations found.")
 
-    chunk_size = 150
-    chunked_annotations = chunk_list(annotation_list, chunk_size)
-    number_of_chunks = len(chunked_annotations)
-    print(
-        f"uploading {number_of_annotations} annotations to {annorepo_base_url}/w3c/{container_id}"
-        f" in {number_of_chunks} chunks of at most {chunk_size} annotations ...")
-    annotation_ids = []
-    for i, chunk in enumerate(chunked_annotations):
-        print(f"chunk ({i + 1}/{number_of_chunks})", end='\r')
-        annotation_ids.extend(ar.add_annotations(container_id, chunk))
-    print()
-    out_path = "/".join(inputfile.split("/")[:-1])
-    outfile = f"{out_path}/annotation_ids.json"
-    print(f"=> {outfile}")
-    annotation_id_mapping = {a["id"]: f"{annorepo_base_url}/w3c/{b['containerName']}/{b['annotationName']}"
-                             for a, b in zip(annotation_list, annotation_ids)}
-    with open(outfile, "w") as f:
-        json.dump(annotation_id_mapping, fp=f)
+            chunk_size = 30000
+            chunked_annotations = chunk_list(annotation_list, chunk_size)
+            number_of_chunks = len(chunked_annotations)
+            print(
+                f"  uploading {number_of_annotations} annotations to {annorepo_base_url}/w3c/{container_id}"
+                f" in {number_of_chunks} chunks of at most {chunk_size} annotations ...")
+            annotation_ids = []
+            for p, chunk in enumerate(chunked_annotations):
+                print(f"    chunk ({p + 1}/{number_of_chunks})", end='\r')
+                annotation_ids.extend(ar.add_annotations(container_id, chunk))
+            print()
+            # out_path = "/".join(inputfile.split("/")[:-1])
+            # outfile = f"{out_path}/annotation_ids.json"
+            # print(f"=> {outfile}")
+            # annotation_id_mapping = {a["id"]: f"{annorepo_base_url}/w3c/{b['containerName']}/{b['annotationName']}"
+            #                          for a, b in zip(annotation_list, annotation_ids)}
+            # with open(outfile, "w") as f:
+            #     json.dump(annotation_id_mapping, fp=f)
+            bar.update(i)
     print("done!")
 
 
@@ -75,8 +96,9 @@ def main():
         description="Upload a list of web annotations to an annorepo server in the given container "
                     "(which will be created if it does not already exist)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("inputfile",
-                        help="The json file containing the list of annotations",
+    parser.add_argument("input",
+                        help="The json file containing the list of annotations, or a directory containing these json files",
+                        nargs="*",
                         type=str)
     parser.add_argument("-a",
                         "--annorepo-base-url",
@@ -104,9 +126,9 @@ def main():
     args = parser.parse_args()
     annorepo_base_url = trim_trailing_slash(args.annorepo_base_url)
     if args.container_label:
-        upload(annorepo_base_url, args.container_id, args.inputfile, args.container_label, api_key=args.api_key)
+        upload(annorepo_base_url, args.container_id, args.input, args.container_label, api_key=args.api_key)
     else:
-        upload(annorepo_base_url, args.container_id, args.inputfile, api_key=args.api_key)
+        upload(annorepo_base_url, args.container_id, args.input, api_key=args.api_key)
 
 
 if __name__ == '__main__':
