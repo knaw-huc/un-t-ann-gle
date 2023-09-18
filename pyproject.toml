@@ -23,6 +23,7 @@ pyyaml = "^6.0"
 elasticsearch7 = "^7.17.9"
 stam = "^0.2.0"
 alive-progress = "^3.1.4"
+progressbar2 = "^4.2.0"
 
 [tool.poetry.group.dev.dependencies]
 annorepo-client = { path = "/Users/bram/workspaces/annorepo/annorepo-client", develop = true }
