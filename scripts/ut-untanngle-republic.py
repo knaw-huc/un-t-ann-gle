@@ -386,7 +386,7 @@ def collect_attendant_info(span, paras):
             if lr['line_id'] in line_ids_to_anchors:
                 anchor = line_ids_to_anchors[lr['line_id']]
                 if line_begin <= att_begin < line_end:
-                    begin_anchor = anchor
+                    begin_anchor = anchor  # TODO: find out why begin_anchor == 0 for some attendants
                     begin_char_offset = att_begin - lr['start']
                 if line_begin <= att_end <= line_end:
                     end_anchor = anchor
@@ -425,7 +425,7 @@ def create_attendants_for_attlist(attlist, session_id, resource_id, provenance_s
                                                              attlist['end_anchor'],
                                                              all_annotations,
                                                              resource_id))
-    logging.debug(f"{len(paras)} republic_parargraphs found")
+    logging.debug(f"{len(paras)} republic_paragraphs found")
     for index, span in enumerate(spans):
         if span['class'] in attendant_classes:
             attendant = {
@@ -444,6 +444,10 @@ def create_attendants_for_attlist(attlist, session_id, resource_id, provenance_s
                 attendant['end_anchor'] = a_info['end_anchor']
                 attendant['begin_char_offset'] = a_info['begin_char_offset']
                 attendant['end_char_offset'] = a_info['end_char_offset']
+
+                # TODO: this is a band-aid solution for attendant annotations with too many targets; fix it earlier!
+                if attendant['begin_anchor'] == 0:
+                    attendant['begin_anchor'] = attendant['end_anchor']
 
                 attendant_annots.append(attendant)
 
