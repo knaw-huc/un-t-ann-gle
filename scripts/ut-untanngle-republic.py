@@ -12,6 +12,7 @@ from functools import cache
 from typing import List, Dict, Any
 
 from alive_progress import alive_bar
+from icecream import ic
 from loguru import logger
 from stam import AnnotationStore, Selector, Offset, TextSelectionOperator
 
@@ -289,10 +290,11 @@ def res_traverse(node, resource_id: str, provenance_source: str):
             begin_line_id = node['line_ranges'][0]['line_id']
             end_line_id = node['line_ranges'][-1]['line_id']
 
-    else:  # if non-leaf node, first visit children     
-        begin_line_id = children[0]['line_ranges'][0]['line_id']
-        end_line_id = children[-1]['line_ranges'][-1]['line_id']
-        for child in children:
+    else:  # if non-leaf node, first visit children
+        relevant_children = [c for c in children if c['line_ranges']]
+        begin_line_id = relevant_children[0]['line_ranges'][0]['line_id']
+        end_line_id = relevant_children[-1]['line_ranges'][-1]['line_id']
+        for child in relevant_children:
             res_traverse(child, resource_id, provenance_source)
 
     if 'additional_processing' in config:

@@ -46,7 +46,7 @@ def store_provenance(textrepo_version_url: str,
         targets=[ProvenanceResource(resource=URI(textrepo_version_url), relation='primary')]
     )
     provenance_id = pc.add_provenance(prov_data)
-    logger.info(f"provenance location: {provenance_id.location}")
+    logger.info(f"provenance location: {provenance_id.location} / {str(provenance_id.location).replace('/prov/', '#')}")
 
 
 def upload(year: int, data_dir: str, trc: TextRepoClient, idx, prov_url: str, prov_key: str):

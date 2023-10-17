@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 
 from elasticsearch7.client import Elasticsearch
+from icecream import ic
 from loguru import logger
 
 es = Elasticsearch("https://annotation.republic-caf.diginfra.org/elasticsearch")
@@ -21,6 +22,7 @@ def retrieve_res_json(session_id: str, caf_resolutions_output_dir: str):
             "metadata.session_date": {"gte": session_date, "lte": session_date}
         }
     }
+    # ic(query)
     response = es.search(index=resolutions_index, query=query, size=10000)
 
     file_name = f'{session_id}-resolutions.json'
