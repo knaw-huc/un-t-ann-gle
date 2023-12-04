@@ -30,6 +30,7 @@ if [ ${some_variables_not_set} ]; then
   exit 1
 fi
 
+# shellcheck disable=SC1090
 source $envfile
 check_env_var_is_set "ANNO_URL" $ANNO_URL
 check_env_var_is_set "PROV_URL" $PROV_URL
