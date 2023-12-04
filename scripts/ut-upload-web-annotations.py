@@ -30,14 +30,16 @@ def upload(annorepo_base_url: str,
           f"- version {ar_about['version']}\n"
           f"- running since {ar_about['startedAt']}")
 
-    if not ar.has_container(container_id):
+    ca = ar.container_adapter(container_name=container_id)
+    if not ca.exists():
         print(f"container {annorepo_base_url}/w3c/{container_id} not found, creating...")
-        ar.create_container(name=container_id, label=container_label)
-        ar.create_index(container_name=container_id, field='body.id', index_type='hashed')
-        ar.create_index(container_name=container_id, field='body.type', index_type='hashed')
-        ar.create_index(container_name=container_id, field='body.metadata.volume', index_type='hashed')
-        ar.create_index(container_name=container_id, field='target.selector.start', index_type='ascending')
-        ar.create_index(container_name=container_id, field='target.selector.end', index_type='ascending')
+        ca.create(label=container_label)
+        ca.create_index(field='body.id', index_type='hashed')
+        ca.create_index(field='body.type', index_type='hashed')
+        ca.create_index(field='body.metadata.volume', index_type='hashed')
+        ca.create_index(field='target.selector.start', index_type='ascending')
+        ca.create_index(field='target.selector.end', index_type='ascending')
+    ca.set_anonymous_user_read_access(has_read_access=True)
 
     print(f"reading {inputfile}...")
     with open(inputfile) as f:
@@ -55,7 +57,7 @@ def upload(annorepo_base_url: str,
     annotation_ids = []
     for i, chunk in enumerate(chunked_annotations):
         print(f"chunk ({i + 1}/{number_of_chunks})", end='\r')
-        annotation_ids.extend(ar.add_annotations(container_id, chunk))
+        annotation_ids.extend(ca.add_annotations(chunk))
     print()
     out_path = "/".join(inputfile.split("/")[:-1])
     outfile = f"{out_path}/annotation_ids.json"
