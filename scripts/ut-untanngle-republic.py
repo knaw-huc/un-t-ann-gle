@@ -425,7 +425,7 @@ def create_attendants_for_attlist(attlist, session_id, resource_id, provenance_s
                                                              attlist['end_anchor'],
                                                              all_annotations,
                                                              resource_id))
-    logging.debug(f"{len(paras)} republic_parargraphs found")
+    logging.debug(f"{len(paras)} republic_paragraphs found")
     for index, span in enumerate(spans):
         if span['class'] in attendant_classes:
             attendant = {
@@ -516,6 +516,13 @@ def store_segmented_text(segmented_text: IndexedSegmentedText, store_path: str):
         json.dump(data, filehandle, indent=4, cls=segmentedtext.SegmentEncoder, ensure_ascii=False)
 
 
+def store_paragraph_text(paragraphs: List[str], store_path: str):
+    data = {"_ordered_segments": paragraphs}
+    logging.info(f"=> {store_path}")
+    with open(store_path, 'w', encoding='UTF8') as filehandle:
+        json.dump(data, filehandle, indent=4, ensure_ascii=False)
+
+
 def store_annotations(annotations, store_path: str):
     logging.info(f"=> {store_path}")
     with open(store_path, 'w', encoding='UTF8') as filehandle:
@@ -597,13 +604,22 @@ def untanngle_year(year: int, data_dir: str):
     logging.info(f"fix_scan_annotations({resource_id})")
     fix_scan_annotations(resource_id)
 
+    extract_paragraph_text(all_annotations, datadir, year)
+
     # logging.info("add_provenance()")
     # add_provenance()
 
     store_annotations(all_annotations, f'{datadir}/{annotation_store}')
 
 
-def traverse_session_files(sessions_folder, resource_id):
+def extract_paragraph_text(datadir, year):
+    logical_text_store = f'logical-textstore-{year}.json'
+    all_paragraph_texts = [a['text'] for a in all_annotations if
+                           a['type'] in [AnnTypes.RESOLUTION_REVIEW.value, AnnTypes.PARAGRAPH.value]]
+    store_paragraph_text(all_paragraph_texts, f'{datadir}/{logical_text_store}')
+
+
+def traverse_session_files(annotations, sessions_folder, resource_id):
     all_textlines = segmentedtext.IndexedSegmentedText(resource_id)
     # Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
     for f_name in get_session_files(sessions_folder):
@@ -617,6 +633,7 @@ def traverse_session_files(sessions_folder, resource_id):
         traverse(source_data, AnnTypes.SESSION, text_array, annotation_array, resource_id, provenance_source)
 
         # properly concatenate annotation info taking ongoing line indexes into account
+        paragraph_array = []
         for ai in annotation_array:
             ai['begin_anchor'] += all_textlines.len()
             ai['end_anchor'] += all_textlines.len()
@@ -670,6 +687,7 @@ def set_anchors_in_resolution_annotations():
             logging.error(f"missing line annotation {res['end_anchor']}")
             res['end_anchor'] = 0
             num_errors += 1
+
     if num_errors > 0:
         logging.error(f"number of lookup errors for line_indexes vs line_ids: {num_errors}")
     all_annotations.extend(resolution_annotations)
