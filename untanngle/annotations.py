@@ -290,7 +290,7 @@ class ReadingOrder:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class TextRegionMetadata:
-    id: str
+    # id: str
     type: str | List[str]
     parent_type: str
     parent_id: str
@@ -388,7 +388,7 @@ class HeightMetadata:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class LineMetadata:
-    id: str
+    # id: str
     type: str
     parent_type: str
     parent_id: str
@@ -466,6 +466,7 @@ class SessionMetadata:
     has_session_date_element: bool
     index_timestamp: str
     inventory_num: int
+    inventory_id: str
     is_workday: bool
     lines_include_rest_day: bool
     resolution_ids: List[object]
@@ -477,9 +478,9 @@ class SessionMetadata:
     session_year: int
     text_page_num: List[int]
     page_ids: List[str]
-    prov_url: str
     code_commit: str
     # page_ids: Optional[List[str]] = field(metadata=config(exclude=exclude_if_none), default=None)
+    prov_url: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     attendants_list_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     iiif_url: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     num_lines: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
