@@ -569,9 +569,9 @@ class AttendantsListMetadata:
     text_page_num: List[int]
     page_num: List[int]
     index_timestamp: str
-    prov_url: str
     code_commit: str
     page_ids: List[str]
+    prov_url: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     president: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
 
 
