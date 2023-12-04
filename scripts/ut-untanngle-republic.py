@@ -604,7 +604,7 @@ def untanngle_year(year: int, data_dir: str):
     logging.info(f"fix_scan_annotations({resource_id})")
     fix_scan_annotations(resource_id)
 
-    extract_paragraph_text(all_annotations, datadir, year)
+    extract_paragraph_text(datadir, year)
 
     # logging.info("add_provenance()")
     # add_provenance()
@@ -614,12 +614,17 @@ def untanngle_year(year: int, data_dir: str):
 
 def extract_paragraph_text(datadir, year):
     logical_text_store = f'logical-textstore-{year}.json'
-    all_paragraph_texts = [a['text'] for a in all_annotations if
-                           a['type'] in [AnnTypes.RESOLUTION_REVIEW.value, AnnTypes.PARAGRAPH.value]]
+    all_paragraph_texts = []
+    paragraph_annotations = [a for a in all_annotations if
+                             a['type'] in [AnnTypes.RESOLUTION_REVIEW.value, AnnTypes.PARAGRAPH.value]]
+    for pa in paragraph_annotations:
+        pa['logical_start_anchor'] = len(all_paragraph_texts)
+        pa['logical_end_anchor'] = pa['logical_start_anchor'] + 1
+        all_paragraph_texts.append(pa['text'])
     store_paragraph_text(all_paragraph_texts, f'{datadir}/{logical_text_store}')
 
 
-def traverse_session_files(annotations, sessions_folder, resource_id):
+def traverse_session_files(sessions_folder, resource_id):
     all_textlines = segmentedtext.IndexedSegmentedText(resource_id)
     # Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
     for f_name in get_session_files(sessions_folder):
