@@ -51,14 +51,30 @@ def store_provenance(textrepo_version_url: str,
 
 def upload(year: int, data_dir: str, trc: TextRepoClient, idx, prov_url: str, prov_key: str):
     # harvest_date = data_dir.split("/")[-1]
-    path = f"{data_dir}/{year}/textstore-{year}.json"
+    export_for_text_repo(data_dir,
+                         idx,
+                         f"{data_dir}/{year}/" + "textstore" + f"-{year}.json",
+                         prov_key, prov_url,
+                         trc,
+                         'segmented_text',
+                         year)
+    export_for_text_repo(data_dir,
+                         idx,
+                         f"{data_dir}/{year}/" + "logical-textstore" + f"-{year}.json",
+                         prov_key, prov_url,
+                         trc,
+                         'logical_segmented_text',
+                         year)
+
+
+def export_for_text_repo(data_dir, idx, path, prov_key, prov_url, trc, type_name, year):
     if exists(path):
         logger.info(f"<= {path}")
         with open(path) as f:
             contents = f.read()
         external_id = f"volume-{year}"
         version_id = trc.import_version(external_id=external_id,
-                                        type_name='segmented_text',
+                                        type_name=type_name,
                                         contents=contents,
                                         allow_new_document=True,
                                         as_latest_version=True)
@@ -135,11 +151,16 @@ def main():
     data_dir = trim_trailing_slash(args.data_dir)
     version_id_idx = load_version_id_idx()
     trc = TextRepoClient(args.textrepo_base_url, verbose=True)
+    check_file_types(trc)
     prov_url = args.provenance_base_url
     prov_key = args.provenance_api_key
     for year in sorted(years):
         upload(year, data_dir, trc, version_id_idx, prov_url, prov_key)
     logger.info("done!")
+
+
+def check_file_types(trc):
+    trc.create_file_type(name="logical_segmented_text", mimetype="application/json")
 
 
 if __name__ == '__main__':
