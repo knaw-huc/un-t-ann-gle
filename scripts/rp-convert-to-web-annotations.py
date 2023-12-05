@@ -29,13 +29,15 @@ annotation_class_mapper = dict(
 )
 
 
-def as_web_annotation(annotation: dict, textrepo_url: str, version_id: str, canvas_idx: dict) -> dict:
+def as_web_annotation(annotation: dict, textrepo_url: str,
+                      physical_version_id: str, logical_version_id: str, canvas_idx: dict) -> dict:
     try:
         a_type = annotation.get('type')
         a_class = annotation_class_mapper[a_type]
         return a_class.from_dict(annotation).as_web_annotation(
             textrepo_base_url=textrepo_url,
-            version_id=version_id,
+            physical_version_id=physical_version_id,
+            logical_version_id=logical_version_id,
             canvas_idx=canvas_idx)
     except Exception as e:
         print("failing input json:")
@@ -62,13 +64,15 @@ def normalize_annotation(annotation: dict, scanpage_iiif: dict) -> dict:
     return annotation
 
 
-def convert_annotations(annotations, scanpage_iiif_uri_map, textrepo_url: str, version_id: str, canvas_idx):
+def convert_annotations(annotations, scanpage_iiif_uri_map, textrepo_url: str,
+                        physical_version_id: str, logical_version_id: str,
+                        canvas_idx):
     num_annotations = len(annotations)
     print(f'> converting {num_annotations} annotations...')
     web_annotations = [
         as_web_annotation(
             normalize_annotation(annotation, scanpage_iiif_uri_map),
-            textrepo_url, version_id, canvas_idx
+            textrepo_url, physical_version_id, logical_version_id, canvas_idx
         )
         for annotation in annotations
     ]
@@ -143,7 +147,9 @@ def create_volume_annotation(begin_anchor: int, end_anchor: int,
     return va.as_web_annotation(textrepo_base_url=textrepo_base_url, version_id=version_id)
 
 
-def convert(annotation_store_path: str, textrepo_url: str, version_id: str, canvas_index_path: str,
+def convert(annotation_store_path: str, textrepo_url: str,
+            physical_version_id: str, logical_version_id: str,
+            canvas_index_path: str,
             export_path: str) -> None:
     print(f'> importing {annotation_store_path} ...')
     with open(annotation_store_path) as f:
@@ -152,7 +158,8 @@ def convert(annotation_store_path: str, textrepo_url: str, version_id: str, canv
     print(f'> {num_annotations} annotations loaded')
 
     canvas_idx = read_canvas_idx(canvas_index_path)
-    web_annotations = convert_annotations(annotations, "", textrepo_url, version_id, canvas_idx)
+    web_annotations = convert_annotations(annotations, "", textrepo_url, physical_version_id, logical_version_id,
+                                          canvas_idx)
 
     inventory_ids = {a["inventory_id"] for a in annotations if "inventory_id" in a}
     for inventory_id in inventory_ids:
@@ -163,7 +170,7 @@ def convert(annotation_store_path: str, textrepo_url: str, version_id: str, canv
         volume_annotation = create_volume_annotation(begin_anchor=begin_anchor, end_anchor=end_anchor,
                                                      inventory_id=inventory_id,
                                                      textrepo_base_url=textrepo_url,
-                                                     version_id=version_id)
+                                                     version_id=physical_version_id)
         web_annotations.append(volume_annotation)
 
     export_to_file(web_annotations, export_path)
@@ -196,13 +203,21 @@ def parse_args():
                         type=str,
                         metavar="textrepo_base_url")
     parser.add_argument("-v",
-                        "--version-id",
+                        "--physical-version-id",
                         required=True,
-                        help="The versionId of the text the annotations refer to "
+                        help="The versionId of the physical text the annotations refer to "
                              "( example: "
                              "42df1275-81cd-489c-b28c-345780c3889b )",
                         type=str,
-                        metavar="version_id")
+                        metavar="physical_version_id")
+    parser.add_argument("-l",
+                        "--logical-version-id",
+                        required=True,
+                        help="The versionId of the logical text the annotations refer to "
+                             "( example: "
+                             "42df1275-81cd-489c-b28c-345780c3889b )",
+                        type=str,
+                        metavar="logical_version_id")
     parser.add_argument("-c",
                         "--canvas-index",
                         required=True,
@@ -223,7 +238,8 @@ def main():
     args = parse_args()
     if args.textrepo_base_url.endswith('/'):
         args.textrepo_base_url = args.textrepo_base_url[0:-1]
-    convert(args.inputfile, args.textrepo_base_url, args.version_id, args.canvas_index, args.output_directory)
+    convert(args.inputfile, args.textrepo_base_url, args.physical_version_id, args.logical_version_id,
+            args.canvas_index, args.output_directory)
 
 
 if __name__ == '__main__':

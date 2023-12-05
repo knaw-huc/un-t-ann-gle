@@ -68,12 +68,14 @@ if [[ $startstage -le 3 ]]; then
 fi
 
 if [[ $startstage -le 4 ]]; then
-  version=$(jq -r ".[\"$year\"]" out/version_id_idx.json)
+  phys_version=$(jq -r ".[\"$year\"][\"phys\"]" out/version_id_idx.json)
+  log_version=$(jq -r ".[\"$year\"][\"log\"]" out/version_id_idx.json)
   echo "${txtylw}[4/5] converting annotationstore to web annotations${txtwht}"
-  echo "poetry run scripts/rp-convert-to-web-annotations.py -t https://textrepo.republic-caf.diginfra.org/api/ -v $version -c data/image-to-canvas.csv -o $harvestdir/$year $harvestdir/$year/annotationstore-$year.json"
+  echo "poetry run scripts/rp-convert-to-web-annotations.py -t https://textrepo.republic-caf.diginfra.org/api/ -v $phys_version -c data/image-to-canvas.csv -o $harvestdir/$year $harvestdir/$year/annotationstore-$year.json"
   poetry run scripts/rp-convert-to-web-annotations.py \
     -t https://textrepo.republic-caf.diginfra.org/api/ \
-    -v $version \
+    -v $phys_version \
+    -l $log_version \
     -c data/image-to-canvas.csv \
     -o $harvestdir/$year \
     $harvestdir/$year/annotationstore-$year.json

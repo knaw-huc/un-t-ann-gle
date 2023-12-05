@@ -51,15 +51,13 @@ def store_provenance(textrepo_version_url: str,
 
 def upload(year: int, data_dir: str, trc: TextRepoClient, idx, prov_url: str, prov_key: str):
     # harvest_date = data_dir.split("/")[-1]
-    export_for_text_repo(data_dir,
-                         idx,
+    export_for_text_repo(data_dir, idx, "phys",
                          f"{data_dir}/{year}/" + "textstore" + f"-{year}.json",
                          prov_key, prov_url,
                          trc,
                          'segmented_text',
                          year)
-    export_for_text_repo(data_dir,
-                         idx,
+    export_for_text_repo(data_dir, idx, "log",
                          f"{data_dir}/{year}/" + "logical-textstore" + f"-{year}.json",
                          prov_key, prov_url,
                          trc,
@@ -67,7 +65,7 @@ def upload(year: int, data_dir: str, trc: TextRepoClient, idx, prov_url: str, pr
                          year)
 
 
-def export_for_text_repo(data_dir, idx, path, prov_key, prov_url, trc, type_name, year):
+def export_for_text_repo(data_dir, idx, phys_log, path, prov_key, prov_url, trc, type_name, year):
     if exists(path):
         logger.info(f"<= {path}")
         with open(path) as f:
@@ -78,7 +76,9 @@ def export_for_text_repo(data_dir, idx, path, prov_key, prov_url, trc, type_name
                                         contents=contents,
                                         allow_new_document=True,
                                         as_latest_version=True)
-        idx[year] = version_id.version_id
+        if year not in idx:
+            idx[year] = {}
+        idx[year][phys_log] = version_id.version_id
         store_version_id_idx(idx)
         logger.info(f"verify: {trc.base_uri}/view/versions/{version_id.version_id}/segments/index/0/39")
         store_provenance(textrepo_version_url=f"{trc.base_uri}/rest/versions/{version_id.version_id}",
@@ -97,7 +97,7 @@ def trim_trailing_slash(url: str):
         return url
 
 
-def load_version_id_idx():
+def load_version_id_idx(version_id_idx_path: str):
     if exists(version_id_idx_path):
         logger.info(f"<= {version_id_idx_path}")
         with open(version_id_idx_path) as f:
@@ -149,7 +149,7 @@ def main():
     args = parser.parse_args()
     years = args.year
     data_dir = trim_trailing_slash(args.data_dir)
-    version_id_idx = load_version_id_idx()
+    version_id_idx = load_version_id_idx(version_id_idx_path)
     trc = TextRepoClient(args.textrepo_base_url, verbose=True)
     check_file_types(trc)
     prov_url = args.provenance_base_url
@@ -160,7 +160,10 @@ def main():
 
 
 def check_file_types(trc):
-    trc.create_file_type(name="logical_segmented_text", mimetype="application/json")
+    name = "logical_segmented_text"
+    available_type_names = [t.name for t in trc.read_file_types()]
+    if name not in available_type_names:
+        trc.create_file_type(name=name, mimetype="application/json")
 
 
 if __name__ == '__main__':

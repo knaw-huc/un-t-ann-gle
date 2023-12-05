@@ -24,10 +24,12 @@ def exclude_if_none(value):
 
 
 class Annotation:
-    def as_web_annotation(self, textrepo_base_url: str, version_id: str, canvas_idx: Dict[str, str]) -> dict:
+    def as_web_annotation(self, textrepo_base_url: str,
+                          physical_version_id: str, logical_version_id: str,
+                          canvas_idx: Dict[str, str]) -> dict:
         return web_annotation(
             body=self.annotation_body(),
-            target=self.annotation_target(canvas_idx, textrepo_base_url, version_id),
+            target=self.annotation_target(canvas_idx, textrepo_base_url, physical_version_id, logical_version_id),
         )
 
     def annotation_body(self):
@@ -42,10 +44,10 @@ class Annotation:
             body["metadata"]["type"] = f"rp:{body['type']}Metadata"
         return body
 
-    def annotation_target(self, canvas_idx, textrepo_base_url, version_id) -> List[Any]:
+    def annotation_target(self, canvas_idx, textrepo_base_url, physical_version_id, logical_version_id) -> List[Any]:
         target = []
         self.add_canvas_and_image_targets(target, canvas_idx)
-        self.add_text_targets(target, textrepo_base_url, version_id)
+        self.add_text_targets(target, textrepo_base_url, physical_version_id, logical_version_id)
         return target
 
     def add_canvas_and_image_targets(self, target, canvas_idx):
@@ -104,13 +106,13 @@ class Annotation:
                     'type': "Canvas",
                 })
 
-    def add_text_targets(self, target, textrepo_base_url, version_id):
+    def add_text_targets(self, target, textrepo_base_url, physical_version_id, logical_version_id):
         if hasattr(self, 'begin_anchor'):
             if hasattr(self, 'end_char_offset'):
                 target.append(
                     resource_target(
                         textrepo_base_url=textrepo_base_url,
-                        version_id=version_id,
+                        version_id=physical_version_id,
                         begin_anchor=self.begin_anchor,
                         end_anchor=self.end_anchor,
                         begin_char_offset=self.begin_char_offset,
@@ -120,7 +122,7 @@ class Annotation:
                 target.append(
                     selection_view_target(
                         textrepo_base_url=textrepo_base_url,
-                        version_id=version_id,
+                        version_id=physical_version_id,
                         begin_anchor=self.begin_anchor,
                         end_anchor=self.end_anchor,
                         begin_char_offset=self.begin_char_offset,
@@ -128,9 +130,20 @@ class Annotation:
                     )
                 )
             else:
-                target.append(resource_target(textrepo_base_url, version_id, self.begin_anchor, self.end_anchor))
                 target.append(
-                    selection_view_target(textrepo_base_url, version_id, self.begin_anchor, self.end_anchor))
+                    resource_target(textrepo_base_url, physical_version_id, self.begin_anchor, self.end_anchor))
+                target.append(
+                    selection_view_target(textrepo_base_url, physical_version_id, self.begin_anchor, self.end_anchor))
+
+        if hasattr(self, 'logical_start_anchor'):
+            target.append(
+                resource_target(textrepo_base_url, logical_version_id,
+                                self.logical_start_anchor, self.logical_end_anchor,
+                                target_type="LogicalText"))
+            target.append(
+                selection_view_target(textrepo_base_url, logical_version_id,
+                                      self.logical_start_anchor, self.logical_end_anchor,
+                                      target_type="LogicalText"))
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -819,6 +832,8 @@ class RepublicParagraphAnnotation(Annotation):
     line_ranges: List[LineRange]
     text: str
     region_links: List[str]
+    logical_start_anchor: int
+    logical_end_anchor: int
 
     # provenance: Provenance
 
@@ -863,6 +878,8 @@ class ReviewedAnnotation(Annotation):
     line_ranges: List[LineRange]
     text: str
     region_links: List[str]
+    logical_start_anchor: int
+    logical_end_anchor: int
 
     # provenance: Provenance
 
@@ -956,11 +973,12 @@ def resource_target(
         begin_anchor: int,
         end_anchor: int,
         begin_char_offset: int = None,
-        end_char_offset: int = None
+        end_char_offset: int = None,
+        target_type: str = "Text"
 ) -> Dict[str, Any]:
     target = {
         'source': f"{textrepo_base_url}/rest/versions/{version_id}/contents",
-        'type': "Text",
+        'type': target_type,
         "selector": {
             '@context': REPUBLIC_CONTEXT,
             "type": as_urn("TextAnchorSelector"),
@@ -980,7 +998,8 @@ def selection_view_target(
         begin_anchor: int,
         end_anchor: int,
         begin_char_offset: int = None,
-        end_char_offset: int = None
+        end_char_offset: int = None,
+        target_type: str = "Text"
 ) -> Dict[str, Any]:
     if begin_char_offset is not None:
         coord_params = f"{begin_anchor}/{begin_char_offset}/{end_anchor}/{end_char_offset}"
@@ -988,7 +1007,7 @@ def selection_view_target(
         coord_params = f"{begin_anchor}/{end_anchor}"
     return {
         "source": f"{textrepo_base_url}/view/versions/{version_id}/segments/index/{coord_params}",
-        "type": "Text"
+        "type": target_type
     }
 
 

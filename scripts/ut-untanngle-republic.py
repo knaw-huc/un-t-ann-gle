@@ -619,7 +619,7 @@ def extract_paragraph_text(datadir, year):
                              a['type'] in [AnnTypes.RESOLUTION_REVIEW.value, AnnTypes.PARAGRAPH.value]]
     for pa in paragraph_annotations:
         pa['logical_start_anchor'] = len(all_paragraph_texts)
-        pa['logical_end_anchor'] = pa['logical_start_anchor'] + 1
+        pa['logical_end_anchor'] = pa['logical_start_anchor']
         all_paragraph_texts.append(pa['text'])
     store_paragraph_text(all_paragraph_texts, f'{datadir}/{logical_text_store}')
 
