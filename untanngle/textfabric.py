@@ -79,7 +79,7 @@ class AnnotationTransformer:
         if self.text_in_body:
             anno["body"]["text"] = ia.text
         if ia.metadata:
-            anno["body"]["metadata"] = {f"{k}": v for k, v in ia.metadata.items()}
+            anno["body"]["metadata"] = {f"{k.replace('@', '_')}": v for k, v in ia.metadata.items()}
             if "type" not in anno["body"]["metadata"]:
                 anno["body"]["metadata"]["type"] = f"tt:{as_class_name(ia.type)}Metadata"
         if ia.type == "letter":
@@ -127,8 +127,8 @@ def read_tf_annotations(anno_file):
     with open(anno_file) as f:
         content = json.load(f)
         for _id, properties in content.items():
-            tf_annotations.append(TFAnnotation(id=_id, type=properties[0], namespace=properties[1], body=properties[2],
-                                               target=properties[3]))
+            tf_annotations.append(TFAnnotation(id=_id, type=properties[0], namespace=properties[1],
+                                               body=properties[2], target=properties[3]))
     return tf_annotations
 
 
@@ -329,7 +329,7 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
     return web_annotations
 
 
-def as_link_anno(from_ia_id, to_ia_id, purpose, ia_id_to_body_id):
+def as_link_anno(from_ia_id: str, to_ia_id: str, purpose: str, ia_id_to_body_id: Dict[str, str]) -> Dict[str, str]:
     body_id = ia_id_to_body_id[from_ia_id]
     target_id = ia_id_to_body_id[to_ia_id]
     return {
