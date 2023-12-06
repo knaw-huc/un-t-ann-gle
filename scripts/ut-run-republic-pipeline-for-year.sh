@@ -42,22 +42,19 @@ fi
 echo "starting pipeline for $year"
 
 if [[ $startstage -le 1 ]]; then
-  echo "${txtylw}[1/6] harvesting data from CAF${txtwht}"
-  echo "poetry run scripts/caf-harvest.py $year"
+  echo "${txtylw}[1/7] harvesting data from CAF${txtwht}"
   poetry run scripts/caf-harvest.py $year
   echo
 fi
 
 if [[ $startstage -le 2 ]]; then
-  echo "${txtylw}[2/6] untanngling caf harvest${txtwht}"
-  echo "poetry run scripts/ut-untanngle-republic.py -d $harvestdir $year"
+  echo "${txtylw}[2/7] untanngling caf harvest${txtwht}"
   poetry run scripts/ut-untanngle-republic.py -d $harvestdir $year
   echo
 fi
 
 if [[ $startstage -le 3 ]]; then
-  echo "${txtylw}[3/6] uploading extracted textstore${txtwht}"
-  echo "poetry run scripts/ut-upload-textstores.py -d $harvestdir -t https://textrepo.republic-caf.diginfra.org/api --provenance-base-url $PROV_URL --provenance-api-key $PROV_KEY $year"
+  echo "${txtylw}[3/7] uploading extracted textstore${txtwht}"
   poetry run scripts/ut-upload-textstores.py \
     -d $harvestdir \
     -t https://textrepo.republic-caf.diginfra.org/api \
@@ -68,10 +65,8 @@ if [[ $startstage -le 3 ]]; then
 fi
 
 if [[ $startstage -le 4 ]]; then
-  phys_version=$(jq -r ".[\"$year\"][\"phys\"]" out/version_id_idx.json)
-  log_version=$(jq -r ".[\"$year\"][\"log\"]" out/version_id_idx.json)
-  echo "${txtylw}[4/5] converting annotationstore to web annotations${txtwht}"
-  echo "poetry run scripts/rp-convert-to-web-annotations.py -t https://textrepo.republic-caf.diginfra.org/api/ -v $phys_version -c data/image-to-canvas.csv -o $harvestdir/$year $harvestdir/$year/annotationstore-$year.json"
+  version=$(jq -r ".[\"$year\"]" out/version_id_idx.json)
+  echo "${txtylw}[4/7] converting annotationstore to web annotations${txtwht}"
   poetry run scripts/rp-convert-to-web-annotations.py \
     -t https://textrepo.republic-caf.diginfra.org/api/ \
     -v $phys_version \
@@ -82,16 +77,20 @@ if [[ $startstage -le 4 ]]; then
   echo
 fi
 
-if [[ $startstage -le 5 ]]; then
-  echo "${txtylw}[5/6] uploading web annotations to annorepo server${txtwht}"
-  echo "poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic-$year-$date -k root $harvestdir/$year/web_annotations.json"
-  poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic-$year-$date -k root $harvestdir/$year/web_annotations.json
+#if [[ $startstage -le 5 ]]; then
+#  echo "${txtylw}[5/7] uploading annotation metadata${txtwht}"
+#  poetry run scripts/ut-upload-web-annotation-metadata.py $harvestdir/$year/web_annotations.json
+#  echo
+#fi
+
+if [[ $startstage -le 6 ]]; then
+  echo "${txtylw}[6/7] uploading web annotations to annorepo server${txtwht}"
+  poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic-$date -k root $harvestdir/$year/web_annotations.json
   echo
 fi
 
-if [[ $startstage -le 6 ]]; then
-  echo "${txtylw}[6/6] uploading provenance for web annotations${txtwht}"
-  echo "poetry run scripts/rp-upload-annotation-provenance.py $year"
+if [[ $startstage -le 7 ]]; then
+  echo "${txtylw}[7/7] uploading provenance for web annotations${txtwht}"
   poetry run scripts/rp-upload-annotation-provenance.py $year
   echo
 fi

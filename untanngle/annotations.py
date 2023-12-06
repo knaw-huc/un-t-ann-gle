@@ -568,7 +568,7 @@ class SessionAnnotation(Annotation):
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class AttendantsListMetadata:
-    id: str
+    # id: str
     type: str
     inventory_num: int
     source_id: str
@@ -722,7 +722,7 @@ class AttendantAnnotation(Annotation):
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class ResolutionMetadata:
-    id: str
+    # id: str
     type: str
     structure: Structure
     parent_type: str
@@ -850,7 +850,7 @@ class RepublicParagraphAnnotation(Annotation):
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class ReviewedMetadata:
-    id: str
+    # id: str
     type: str
     inventory_num: int
     source_id: str

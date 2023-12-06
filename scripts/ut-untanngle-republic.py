@@ -12,6 +12,7 @@ from functools import cache
 from typing import List, Dict, Any
 
 from alive_progress import alive_bar
+from icecream import ic
 from loguru import logger
 from stam import AnnotationStore, Selector, Offset, TextSelectionOperator
 
@@ -289,10 +290,11 @@ def res_traverse(node, resource_id: str, provenance_source: str):
             begin_line_id = node['line_ranges'][0]['line_id']
             end_line_id = node['line_ranges'][-1]['line_id']
 
-    else:  # if non-leaf node, first visit children     
-        begin_line_id = children[0]['line_ranges'][0]['line_id']
-        end_line_id = children[-1]['line_ranges'][-1]['line_id']
-        for child in children:
+    else:  # if non-leaf node, first visit children
+        relevant_children = [c for c in children if c['line_ranges']]
+        begin_line_id = relevant_children[0]['line_ranges'][0]['line_id']
+        end_line_id = relevant_children[-1]['line_ranges'][-1]['line_id']
+        for child in relevant_children:
             res_traverse(child, resource_id, provenance_source)
 
     if 'additional_processing' in config:
@@ -386,7 +388,7 @@ def collect_attendant_info(span, paras):
             if lr['line_id'] in line_ids_to_anchors:
                 anchor = line_ids_to_anchors[lr['line_id']]
                 if line_begin <= att_begin < line_end:
-                    begin_anchor = anchor
+                    begin_anchor = anchor  # TODO: find out why begin_anchor == 0 for some attendants
                     begin_char_offset = att_begin - lr['start']
                 if line_begin <= att_end <= line_end:
                     end_anchor = anchor
@@ -444,6 +446,10 @@ def create_attendants_for_attlist(attlist, session_id, resource_id, provenance_s
                 attendant['end_anchor'] = a_info['end_anchor']
                 attendant['begin_char_offset'] = a_info['begin_char_offset']
                 attendant['end_char_offset'] = a_info['end_char_offset']
+
+                # TODO: this is a band-aid solution for attendant annotations with too many targets; fix it earlier!
+                if attendant['begin_anchor'] == 0:
+                    attendant['begin_anchor'] = attendant['end_anchor']
 
                 attendant_annots.append(attendant)
 
