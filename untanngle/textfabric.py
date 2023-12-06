@@ -34,6 +34,7 @@ def as_class_name(string: str) -> str:
 
 @dataclass
 class AnnotationTransformer:
+    project: str
     textrepo_url: str
     textrepo_version: str
     text_in_body: bool
@@ -54,7 +55,7 @@ class AnnotationTransformer:
             "purpose": "tagging",
             "generated": datetime.today().isoformat(),
             "body": {
-                "id": f"urn:mondriaan:{ia.type}:{ia.tf_node}",
+                "id": f"urn:{self.project}:{ia.type}:{ia.tf_node}",
                 "type": body_type,
                 "tf:textfabric_node": ia.tf_node
             },
@@ -94,7 +95,7 @@ class AnnotationTransformer:
                 anno["body"].pop("text")
         else:
             canvas_target = {
-                "@context": "https://brambg.github.io/ns/republic.jsonld",
+                "@context": "https://knaw-huc.github.io/ns/republic.jsonld",
                 "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/20633ef4-27af-4b13-9ffe-dfc0f9dad1d7",
                 "type": "Canvas"
             }
@@ -102,11 +103,16 @@ class AnnotationTransformer:
         return anno
 
 
-def convert(anno_file: str, text_file: str, textrepo_url: str, textrepo_file_version: str, text_in_body: bool):
+def convert(project: str,
+            anno_file: str, text_file: str,
+            textrepo_url: str, textrepo_file_version: str,
+            text_in_body: bool = False):
     tf_tokens = read_tf_tokens(text_file)
     tf_annotations = read_tf_annotations(anno_file)
-    web_annotations = build_web_annotations(tf_annotations=tf_annotations, tokens=tf_tokens, textrepo_url=textrepo_url,
-                                            textrepo_file_version=textrepo_file_version, text_in_body=text_in_body)
+    web_annotations = build_web_annotations(project=project,
+                                            tf_annotations=tf_annotations, tokens=tf_tokens,
+                                            textrepo_url=textrepo_url, textrepo_file_version=textrepo_file_version,
+                                            text_in_body=text_in_body)
     return web_annotations
 
 
@@ -217,8 +223,10 @@ def modify_note_annotations(ia: List[IAnnotation], node_parents: Dict[str, str])
     return ia
 
 
-def build_web_annotations(tf_annotations, tokens, textrepo_url: str, textrepo_file_version: str, text_in_body: bool):
-    at = AnnotationTransformer(textrepo_url=textrepo_url,
+def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: str, textrepo_file_version: str,
+                          text_in_body: bool):
+    at = AnnotationTransformer(project=project,
+                               textrepo_url=textrepo_url,
                                textrepo_version=textrepo_file_version,
                                text_in_body=text_in_body)
     ia_idx = {}

@@ -36,7 +36,8 @@ def upload(annorepo_base_url: str,
     #       f"- version {ar_about['version']}\n"
     #       f"- running since {ar_about['startedAt']}")
 
-    if not ar.has_container(container_id):
+    ca = ar.container_adapter(container_name=container_id)
+    if not ca.exists():
         print(f"container {annorepo_base_url}/w3c/{container_id} not found, creating...")
         id = ar.create_container(name=container_id, label=container_label)
         ar.create_index(container_name=container_id, field='body.id', index_type='hashed')

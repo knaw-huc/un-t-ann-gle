@@ -30,6 +30,7 @@ if [ ${some_variables_not_set} ]; then
   exit 1
 fi
 
+# shellcheck disable=SC1090
 source $envfile
 check_env_var_is_set "ANNO_URL" $ANNO_URL
 check_env_var_is_set "PROV_URL" $PROV_URL
@@ -68,7 +69,8 @@ if [[ $startstage -le 4 ]]; then
   echo "${txtylw}[4/7] converting annotationstore to web annotations${txtwht}"
   poetry run scripts/rp-convert-to-web-annotations.py \
     -t https://textrepo.republic-caf.diginfra.org/api/ \
-    -v $version \
+    -v $phys_version \
+    -l $log_version \
     -c data/image-to-canvas.csv \
     -o $harvestdir/$year \
     $harvestdir/$year/annotationstore-$year.json

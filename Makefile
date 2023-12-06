@@ -23,11 +23,25 @@ mondriaan-annotations: out/mondriaan-web-annotations.json
 install:
 	poetry install
 
+.PHONY: republic-1706
+republic-1706:
+	./scripts/ut-run-republic-pipeline-for-year.sh 1706 conf/republic-local.env
+
+.PHONY: translatin-untangle
+translatin-untangle:
+	poetry run ./scripts/ut-convert-translatin.py
+
 .PHONY: help
 help:
 	@echo "make-tools for untanngle"
 	@echo
 	@echo "Please use \`make <target>', where <target> is one of:"
-	@echo "  install                to install the necessary requirements"
-	@echo "  republic-annotations   to generate the republic web-annotations"
-	@echo "  mondriaan-annotations  to generate the mondriaan web-annotations"
+	@echo "  install                - to install the necessary requirements"
+	@echo
+	@echo "  republic-annotations   - to generate the republic web-annotations"
+	@echo "  republic-1706          - to run the republic untangle pipeline for 1706"
+	@echo
+	@echo "  mondriaan-annotations  - to generate the mondriaan web-annotations"
+	@echo
+	@echo "  translatin-untangle    - to untangle the textfabric export for translatin"
+
