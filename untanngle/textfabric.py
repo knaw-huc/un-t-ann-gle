@@ -6,6 +6,8 @@ from typing import Dict, Any, List
 from icecream import ic
 from loguru import logger
 
+from untanngle import camel_casing as cc
+
 
 @dataclass
 class TFAnnotation:
@@ -46,6 +48,7 @@ class AnnotationTransformer:
                 "http://www.w3.org/ns/anno.jsonld",
                 {
                     "nlp": "https://ns.tt.di.huc.knaw.nl/nlp",
+                    "pagexml": "https://ns.tt.di.huc.knaw.nl/pagexml",
                     "tf": "https://ns.tt.di.huc.knaw.nl/tf",
                     "tt": "https://ns.tt.di.huc.knaw.nl/tt",
                     "tei": "https://ns.tt.di.huc.knaw.nl/tei"
@@ -326,7 +329,7 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
         for from_ia_id, to_ia_id in target_links
     ]
     web_annotations.extend(target_annotations)
-    return web_annotations
+    return [cc.keys_to_camel_case(a) for a in web_annotations]
 
 
 def as_link_anno(from_ia_id: str, to_ia_id: str, purpose: str, ia_id_to_body_id: Dict[str, str]) -> Dict[str, str]:
