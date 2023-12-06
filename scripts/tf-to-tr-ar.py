@@ -13,11 +13,11 @@ import yaml
 from annorepo.client import AnnoRepoClient
 from github import Github
 from loguru import logger
+from provenance.client import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
 from textrepo.client import TextRepoClient
 from uri import URI
 
-from untanngle import mondriaan
-from provenance.client import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
+from untanngle import textfabric
 
 
 @dataclass
@@ -118,11 +118,12 @@ class WatmProcessor:
 
     def create_web_annotations(self, anno_file: str, text_file: str, tr_version_id: str) -> str:
         logger.info(f"converting {anno_file}")
-        web_annotations = mondriaan.convert(anno_file=anno_file,
-                                            text_file=text_file,
-                                            textrepo_url=self.config.textrepo_base_uri,
-                                            textrepo_file_version=tr_version_id,
-                                            text_in_body=self.config.text_in_annotation_body)
+        web_annotations = textfabric.convert(project='mondriaan',
+                                             anno_file=anno_file,
+                                             text_file=text_file,
+                                             textrepo_url=self.config.textrepo_base_uri,
+                                             textrepo_file_version=tr_version_id,
+                                             text_in_body=self.config.text_in_annotation_body)
         annotations_json = "out/mondriaan-web-annotations.json"
         logger.info(f"writing {annotations_json}")
         with open(annotations_json, "w") as f:
