@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "untanngle"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
-authors = ["Bram Buitendijk <bram.buitendijk@di.huc.knaw.nl>"]
+authors = ["Bram Buitendijk <bram.buitendijk@di.huc.knaw.nl>","Hennie Brugman <hennie.brugman@di.huc.knaw.nl>"]
 readme = "README.md"
 packages = [{ include = "untanngle" }]
 
