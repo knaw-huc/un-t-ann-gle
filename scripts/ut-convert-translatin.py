@@ -43,8 +43,7 @@ def main():
                                              anno_file=anno_file_path,
                                              text_file=text_file_path,
                                              textrepo_url=textrepo_url,
-                                             textrepo_file_version=tr_version_id,
-                                             text_in_body=True)
+                                             textrepo_file_version=tr_version_id)
         export_path = f"out/translatin-{base}-web_annotations.json"
         logger.info(f"=> {export_path}")
         with open(export_path, 'w') as f:
