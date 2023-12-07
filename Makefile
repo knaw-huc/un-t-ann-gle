@@ -29,6 +29,7 @@ republic-1706:
 
 .PHONY: translatin-untangle
 translatin-untangle:
+	(cd data/translatin && git pull)
 	poetry run ./scripts/ut-convert-translatin.py
 
 .PHONY: help
