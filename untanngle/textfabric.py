@@ -6,6 +6,8 @@ from typing import Dict, Any, List
 from icecream import ic
 from loguru import logger
 
+from untanngle import camel_casing as cc
+
 
 @dataclass
 class TFAnnotation:
@@ -46,6 +48,7 @@ class AnnotationTransformer:
                 "http://www.w3.org/ns/anno.jsonld",
                 {
                     "nlp": "https://ns.tt.di.huc.knaw.nl/nlp",
+                    "pagexml": "https://ns.tt.di.huc.knaw.nl/pagexml",
                     "tf": "https://ns.tt.di.huc.knaw.nl/tf",
                     "tt": "https://ns.tt.di.huc.knaw.nl/tt",
                     "tei": "https://ns.tt.di.huc.knaw.nl/tei"
@@ -79,7 +82,7 @@ class AnnotationTransformer:
         if self.text_in_body:
             anno["body"]["text"] = ia.text
         if ia.metadata:
-            anno["body"]["metadata"] = {f"{k}": v for k, v in ia.metadata.items()}
+            anno["body"]["metadata"] = {f"{k.replace('@', '_')}": v for k, v in ia.metadata.items()}
             if "type" not in anno["body"]["metadata"]:
                 anno["body"]["metadata"]["type"] = f"tt:{as_class_name(ia.type)}Metadata"
         if ia.type == "letter":
@@ -109,11 +112,10 @@ def convert(project: str,
             text_in_body: bool = False):
     tf_tokens = read_tf_tokens(text_file)
     tf_annotations = read_tf_annotations(anno_file)
-    web_annotations = build_web_annotations(project=project,
-                                            tf_annotations=tf_annotations, tokens=tf_tokens,
-                                            textrepo_url=textrepo_url, textrepo_file_version=textrepo_file_version,
-                                            text_in_body=text_in_body)
-    return web_annotations
+    return build_web_annotations(project=project,
+                                 tf_annotations=tf_annotations, tokens=tf_tokens,
+                                 textrepo_url=textrepo_url, textrepo_file_version=textrepo_file_version,
+                                 text_in_body=text_in_body)
 
 
 def read_tf_tokens(textfile):
@@ -127,8 +129,8 @@ def read_tf_annotations(anno_file):
     with open(anno_file) as f:
         content = json.load(f)
         for _id, properties in content.items():
-            tf_annotations.append(TFAnnotation(id=_id, type=properties[0], namespace=properties[1], body=properties[2],
-                                               target=properties[3]))
+            tf_annotations.append(TFAnnotation(id=_id, type=properties[0], namespace=properties[1],
+                                               body=properties[2], target=properties[3]))
     return tf_annotations
 
 
@@ -263,6 +265,8 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
                 element_anno_id = a.target
                 if element_anno_id in ia_idx:
                     (k, v) = a.body.split('=', 1)
+                    if k == 'id':
+                        k = 'tei:id'
                     ia_idx[element_anno_id].metadata[k] = v
                 # else:
                 #     ic(a)
@@ -326,10 +330,10 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
         for from_ia_id, to_ia_id in target_links
     ]
     web_annotations.extend(target_annotations)
-    return web_annotations
+    return [cc.keys_to_camel_case(a) for a in web_annotations]
 
 
-def as_link_anno(from_ia_id, to_ia_id, purpose, ia_id_to_body_id):
+def as_link_anno(from_ia_id: str, to_ia_id: str, purpose: str, ia_id_to_body_id: Dict[str, str]) -> Dict[str, str]:
     body_id = ia_id_to_body_id[from_ia_id]
     target_id = ia_id_to_body_id[to_ia_id]
     return {
