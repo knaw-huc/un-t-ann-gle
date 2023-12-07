@@ -252,9 +252,10 @@ class ScanPageAnnotation:
     image_range: List[List[Union[List[ImageCoords], str]]]
     region_links: List[str]
 
-    def as_web_annotation(self) -> dict:
+    def as_web_annotation(self, textrepo_base_url: str, version_id: str) -> dict:
         body = classifying_body(id=as_urn(self.scan_id), value='scanpage')
-        target = [resource_target(begin_anchor=self.begin_anchor, end_anchor=self.end_anchor),
+        target = [resource_target(textrepo_base_url=textrepo_base_url, version_id=version_id,
+                                  begin_anchor=self.begin_anchor, end_anchor=self.end_anchor),
                   image_target(iiif_url=self.iiif_url)]
         for _range in self.image_range:
             url = _range[0]
@@ -1030,6 +1031,14 @@ def canvas_target(canvas_url: str, xywh_list: List[str] = None, coords_list: Lis
     }
 
 
+def simple_image_target(iiif_url: str = "https://example.org/missing-iiif-url",
+                        xywh: str = "0,0,0,0") -> dict:
+    return {
+        "source": f'{iiif_url}/{xywh}/full/0/default.jpg',
+        "type": "Image"
+    }
+
+
 def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
                  image_coords_list: List[ImageCoords] = None,
                  coords_list: List[List[List[int]]] = None,
@@ -1262,3 +1271,11 @@ def force_iri_values(d: dict, id_fields: Set[str], prefix: str) -> dict:
         elif k in id_fields:
             d[k] = as_iri(v, prefix)
     return d
+
+
+def as_coords_list(x: int, y: int, w: int, h: int) -> List[List[List[int]]]:
+    return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h]]]
+
+
+def as_image_coords_list(x: int, y: int, w: int, h: int) -> List[ImageCoords]:
+    return [ImageCoords(left=x, right=x + w, top=y, bottom=y + h, height=h, width=w)]
