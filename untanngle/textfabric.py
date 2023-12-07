@@ -112,11 +112,10 @@ def convert(project: str,
             text_in_body: bool = False):
     tf_tokens = read_tf_tokens(text_file)
     tf_annotations = read_tf_annotations(anno_file)
-    web_annotations = build_web_annotations(project=project,
-                                            tf_annotations=tf_annotations, tokens=tf_tokens,
-                                            textrepo_url=textrepo_url, textrepo_file_version=textrepo_file_version,
-                                            text_in_body=text_in_body)
-    return web_annotations
+    return build_web_annotations(project=project,
+                                 tf_annotations=tf_annotations, tokens=tf_tokens,
+                                 textrepo_url=textrepo_url, textrepo_file_version=textrepo_file_version,
+                                 text_in_body=text_in_body)
 
 
 def read_tf_tokens(textfile):
@@ -266,6 +265,8 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
                 element_anno_id = a.target
                 if element_anno_id in ia_idx:
                     (k, v) = a.body.split('=', 1)
+                    if k == 'id':
+                        k = 'tei:id'
                     ia_idx[element_anno_id].metadata[k] = v
                 # else:
                 #     ic(a)

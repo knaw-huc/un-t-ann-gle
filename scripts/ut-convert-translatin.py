@@ -7,7 +7,7 @@ from loguru import logger
 from textrepo.client import TextRepoClient
 
 import untanngle.annotations as ANN
-from untanngle import textfabric
+import untanngle.textfabric as TF
 
 
 def upload_segmented_text(external_id: str, text_file_path: str, client: TextRepoClient) -> str:
@@ -28,14 +28,15 @@ def check_file_types(client: TextRepoClient):
 
 
 def with_image_targets(annotation: Dict[str, any], iiif_url: str = None) -> (Dict[str, any], str):
+    id_key = 'tei:id'
     metadata = annotation['body']['metadata']
     if "h" in metadata:
         x = int(metadata.pop('x', '0'))
         y = int(metadata.pop('y', '0'))
         w = int(metadata.pop('w', '0'))
         h = int(metadata.pop('h', '0'))
-        if 'id' in metadata:
-            _id = metadata['id']
+        if id_key in metadata:
+            _id = metadata[id_key]
             if _id.endswith('.jpg'):
                 iiif_url = f'https://iiif.huc.knaw.nl/translatin/{_id}'
         itargets = [
@@ -70,19 +71,22 @@ def main():
     trc = TextRepoClient(base_uri=textrepo_url, verbose=True)
     check_file_types(trc)
 
-    for dir in glob(f"{basedir}/*/"):
-        base = dir.split('/')[-2]
-        anno_file_path = f'{dir}anno.json'
-        text_file_path = f'{dir}text.json'
+    for _dir in glob(f"{basedir}/*/"):
+        base = _dir.split('/')[-2]
+        anno_file_path = f'{_dir}anno.json'
+        text_file_path = f'{_dir}text.json'
+
         logger.info(f"<= {text_file_path}")
         tr_version_id = upload_segmented_text(base, text_file_path, trc)
+
         logger.info(f"<= {anno_file_path}")
-        web_annotations = textfabric.convert(project=f'translatin:{base}',
-                                             anno_file=anno_file_path,
-                                             text_file=text_file_path,
-                                             textrepo_url=textrepo_url,
-                                             textrepo_file_version=tr_version_id)
+        web_annotations = TF.convert(project=f'translatin:{base}',
+                                     anno_file=anno_file_path,
+                                     text_file=text_file_path,
+                                     textrepo_url=textrepo_url,
+                                     textrepo_file_version=tr_version_id)
         translatin_web_annotations = add_image_targets(web_annotations)
+
         export_path = f"out/translatin-{base}-web_annotations.json"
         logger.info(f"=> {export_path}")
         with open(export_path, 'w') as f:
