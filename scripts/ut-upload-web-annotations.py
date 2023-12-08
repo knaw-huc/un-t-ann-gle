@@ -48,7 +48,7 @@ def upload(annorepo_base_url: str,
         ca.create_index(field='target.selector.start', index_type='ascending')
         ca.create_index(field='target.selector.end', index_type='ascending')
         for f in tier_metadata_fields:
-            ar.create_index(field=f'body.metadata.{f}', index_type='hashed')
+            ca.create_index(field=f'body.metadata.{f}', index_type='hashed')
     ca.set_anonymous_user_read_access(has_read_access=True)
 
     inputfiles = []
