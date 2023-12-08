@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import csv
 import json
 from glob import glob
 from typing import List, Dict
@@ -6,8 +7,9 @@ from typing import List, Dict
 from loguru import logger
 from textrepo.client import TextRepoClient
 
-import untanngle.annotations as ANN
-import untanngle.textfabric as TF
+import untanngle.annotations as ann
+import untanngle.camel_casing as cc
+import untanngle.textfabric as tf
 
 
 def upload_segmented_text(external_id: str, text_file_path: str, client: TextRepoClient) -> str:
@@ -40,14 +42,14 @@ def with_image_targets(annotation: Dict[str, any], iiif_url: str = None) -> (Dic
             if _id.endswith('.jpg'):
                 iiif_url = f'https://iiif.huc.knaw.nl/translatin/{_id}'
         itargets = [
-            ANN.simple_image_target(
+            ann.simple_image_target(
                 iiif_url=iiif_url,
                 xywh=f'{x},{y},{w},{h}'
             ),
-            ANN.image_target(
+            ann.image_target(
                 iiif_url=iiif_url,
-                image_coords_list=ANN.as_image_coords_list(x, y, w, h),
-                coords_list=ANN.as_coords_list(x, y, w, h)
+                image_coords_list=ann.as_image_coords_list(x, y, w, h),
+                coords_list=ann.as_coords_list(x, y, w, h)
             )
         ]
 
@@ -64,12 +66,51 @@ def add_image_targets(web_annotations: List[Dict[str, any]]) -> List[Dict[str, a
     return new_annotations
 
 
+def load_manifestation_metadata(manifestations_table_path: str) -> Dict[str, Dict[str, any]]:
+    idx = {}
+    with open(manifestations_table_path) as f:
+        for row in csv.DictReader(f, delimiter='\t'):
+            key = row.pop('origin')
+            idx[key] = row
+    return idx
+
+
+def add_manifestations_metadata(
+        web_annotations: List[Dict[str, any]],
+        manifestation_metadata_idx: Dict[str, Dict[str, any]]
+) -> List[Dict[str, any]]:
+    new_annotations = []
+    for a in web_annotations:
+        new_annotation = dict(a)
+        if a['body']['type'] == 'tf:Doc':
+            key = a['body']['metadata']['doc']
+            new_annotation['body']['type'] = 'tl:Manifestation'
+            manifest_metadata = manifestation_metadata_idx[key]
+            manifest_metadata.pop('id')
+            metadata = dict(a['body']['metadata'], **manifest_metadata)
+            metadata.pop('type')
+            new_annotation['body']['@context'] = {'tl': 'https://ns.tt.di.huc.knaw.nl/translatin'},
+            new_annotation['body']['metadata'] = {
+                'type': 'tl:ManifestationMetadata'
+            }
+            for k, v in metadata.items():
+                if v != '':
+                    new_key = f'tl:{k}'
+                    new_annotation['body']['metadata'][new_key] = v
+
+        new_annotations.append(cc.keys_to_camel_case(new_annotation))
+    return new_annotations
+
+
 @logger.catch()
 def main():
     basedir = 'data/translatin'
     textrepo_url = "https://translatin.tt.di.huc.knaw.nl/textrepo"
     trc = TextRepoClient(base_uri=textrepo_url, verbose=True)
     check_file_types(trc)
+
+    manifestations_table_path = 'data/translatin-tables/manifestations.tsv'
+    manifestation_metadata_idx = load_manifestation_metadata(manifestations_table_path)
 
     for _dir in glob(f"{basedir}/*/"):
         base = _dir.split('/')[-2]
@@ -80,14 +121,15 @@ def main():
         tr_version_id = upload_segmented_text(base, text_file_path, trc)
 
         logger.info(f"<= {anno_file_path}")
-        web_annotations = TF.convert(project=f'translatin:{base}',
+        web_annotations = tf.convert(project=f'translatin:{base}',
                                      anno_file=anno_file_path,
                                      text_file=text_file_path,
                                      textrepo_url=textrepo_url,
                                      textrepo_file_version=tr_version_id)
-        translatin_web_annotations = add_image_targets(web_annotations)
+        extended_annotations = add_image_targets(web_annotations)
+        translatin_web_annotations = add_manifestations_metadata(extended_annotations, manifestation_metadata_idx)
 
-        export_path = f"out/translatin-{base}-web_annotations.json"
+        export_path = f"out/translatin/web_annotations-{base}.json"
         logger.info(f"=> {export_path}")
         with open(export_path, 'w') as f:
             json.dump(translatin_web_annotations, fp=f, indent=4, ensure_ascii=False)
