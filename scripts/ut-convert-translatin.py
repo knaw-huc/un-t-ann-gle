@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import csv
 import json
+import urllib
 from glob import glob
 from typing import List, Dict
 
@@ -40,7 +41,8 @@ def with_image_targets(annotation: Dict[str, any], iiif_url: str = None) -> (Dic
         if id_key in metadata:
             _id = metadata[id_key]
             if _id.endswith('.jpg'):
-                iiif_url = f'https://iiif.huc.knaw.nl/translatin/{_id}'
+                encoded_id = urllib.parse.quote_plus(_id)
+                iiif_url = f'https://iiif.huc.knaw.nl/translatin/{encoded_id}'
         itargets = [
             ann.simple_image_target(
                 iiif_url=iiif_url,
