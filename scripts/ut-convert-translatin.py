@@ -93,7 +93,8 @@ def add_manifestations_metadata(
             metadata.pop('type')
             new_annotation['body']['@context'] = {'tl': 'https://ns.tt.di.huc.knaw.nl/translatin'},
             new_annotation['body']['metadata'] = {
-                'type': 'tl:ManifestationMetadata'
+                'type': 'tl:ManifestationMetadata',
+                'manifest': "https://images.diginfra.net/api/pim/imageset/67533019-4ca0-4b08-b87e-fd5590e7a077/manifest"
             }
             for k, v in metadata.items():
                 if v != '':
