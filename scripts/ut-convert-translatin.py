@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import csv
 import json
 import urllib
 from glob import glob
@@ -68,28 +67,24 @@ def add_image_targets(web_annotations: List[Dict[str, any]]) -> List[Dict[str, a
     return new_annotations
 
 
-def load_manifestation_metadata(manifestations_table_path: str) -> Dict[str, Dict[str, any]]:
-    idx = {}
-    with open(manifestations_table_path) as f:
-        for row in csv.DictReader(f, delimiter='\t'):
-            key = row.pop('origin')
-            idx[key] = row
-    return idx
+# def load_manifestation_metadata(manifestations_table_path: str) -> Dict[str, Dict[str, any]]:
+#     idx = {}
+#     with open(manifestations_table_path) as f:
+#         for row in csv.DictReader(f, delimiter='\t'):
+#             key = row.pop('origin')
+#             idx[key] = row
+#     return idx
 
 
-def add_manifestations_metadata(
-        web_annotations: List[Dict[str, any]],
-        manifestation_metadata_idx: Dict[str, Dict[str, any]]
+def update_manifestation_annotations(
+        web_annotations: List[Dict[str, any]]
 ) -> List[Dict[str, any]]:
     new_annotations = []
     for a in web_annotations:
         new_annotation = dict(a)
         if a['body']['type'] == 'tf:Doc':
-            key = a['body']['metadata']['doc']
             new_annotation['body']['type'] = 'tl:Manifestation'
-            manifest_metadata = manifestation_metadata_idx[key]
-            manifest_metadata.pop('id')
-            metadata = dict(a['body']['metadata'], **manifest_metadata)
+            metadata = dict(a['body']['metadata'])
             metadata.pop('type')
             new_annotation['body']['@context'] = {'tl': 'https://ns.tt.di.huc.knaw.nl/translatin'},
             new_annotation['body']['metadata'] = {
@@ -97,9 +92,10 @@ def add_manifestations_metadata(
                 'manifest': "https://images.diginfra.net/api/pim/imageset/67533019-4ca0-4b08-b87e-fd5590e7a077/manifest"
             }
             for k, v in metadata.items():
-                if v != '':
-                    new_key = f'tl:{k}'
-                    new_annotation['body']['metadata'][new_key] = v
+                if v == '':
+                    v = 'unspecified'
+                new_key = f'tl:{k}'
+                new_annotation['body']['metadata'][new_key] = v
 
         new_annotations.append(cc.keys_to_camel_case(new_annotation))
     return new_annotations
@@ -113,7 +109,7 @@ def main():
     check_file_types(trc)
 
     manifestations_table_path = 'data/translatin-tables/manifestations.tsv'
-    manifestation_metadata_idx = load_manifestation_metadata(manifestations_table_path)
+    # manifestation_metadata_idx = load_manifestation_metadata(manifestations_table_path)
 
     for _dir in glob(f"{basedir}/*/"):
         base = _dir.split('/')[-2]
@@ -130,7 +126,7 @@ def main():
                                      textrepo_url=textrepo_url,
                                      textrepo_file_version=tr_version_id)
         extended_annotations = add_image_targets(web_annotations)
-        translatin_web_annotations = add_manifestations_metadata(extended_annotations, manifestation_metadata_idx)
+        translatin_web_annotations = update_manifestation_annotations(extended_annotations)
 
         export_path = f"out/translatin/web_annotations-{base}.json"
         logger.info(f"=> {export_path}")
