@@ -136,38 +136,48 @@ class Annotation:
                     selection_view_target(textrepo_base_url, physical_version_id, self.begin_anchor, self.end_anchor))
 
         if hasattr(self, 'logical_start_anchor'):
-            target.append(
-                resource_target(textrepo_base_url, logical_version_id,
-                                self.logical_start_anchor, self.logical_end_anchor,
-                                target_type="LogicalText"))
-            target.append(
-                selection_view_target(textrepo_base_url, logical_version_id,
-                                      self.logical_start_anchor, self.logical_end_anchor,
-                                      target_type="LogicalText"))
-
-        if hasattr(self, 'logical_begin_char_offset'):
-            target.append(
-                resource_target(
-                    target_type="LogicalText",
-                    textrepo_base_url=textrepo_base_url,
-                    version_id=logical_version_id,
-                    begin_anchor=self.logical_start_anchor,
-                    begin_char_offset=self.logical_begin_char_offset,
-                    end_anchor=self.logical_end_anchor,
-                    end_char_offset=self.logical_end_char_offset - 1
+            if hasattr(self, 'logical_begin_char_offset'):
+                target.append(
+                    resource_target(
+                        target_type="LogicalText",
+                        textrepo_base_url=textrepo_base_url,
+                        version_id=logical_version_id,
+                        begin_anchor=self.logical_start_anchor,
+                        begin_char_offset=self.logical_begin_char_offset,
+                        end_anchor=self.logical_end_anchor,
+                        end_char_offset=self.logical_end_char_offset - 1
+                    )
                 )
-            )
-            target.append(
-                selection_view_target(
-                    target_type="LogicalText",
-                    textrepo_base_url=textrepo_base_url,
-                    version_id=logical_version_id,
-                    begin_anchor=self.logical_start_anchor,
-                    begin_char_offset=self.logical_begin_char_offset,
-                    end_anchor=self.logical_end_anchor,
-                    end_char_offset=self.logical_end_char_offset - 1,
+                target.append(
+                    selection_view_target(
+                        target_type="LogicalText",
+                        textrepo_base_url=textrepo_base_url,
+                        version_id=logical_version_id,
+                        begin_anchor=self.logical_start_anchor,
+                        begin_char_offset=self.logical_begin_char_offset,
+                        end_anchor=self.logical_end_anchor,
+                        end_char_offset=self.logical_end_char_offset - 1,
+                    )
                 )
-            )
+            else:
+                target.append(
+                    resource_target(
+                        target_type="LogicalText",
+                        textrepo_base_url=textrepo_base_url,
+                        version_id=logical_version_id,
+                        begin_anchor=self.logical_start_anchor,
+                        end_anchor=self.logical_end_anchor
+                    )
+                )
+                target.append(
+                    selection_view_target(
+                        target_type="LogicalText",
+                        textrepo_base_url=textrepo_base_url,
+                        version_id=logical_version_id,
+                        begin_anchor=self.logical_start_anchor,
+                        end_anchor=self.logical_end_anchor
+                    )
+                )
 
 
 @dataclass_json(undefined=Undefined.RAISE)
