@@ -43,12 +43,14 @@ echo "starting pipeline for $year"
 
 if [[ $startstage -le 1 ]]; then
   echo "${txtylw}[1/7] harvesting data from CAF${txtwht}"
+  echo "poetry run scripts/caf-harvest.py $year"
   poetry run scripts/caf-harvest.py $year
   echo
 fi
 
 if [[ $startstage -le 2 ]]; then
   echo "${txtylw}[2/7] untanngling caf harvest${txtwht}"
+  echo "poetry run scripts/ut-untanngle-republic.py -d $harvestdir $year"
   poetry run scripts/ut-untanngle-republic.py -d $harvestdir $year
   echo
 fi
@@ -85,12 +87,14 @@ fi
 
 if [[ $startstage -le 6 ]]; then
   echo "${txtylw}[6/7] uploading web annotations to annorepo server${txtwht}"
+  echo "poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic-$date -k root $harvestdir/$year/web_annotations.json"
   poetry run scripts/ut-upload-web-annotations.py -a $ANNO_URL -c republic-$date -k root $harvestdir/$year/web_annotations.json
   echo
 fi
 
 if [[ $startstage -le 7 ]]; then
   echo "${txtylw}[7/7] uploading provenance for web annotations${txtwht}"
+  echo "poetry run scripts/rp-upload-annotation-provenance.py $year"
   poetry run scripts/rp-upload-annotation-provenance.py $year
   echo
 fi
