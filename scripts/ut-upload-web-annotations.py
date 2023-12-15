@@ -86,13 +86,13 @@ def upload(annorepo_base_url: str,
                 print(f"    chunk ({p + 1}/{number_of_chunks})", end='\r')
                 annotation_ids.extend(ar.add_annotations(container_id, chunk))
             print()
-            # out_path = "/".join(inputfile.split("/")[:-1])
-            # outfile = f"{out_path}/annotation_ids.json"
-            # print(f"=> {outfile}")
-            # annotation_id_mapping = {a["id"]: f"{annorepo_base_url}/w3c/{b['containerName']}/{b['annotationName']}"
-            #                          for a, b in zip(annotation_list, annotation_ids)}
-            # with open(outfile, "w") as f:
-            #     json.dump(annotation_id_mapping, fp=f)
+            out_path = "/".join(inputfile.split("/")[:-1])
+            outfile = f"{out_path}/annotation_ids.json"
+            print(f"=> {outfile}")
+            annotation_id_mapping = {a["id"]: f"{annorepo_base_url}/w3c/{b['containerName']}/{b['annotationName']}"
+                                     for a, b in zip(annotation_list, annotation_ids)}
+            with open(outfile, "w") as f:
+                json.dump(annotation_id_mapping, fp=f)
             bar.update(i)
     print("done!")
 
