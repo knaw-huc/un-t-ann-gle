@@ -12,7 +12,6 @@ from functools import cache
 from typing import List, Dict, Any
 
 from alive_progress import alive_bar
-from icecream import ic
 from loguru import logger
 from stam import AnnotationStore, Selector, Offset, TextSelectionOperator
 
@@ -275,7 +274,12 @@ def get_resolution_files(resolutions_folder: str):
 
 def res_traverse(node, resource_id: str, provenance_source: str):
     # find the list that represents the children, each child is a dict, assume first list is the correct one
-    node_label = node['type'][-1]
+    types = node['type']
+    # ignore 'reviewed'
+    reviewed_type = 'reviewed'
+    if reviewed_type in types:
+        types.remove(reviewed_type)
+    node_label = types[-1]
     config = untanngle_config[AnnTypes(node_label)]
 
     key_of_children = config['child_key']
@@ -359,6 +363,8 @@ def get_res_root_element(file):
 def collect_attendant_info(span, paras):
     result = None
 
+    pattern = span['pattern'].strip()
+    # ic(span['pattern'], span['offset'], span['end'], [(p['id'], p['text']) for p in paras])
     att_begin = span['offset']
     att_end = span['end']
     if att_begin < 0:
@@ -366,7 +372,7 @@ def collect_attendant_info(span, paras):
         return result
 
     if att_end < 0:
-        logging.warning(f"span {span}: span['end] ({span['end']}) < 0")
+        logging.warning(f"span {span}: span['end'] ({span['end']}) < 0")
         return result
 
     char_ptr = 0
@@ -374,31 +380,49 @@ def collect_attendant_info(span, paras):
     line_ids_not_in_index = set()
     begin_anchor = 0
     begin_char_offset = 0
+    start_paragraph_id = None
+    relevant_paragraph_texts = []
 
     for p in paras:
+        # ic(p['text'])
         if result is not None:  # bit ugly, to break out of both loops when result is reached
             break
         char_ptr += last_end
 
         for lr in p['line_ranges']:
             last_end = lr['end']
-            line_begin = lr['start'] + char_ptr
+            line_begin = lr['start'] + char_ptr - 1
             line_end = lr['end'] + char_ptr
 
             if lr['line_id'] in line_ids_to_anchors:
                 anchor = line_ids_to_anchors[lr['line_id']]
+                # ic(anchor)
+                # ic(line_begin, att_begin, line_end)
                 if line_begin <= att_begin < line_end:
                     begin_anchor = anchor  # TODO: find out why begin_anchor == 0 for some attendants
                     begin_char_offset = att_begin - lr['start']
+                    start_paragraph_id = p['id']
+                # ic(start_paragraph_id)
+                if start_paragraph_id:
+                    relevant_paragraph_texts.append(p['text'])
                 if line_begin <= att_end <= line_end:
                     end_anchor = anchor
                     end_char_offset = att_end - lr['start']
+                    par_text = '\n'.join(relevant_paragraph_texts)
 
+                    # p_start_offset = p['metadata']['start_offset'] - (
+                    #             p['metadata']['paragraph_index'] * 2)  # because of double(?) space between paragraphs
+                    # ic(par_text, pattern)
+                    p_start_offset = par_text.index(pattern)
                     result = {
                         'begin_anchor': begin_anchor,
-                        'end_anchor': end_anchor,
                         'begin_char_offset': begin_char_offset,
-                        'end_char_offset': end_char_offset
+                        'end_anchor': end_anchor,
+                        'end_char_offset': end_char_offset,
+                        'start_paragraph_id': start_paragraph_id,
+                        'end_paragraph_id': p['id'],
+                        'paragraph_start_offset': p_start_offset,
+                        'paragraph_end_offset': p_start_offset + len(pattern)
                     }
                     logging.debug(
                         f"result! for: l_begin: {line_begin}, l_end: {line_end}, att_begin: {att_begin}, att_end: {att_end}")
@@ -442,13 +466,13 @@ def create_attendants_for_attlist(attlist, session_id, resource_id, provenance_s
             if a_info is None:  # span not matching with text of paras
                 logging.error(f"span {span}: does not match for session {session_id}")
             else:
-                attendant['begin_anchor'] = a_info['begin_anchor']
-                attendant['end_anchor'] = a_info['end_anchor']
-                attendant['begin_char_offset'] = a_info['begin_char_offset']
-                attendant['end_char_offset'] = a_info['end_char_offset']
+                for key in ['begin_anchor', 'begin_char_offset', 'end_anchor', 'end_char_offset',
+                            'start_paragraph_id', 'paragraph_start_offset', 'end_paragraph_id', 'paragraph_end_offset']:
+                    attendant[key] = a_info[key]
 
                 # TODO: this is a band-aid solution for attendant annotations with too many targets; fix it earlier!
                 if attendant['begin_anchor'] == 0:
+                    logger.warning(f"attendant['begin_anchor'] == 0 for {attendant['id']}")
                     attendant['begin_anchor'] = attendant['end_anchor']
 
                 attendant_annots.append(attendant)
@@ -644,7 +668,6 @@ def traverse_session_files(sessions_folder, resource_id):
         traverse(source_data, AnnTypes.SESSION, text_array, annotation_array, resource_id, provenance_source)
 
         # properly concatenate annotation info taking ongoing line indexes into account
-        paragraph_array = []
         for ai in annotation_array:
             ai['begin_anchor'] += all_textlines.len()
             ai['end_anchor'] += all_textlines.len()
