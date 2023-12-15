@@ -360,7 +360,7 @@ def get_res_root_element(file):
     return resolution_data['hits']['hits']
 
 
-def collect_attendant_info(span, paras):
+def collect_attendant_info(span, paras, paragraph_anchor: Dict[str, int]):
     result = None
 
     pattern = span['pattern'].strip()
@@ -414,16 +414,27 @@ def collect_attendant_info(span, paras):
                     #             p['metadata']['paragraph_index'] * 2)  # because of double(?) space between paragraphs
                     # ic(par_text, pattern)
                     p_start_offset = par_text.index(pattern)
+                    if '\n' in pattern:
+                        parts = pattern.split('\n')
+                        p_end_offset = len(parts[-1])
+                    else:
+                        p_end_offset = p_start_offset + len(pattern)
                     result = {
                         'begin_anchor': begin_anchor,
                         'begin_char_offset': begin_char_offset,
                         'end_anchor': end_anchor,
                         'end_char_offset': end_char_offset,
-                        'start_paragraph_id': start_paragraph_id,
-                        'end_paragraph_id': p['id'],
-                        'paragraph_start_offset': p_start_offset,
-                        'paragraph_end_offset': p_start_offset + len(pattern)
+                        'logical_start_anchor': paragraph_anchor[start_paragraph_id],
+                        'logical_end_anchor': paragraph_anchor[p['id']],
+                        'logical_begin_char_offset': p_start_offset,
+                        'logical_end_char_offset': p_end_offset
                     }
+                    if (result['logical_start_anchor'] == result['logical_end_anchor']) and (
+                            result['logical_begin_char_offset'] >= result['logical_end_char_offset']):
+                        logging.error(
+                            f"logical_begin_char_offset ({result['logical_begin_char_offset']}) >="
+                            f" logical_end_char_offset ({result['logical_end_char_offset']}) ")
+                        logging.info(relevant_paragraph_texts)
                     logging.debug(
                         f"result! for: l_begin: {line_begin}, l_end: {line_end}, att_begin: {att_begin}, att_end: {att_end}")
                     break
@@ -440,7 +451,8 @@ def collect_attendant_info(span, paras):
     return result
 
 
-def create_attendants_for_attlist(attlist, session_id, resource_id, provenance_source: str):
+def create_attendants_for_attlist(attlist, session_id, resource_id, provenance_source: str,
+                                  paragraph_anchor: Dict[str, int]):
     attendant_annots = []
 
     spans = attlist['attendance_spans']
@@ -462,12 +474,14 @@ def create_attendants_for_attlist(attlist, session_id, resource_id, provenance_s
                 'metadata': span
             }
 
-            a_info = collect_attendant_info(span, paras)
+            a_info = collect_attendant_info(span, paras, paragraph_anchor)
             if a_info is None:  # span not matching with text of paras
                 logging.error(f"span {span}: does not match for session {session_id}")
             else:
-                for key in ['begin_anchor', 'begin_char_offset', 'end_anchor', 'end_char_offset',
-                            'start_paragraph_id', 'paragraph_start_offset', 'end_paragraph_id', 'paragraph_end_offset']:
+                for key in ['begin_anchor', 'begin_char_offset',
+                            'end_anchor', 'end_char_offset',
+                            'logical_start_anchor', 'logical_begin_char_offset',
+                            'logical_end_anchor', 'logical_end_char_offset']:
                     attendant[key] = a_info[key]
 
                 # TODO: this is a band-aid solution for attendant annotations with too many targets; fix it earlier!
@@ -609,8 +623,10 @@ def untanngle_year(year: int, data_dir: str):
     logging.info(f"check_for_missing_attendance_lists_in_session_annotations({resource_id})")
     check_for_missing_attendance_lists_in_session_annotations(resource_id)
 
+    paragraph_anchor_idx = extract_paragraph_text(datadir, year)
+
     logging.info(f"add_attendant_annotations({resource_id})")
-    add_attendant_annotations(resource_id)
+    add_attendant_annotations(resource_id, paragraph_anchor_idx)
 
     check_annotations(all_annotations)
 
@@ -634,24 +650,26 @@ def untanngle_year(year: int, data_dir: str):
     logging.info(f"fix_scan_annotations({resource_id})")
     fix_scan_annotations(resource_id)
 
-    extract_paragraph_text(datadir, year)
-
     # logging.info("add_provenance()")
     # add_provenance()
 
     store_annotations(all_annotations, f'{datadir}/{annotation_store}')
 
 
-def extract_paragraph_text(datadir, year):
+def extract_paragraph_text(datadir, year) -> Dict[str, int]:
+    paragraph_anchor_idx = {}
     logical_text_store = f'logical-textstore-{year}.json'
     all_paragraph_texts = []
     paragraph_annotations = [a for a in all_annotations if
                              a['type'] in [AnnTypes.RESOLUTION_REVIEW.value, AnnTypes.PARAGRAPH.value]]
     for pa in paragraph_annotations:
-        pa['logical_start_anchor'] = len(all_paragraph_texts)
-        pa['logical_end_anchor'] = pa['logical_start_anchor']
+        anchor = len(all_paragraph_texts)
+        paragraph_anchor_idx[pa['id']] = anchor
+        pa['logical_start_anchor'] = anchor
+        pa['logical_end_anchor'] = anchor
         all_paragraph_texts.append(pa['text'])
     store_paragraph_text(all_paragraph_texts, f'{datadir}/{logical_text_store}')
+    return paragraph_anchor_idx
 
 
 def traverse_session_files(sessions_folder, resource_id):
@@ -738,11 +756,11 @@ def check_for_missing_attendance_lists_in_session_annotations(resource_id):
             logging.warning(f"session {sess['id']} has no attendance_list")
 
 
-def add_attendant_annotations(resource_id):
+def add_attendant_annotations(resource_id: str, paragraph_anchor: Dict[str, int]):
     attendant_annotations = []
     for al in asearch.get_annotations_of_type('attendance_list', all_annotations, resource_id):
         session_id = al['metadata']['session_id']
-        atts = create_attendants_for_attlist(al, session_id, resource_id, al['provenance_source'])
+        atts = create_attendants_for_attlist(al, session_id, resource_id, al['provenance_source'], paragraph_anchor)
         attendant_annotations.extend(atts)
     all_annotations.extend(attendant_annotations)
 

@@ -27,6 +27,10 @@ install:
 republic-1706:
 	./scripts/ut-run-republic-pipeline-for-year.sh 1706 conf/republic-local.env
 
+.PHONY: republic-1796
+republic-1796:
+	./scripts/ut-run-republic-pipeline-for-year.sh 1796 conf/republic-local.env
+
 .PHONY: translatin-untangle
 translatin-untangle:
 	(cd data/translatin && git pull)
@@ -41,6 +45,7 @@ help:
 	@echo
 	@echo "  republic-annotations   - to generate the republic web-annotations"
 	@echo "  republic-1706          - to run the republic untangle pipeline for 1706"
+	@echo "  republic-1796          - to run the republic untangle pipeline for 1796"
 	@echo
 	@echo "  mondriaan-annotations  - to generate the mondriaan web-annotations"
 	@echo

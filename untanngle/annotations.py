@@ -13,7 +13,7 @@ from rfc3987 import parse
 from untanngle.camel_casing import keys_to_camel_case, types_to_camel_case
 
 REPUBLIC_CONTEXT = [
-    "https://brambg.github.io/ns/republic.jsonld",
+    "https://knaw-huc.github.io/ns/republic.jsonld",
     {"rp": "https://humanities.knaw.nl/def/republic/"}
 ]
 
@@ -144,6 +144,30 @@ class Annotation:
                 selection_view_target(textrepo_base_url, logical_version_id,
                                       self.logical_start_anchor, self.logical_end_anchor,
                                       target_type="LogicalText"))
+
+        if hasattr(self, 'logical_begin_char_offset'):
+            target.append(
+                resource_target(
+                    target_type="LogicalText",
+                    textrepo_base_url=textrepo_base_url,
+                    version_id=logical_version_id,
+                    begin_anchor=self.logical_start_anchor,
+                    begin_char_offset=self.logical_begin_char_offset,
+                    end_anchor=self.logical_end_anchor,
+                    end_char_offset=self.logical_end_char_offset - 1
+                )
+            )
+            target.append(
+                selection_view_target(
+                    target_type="LogicalText",
+                    textrepo_base_url=textrepo_base_url,
+                    version_id=logical_version_id,
+                    begin_anchor=self.logical_start_anchor,
+                    begin_char_offset=self.logical_begin_char_offset,
+                    end_anchor=self.logical_end_anchor,
+                    end_char_offset=self.logical_end_char_offset - 1,
+                )
+            )
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -569,7 +593,7 @@ class SessionAnnotation(Annotation):
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class AttendantsListMetadata:
-    # id: str
+    id: str
     type: str
     inventory_num: int
     source_id: str
@@ -682,6 +706,10 @@ class AttendantAnnotation(Annotation):
     begin_char_offset: int
     end_char_offset: int
     region_links: List[str]
+    logical_start_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
 
     # provenance: Provenance
 
