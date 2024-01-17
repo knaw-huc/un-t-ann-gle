@@ -260,7 +260,7 @@ class VolumeAnnotation:
     logical_begin_anchor: int
     logical_end_anchor: int
 
-    def as_web_annotation(self, textrepo_base_url: str, version_id: str) -> dict:
+    def as_web_annotation(self, textrepo_base_url: str, version_id: str, logical_version_id: str) -> dict:
         body = {
             "@context": REPUBLIC_CONTEXT,
             "id": as_urn(f"volume:{self.title}"),
@@ -278,11 +278,11 @@ class VolumeAnnotation:
                 textrepo_base_url=textrepo_base_url, version_id=version_id,
                 begin_anchor=self.begin_anchor, end_anchor=self.end_anchor),
             resource_target(
-                textrepo_base_url=textrepo_base_url, version_id=version_id,
+                textrepo_base_url=textrepo_base_url, version_id=logical_version_id,
                 begin_anchor=self.logical_begin_anchor, end_anchor=self.logical_end_anchor,
                 target_type="LogicalText"),
             selection_view_target(
-                textrepo_base_url=textrepo_base_url, version_id=version_id,
+                textrepo_base_url=textrepo_base_url, version_id=logical_version_id,
                 begin_anchor=self.logical_begin_anchor, end_anchor=self.logical_end_anchor,
                 target_type="LogicalText")
         ]
