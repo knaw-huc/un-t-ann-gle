@@ -25,7 +25,7 @@ class IAnnotation:
     type: str = ""
     tf_node: int = 0
     text: str = ""
-    start_anchor: int = 0
+    begin_anchor: int = 0
     end_anchor: int = 0
     metadata: Dict[str, any] = field(default_factory=dict)
 
@@ -68,13 +68,13 @@ class AnnotationTransformer:
                     "type": "Text",
                     "selector": {
                         "type": "tt:TextAnchorSelector",
-                        "start": ia.start_anchor,
+                        "start": ia.begin_anchor,
                         "end": ia.end_anchor
                     }
                 },
                 {
                     "source": (
-                        f"{self.textrepo_url}/view/versions/{self.textrepo_version}/segments/index/{ia.start_anchor}/{ia.end_anchor}"),
+                        f"{self.textrepo_url}/view/versions/{self.textrepo_version}/segments/index/{ia.begin_anchor}/{ia.end_anchor}"),
                     "type": "Text"
                 }
             ]
@@ -129,8 +129,10 @@ def read_tf_annotations(anno_file):
     with open(anno_file) as f:
         content = json.load(f)
         for _id, properties in content.items():
-            tf_annotations.append(TFAnnotation(id=_id, type=properties[0], namespace=properties[1],
-                                               body=properties[2], target=properties[3]))
+            tf_annotations.append(
+                TFAnnotation(id=_id, type=properties[0], namespace=properties[1],
+                             body=properties[2], target=properties[3])
+            )
     return tf_annotations
 
 
@@ -142,7 +144,7 @@ def modify_pb_annotations(ia: List[IAnnotation], tokens) -> List[IAnnotation]:
             pb_end_anchor = a.end_anchor
             last_page_in_div = None
         elif a.type == "pb":
-            if pb_end_anchor > a.start_anchor:
+            if pb_end_anchor > a.begin_anchor:
                 a.end_anchor = pb_end_anchor
             else:
                 logger.warning(f"<pb> outside of <div>: {a}")
@@ -150,7 +152,7 @@ def modify_pb_annotations(ia: List[IAnnotation], tokens) -> List[IAnnotation]:
                 last_page_in_div = i
             else:
                 prev = ia[last_page_in_div]
-                prev.end_anchor = a.start_anchor - 1
+                prev.end_anchor = a.begin_anchor - 1
                 prev.text = text_of(prev, tokens)
             a.type = 'page'
             a.text = text_of(a, tokens)
@@ -158,7 +160,7 @@ def modify_pb_annotations(ia: List[IAnnotation], tokens) -> List[IAnnotation]:
 
 
 def text_of(a, tokens):
-    return "".join(tokens[a.start_anchor:a.end_anchor + 1])
+    return "".join(tokens[a.begin_anchor:a.end_anchor + 1])
 
 
 def is_div_with_pb(a):
@@ -168,7 +170,7 @@ def is_div_with_pb(a):
 
 
 def sanity_check(ia: List[IAnnotation]):
-    annotations_with_invalid_anchor_range = [a for a in ia if a.start_anchor > a.end_anchor]
+    annotations_with_invalid_anchor_range = [a for a in ia if a.begin_anchor > a.end_anchor]
     if annotations_with_invalid_anchor_range:
         logger.error("There are annotations with invalid anchor range:")
         ic(annotations_with_invalid_anchor_range)
@@ -180,8 +182,8 @@ def sanity_check(ia: List[IAnnotation]):
             anno2 = letter_annotations[j]
             if annotations_overlap(anno1, anno2):
                 logger.error("Overlapping Letter annotations: ")
-                ic(anno1.id, anno1.metadata, anno1.start_anchor, anno1.end_anchor)
-                ic(anno2.id, anno2.metadata, anno2.start_anchor, anno2.end_anchor)
+                ic(anno1.id, anno1.metadata, anno1.begin_anchor, anno1.end_anchor)
+                ic(anno2.id, anno2.metadata, anno2.begin_anchor, anno2.end_anchor)
 
     sentence_annotations = [a for a in ia if a.type == 'letter']
     for i in range(len(sentence_annotations)):
@@ -190,8 +192,8 @@ def sanity_check(ia: List[IAnnotation]):
             anno2 = letter_annotations[j]
             if annotations_overlap(anno1, anno2):
                 logger.error("Overlapping Letter annotations: ")
-                ic(anno1.id, anno1.metadata, anno1.start_anchor, anno1.end_anchor)
-                ic(anno2.id, anno2.metadata, anno2.start_anchor, anno2.end_anchor)
+                ic(anno1.id, anno1.metadata, anno1.begin_anchor, anno1.end_anchor)
+                ic(anno2.id, anno2.metadata, anno2.begin_anchor, anno2.end_anchor)
 
     note_annotations_without_lang = [a for a in ia if a.type == 'note' and 'lang' not in a.metadata]
     if note_annotations_without_lang:
@@ -200,7 +202,7 @@ def sanity_check(ia: List[IAnnotation]):
 
 
 def annotations_overlap(anno1, anno2):
-    return (anno1.end_anchor - 1) >= anno2.start_anchor
+    return (anno1.end_anchor - 1) >= anno2.begin_anchor
 
 
 def get_parent_lang(a: IAnnotation, node_parents: Dict[str, str], ia_idx: Dict[str, IAnnotation]) -> str:
@@ -241,11 +243,11 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
             case 'element':
                 target = a.target
                 parts = target.split('-')
-                start_anchor = int(parts[0])
+                begin_anchor = int(parts[0])
                 end_anchor = int(parts[1])
-                text = "".join(tokens[start_anchor:end_anchor])
+                text = "".join(tokens[begin_anchor:end_anchor])
                 ia = IAnnotation(id=a.id, namespace=a.namespace, type=a.body, text=text,
-                                 start_anchor=start_anchor,
+                                 begin_anchor=begin_anchor,
                                  end_anchor=end_anchor - 1)
                 ia_idx[a.id] = ia
             case 'node':
@@ -303,7 +305,7 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
                 logger.warning(f"unhandled type: {a.type}")
 
     ia = sorted(ia_idx.values(),
-                key=lambda anno: (anno.start_anchor * 100_000 + (1000 - anno.end_anchor)) * 100_000 + anno.tf_node)
+                key=lambda anno: (anno.begin_anchor * 100_000 + (1000 - anno.end_anchor)) * 100_000 + anno.tf_node)
 
     # ia = modify_pb_annotations(ia, tokens)
     # ic(node_parents)

@@ -5,6 +5,7 @@ import glob
 import json
 import logging
 import re
+import sys
 import time
 import uuid
 from enum import Enum
@@ -424,12 +425,12 @@ def collect_attendant_info(span, paras, paragraph_anchor: Dict[str, int]):
                         'begin_char_offset': begin_char_offset,
                         'end_anchor': end_anchor,
                         'end_char_offset': end_char_offset,
-                        'logical_start_anchor': paragraph_anchor[start_paragraph_id],
+                        'logical_begin_anchor': paragraph_anchor[start_paragraph_id],
                         'logical_end_anchor': paragraph_anchor[p['id']],
                         'logical_begin_char_offset': p_start_offset,
                         'logical_end_char_offset': p_end_offset
                     }
-                    if (result['logical_start_anchor'] == result['logical_end_anchor']) and (
+                    if (result['logical_begin_anchor'] == result['logical_end_anchor']) and (
                             result['logical_begin_char_offset'] >= result['logical_end_char_offset']):
                         logging.error(
                             f"logical_begin_char_offset ({result['logical_begin_char_offset']}) >="
@@ -480,7 +481,7 @@ def create_attendants_for_attlist(attlist, session_id, resource_id, provenance_s
             else:
                 for key in ['begin_anchor', 'begin_char_offset',
                             'end_anchor', 'end_char_offset',
-                            'logical_start_anchor', 'logical_begin_char_offset',
+                            'logical_begin_anchor', 'logical_begin_char_offset',
                             'logical_end_anchor', 'logical_end_char_offset']:
                     attendant[key] = a_info[key]
 
@@ -665,7 +666,7 @@ def extract_paragraph_text(datadir, year) -> Dict[str, int]:
     for pa in paragraph_annotations:
         anchor = len(all_paragraph_texts)
         paragraph_anchor_idx[pa['id']] = anchor
-        pa['logical_start_anchor'] = anchor
+        pa['logical_begin_anchor'] = anchor
         pa['logical_end_anchor'] = anchor
         all_paragraph_texts.append(pa['text'])
     store_paragraph_text(all_paragraph_texts, f'{datadir}/{logical_text_store}')
@@ -762,7 +763,27 @@ def add_attendant_annotations(resource_id: str, paragraph_anchor: Dict[str, int]
         session_id = al['metadata']['session_id']
         atts = create_attendants_for_attlist(al, session_id, resource_id, al['provenance_source'], paragraph_anchor)
         attendant_annotations.extend(atts)
+        set_logical_text_offset(al, atts)
+
     all_annotations.extend(attendant_annotations)
+
+
+def set_logical_text_offset(al, atts):
+    min_logical_position = (sys.maxsize, sys.maxsize)
+    max_logical_position = (0, 0)
+    for att in atts:
+        if (att['logical_begin_anchor'] < min_logical_position[0] or
+                (att['logical_begin_anchor'] == min_logical_position[0] and
+                 att['logical_begin_char_offset'] < min_logical_position[1])):
+            min_logical_position = (att['logical_begin_anchor'], att['logical_begin_char_offset'])
+        if (att['logical_end_anchor'] > max_logical_position[0] or
+                (att['logical_end_anchor'] == max_logical_position[0] and
+                 att['logical_end_char_offset'] > max_logical_position[1])):
+            max_logical_position = (att['logical_end_anchor'], att['logical_end_char_offset'])
+    al['logical_begin_anchor'] = min_logical_position[0]
+    al['logical_begin_char_offset'] = min_logical_position[1]
+    al['logical_end_anchor'] = max_logical_position[0]
+    al['logical_end_char_offset'] = max_logical_position[1]
 
 
 def add_region_links_to_page_annotations(resource_id):

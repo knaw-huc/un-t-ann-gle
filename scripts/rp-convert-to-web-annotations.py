@@ -137,12 +137,14 @@ def get_manifest_url(inventory_id: str) -> str:
 
 
 def create_volume_annotation(begin_anchor: int, end_anchor: int,
+                             logical_begin_anchor: int, logical_end_anchor: int,
                              inventory_id: str,
                              textrepo_base_url: str,
                              version_id: str):
     manifest_url = get_manifest_url(inventory_id)
     va = VolumeAnnotation(title=inventory_id,
                           begin_anchor=begin_anchor, end_anchor=end_anchor,
+                          logical_begin_anchor=logical_begin_anchor, logical_end_anchor=logical_end_anchor,
                           manifest_url=manifest_url)
     return va.as_web_annotation(textrepo_base_url=textrepo_base_url, version_id=version_id)
 
@@ -167,7 +169,17 @@ def convert(annotation_store_path: str, textrepo_url: str,
             a["begin_anchor"] for a in annotations if "inventory_id" in a and a["inventory_id"] == inventory_id)
         end_anchor = max(
             a["end_anchor"] for a in annotations if "inventory_id" in a and a["inventory_id"] == inventory_id)
+        logical_begin_anchor = min(
+            a["logical_begin_anchor"]
+            for a in annotations
+            if "inventory_id" in a and a["inventory_id"] == inventory_id and "logical_begin_anchor" in a)
+        logical_end_anchor = min(
+            a["logical_end_anchor"]
+            for a in annotations
+            if "inventory_id" in a and a["inventory_id"] == inventory_id and "logical_end_anchor" in a)
         volume_annotation = create_volume_annotation(begin_anchor=begin_anchor, end_anchor=end_anchor,
+                                                     logical_begin_anchor=logical_begin_anchor,
+                                                     logical_end_anchor=logical_end_anchor,
                                                      inventory_id=inventory_id,
                                                      textrepo_base_url=textrepo_url,
                                                      version_id=physical_version_id)

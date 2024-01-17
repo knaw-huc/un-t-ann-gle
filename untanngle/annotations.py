@@ -135,14 +135,14 @@ class Annotation:
                 target.append(
                     selection_view_target(textrepo_base_url, physical_version_id, self.begin_anchor, self.end_anchor))
 
-        if hasattr(self, 'logical_start_anchor'):
+        if hasattr(self, 'logical_begin_anchor'):
             if hasattr(self, 'logical_begin_char_offset'):
                 target.append(
                     resource_target(
                         target_type="LogicalText",
                         textrepo_base_url=textrepo_base_url,
                         version_id=logical_version_id,
-                        begin_anchor=self.logical_start_anchor,
+                        begin_anchor=self.logical_begin_anchor,
                         begin_char_offset=self.logical_begin_char_offset,
                         end_anchor=self.logical_end_anchor,
                         end_char_offset=self.logical_end_char_offset - 1
@@ -153,7 +153,7 @@ class Annotation:
                         target_type="LogicalText",
                         textrepo_base_url=textrepo_base_url,
                         version_id=logical_version_id,
-                        begin_anchor=self.logical_start_anchor,
+                        begin_anchor=self.logical_begin_anchor,
                         begin_char_offset=self.logical_begin_char_offset,
                         end_anchor=self.logical_end_anchor,
                         end_char_offset=self.logical_end_char_offset - 1,
@@ -165,7 +165,7 @@ class Annotation:
                         target_type="LogicalText",
                         textrepo_base_url=textrepo_base_url,
                         version_id=logical_version_id,
-                        begin_anchor=self.logical_start_anchor,
+                        begin_anchor=self.logical_begin_anchor,
                         end_anchor=self.logical_end_anchor
                     )
                 )
@@ -174,7 +174,7 @@ class Annotation:
                         target_type="LogicalText",
                         textrepo_base_url=textrepo_base_url,
                         version_id=logical_version_id,
-                        begin_anchor=self.logical_start_anchor,
+                        begin_anchor=self.logical_begin_anchor,
                         end_anchor=self.logical_end_anchor
                     )
                 )
@@ -257,6 +257,8 @@ class VolumeAnnotation:
     manifest_url: str
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_end_anchor: int
 
     def as_web_annotation(self, textrepo_base_url: str, version_id: str) -> dict:
         body = {
@@ -268,8 +270,22 @@ class VolumeAnnotation:
                 "volume": self.title,
                 "manifest": self.manifest_url
             }}
-        target = [resource_target(textrepo_base_url=textrepo_base_url, version_id=version_id,
-                                  begin_anchor=self.begin_anchor, end_anchor=self.end_anchor)]
+        target = [
+            resource_target(
+                textrepo_base_url=textrepo_base_url, version_id=version_id,
+                begin_anchor=self.begin_anchor, end_anchor=self.end_anchor),
+            selection_view_target(
+                textrepo_base_url=textrepo_base_url, version_id=version_id,
+                begin_anchor=self.begin_anchor, end_anchor=self.end_anchor),
+            resource_target(
+                textrepo_base_url=textrepo_base_url, version_id=version_id,
+                begin_anchor=self.logical_begin_anchor, end_anchor=self.logical_end_anchor,
+                target_type="LogicalText"),
+            selection_view_target(
+                textrepo_base_url=textrepo_base_url, version_id=version_id,
+                begin_anchor=self.logical_begin_anchor, end_anchor=self.logical_end_anchor,
+                target_type="LogicalText")
+        ]
         return web_annotation(body=body, target=target)
 
 
@@ -338,7 +354,6 @@ class ReadingOrder:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class TextRegionMetadata:
-    # id: str
     type: str | List[str]
     parent_type: str
     parent_id: str
@@ -346,6 +361,7 @@ class TextRegionMetadata:
     page_id: str
     iiif_url: str
     page_num: int
+    id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     text_page_num: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
     reading_order: Optional[ReadingOrder] = field(metadata=config(exclude=exclude_if_none), default=None)
     median_normal_left: Optional[int] = field(metadata=config(exclude=exclude_if_none), default=None)
@@ -414,16 +430,6 @@ class TextRegionAnnotation(Annotation):
 #         return web_annotation(body=body, target=target)
 
 
-def to_image_coords(coords: List[List[int]]) -> ImageCoords:
-    left = min([c[0] for c in coords])
-    right = max([c[0] for c in coords])
-    top = min([c[1] for c in coords])
-    bottom = max([c[1] for c in coords])
-    width = right - left
-    height = bottom - top
-    return ImageCoords(left=left, right=right, top=top, bottom=bottom, width=width, height=height)
-
-
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class HeightMetadata:
@@ -436,7 +442,6 @@ class HeightMetadata:
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class LineMetadata:
-    # id: str
     type: str
     parent_type: str
     parent_id: str
@@ -444,12 +449,14 @@ class LineMetadata:
     page_id: str
     text_region_id: str
     column_id: str
+    id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     reading_order: Optional[ReadingOrder] = field(metadata=config(exclude=exclude_if_none), default=None)
     height: Optional[HeightMetadata] = field(metadata=config(exclude=exclude_if_none), default=None)
     header_id: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     left_alignment: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     right_alignment: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
     line_width: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
+    line_class: Optional[str] = field(metadata=config(exclude=exclude_if_none), default=None)
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -645,6 +652,10 @@ class AttendantsListAnnotation(Annotation):
     provenance_source: str
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
     metadata: AttendantsListMetadata
     attendance_spans: List[AttendanceSpan]
     region_links: List[str]
@@ -716,7 +727,7 @@ class AttendantAnnotation(Annotation):
     begin_char_offset: int
     end_char_offset: int
     region_links: List[str]
-    logical_start_anchor: int
+    logical_begin_anchor: int
     logical_begin_char_offset: int
     logical_end_anchor: int
     logical_end_char_offset: int
@@ -783,6 +794,10 @@ class ResolutionAnnotation(Annotation):
     provenance_source: str
     begin_anchor: int
     end_anchor: int
+    # logical_begin_anchor: int
+    # logical_begin_char_offset: int
+    # logical_end_anchor: int
+    # logical_end_char_offset: int
     region_links: List[str]
     metadata: dict
     # provenance: Provenance
@@ -871,7 +886,7 @@ class RepublicParagraphAnnotation(Annotation):
     line_ranges: List[LineRange]
     text: str
     region_links: List[str]
-    logical_start_anchor: int
+    logical_begin_anchor: int
     logical_end_anchor: int
 
     # provenance: Provenance
@@ -917,7 +932,7 @@ class ReviewedAnnotation(Annotation):
     line_ranges: List[LineRange]
     text: str
     region_links: List[str]
-    logical_start_anchor: int
+    logical_begin_anchor: int
     logical_end_anchor: int
 
     # provenance: Provenance
@@ -1317,3 +1332,13 @@ def as_coords_list(x: int, y: int, w: int, h: int) -> List[List[List[int]]]:
 
 def as_image_coords_list(x: int, y: int, w: int, h: int) -> List[ImageCoords]:
     return [ImageCoords(left=x, right=x + w, top=y, bottom=y + h, height=h, width=w)]
+
+
+def to_image_coords(coords: List[List[int]]) -> ImageCoords:
+    left = min([c[0] for c in coords])
+    right = max([c[0] for c in coords])
+    top = min([c[1] for c in coords])
+    bottom = max([c[1] for c in coords])
+    width = right - left
+    height = bottom - top
+    return ImageCoords(left=left, right=right, top=top, bottom=bottom, width=width, height=height)
