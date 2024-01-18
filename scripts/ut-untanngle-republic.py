@@ -36,6 +36,45 @@ iiif_extension = '/full/0/default.jpg'
 resolution_es_index = "https://annotation.republic-caf.diginfra.org/elasticsearch/full_resolutions"
 session_es_index = "https://annotation.republic-caf.diginfra.org/elasticsearch/session_lines"
 
+logical_anchor_range_for_line_anchor = defaultdict(lambda: LogicalAnchorRange(0, 0, 0, 0))
+
+
+class AnnotationsWrapper:
+    def __init__(self, annotations: List):
+        self.annotation_idx = {a["id"]: a for a in annotations}
+        max_anchor = max([a['end_anchor'] for a in annotations]) + 1
+        store = AnnotationStore(id=uuid.uuid4())
+        resource = store.add_resource(id="dummy", text="*" * max_anchor)
+        annotation_set = store.add_annotationset(id="type_set")
+        annotation_set.add_key("type")
+        for a in annotations:
+            a_type = a['type']
+            type_data = annotation_set.add_data(key="type", value=a_type)
+            store.annotate(
+                id=a['id'],
+                target=Selector.textselector(resource, Offset.simple(a['begin_anchor'], a['end_anchor'] + 1)),
+                data=type_data
+            )
+        # store.set_filename("out/store.json")
+        # store.save()
+        self.resource = resource
+
+    @cache
+    def get_annotations_overlapping_with_anchor_range(self, begin_anchor, end_anchor):
+        selection = self.resource.textselection(Offset.simple(begin_anchor, end_anchor + 1))
+        overlapping = [self.annotation_idx[a.id()] for a in
+                       selection.find_annotations(TextSelectionOperator.overlaps())]
+        exact = [self.annotation_idx[a.id()] for a in selection.annotations()]
+        return overlapping + exact
+
+
+@dataclass
+class LogicalAnchorRange:
+    begin_logical_anchor: int
+    begin_char_offset: int
+    end_logical_anchor: int
+    end_char_offset: int
+
 
 class AnnTypes(Enum):
     SESSION = "session"
@@ -587,15 +626,6 @@ def check_annotations(annotations):
 
 
 # maps line anchor to LogicalAnchorRange
-logical_anchor_range_for_line_anchor = defaultdict(lambda: LogicalAnchorRange(-1, -2, -3, -4))
-
-
-@dataclass
-class LogicalAnchorRange:
-    begin_logical_anchor: int
-    begin_char_offset: int
-    end_logical_anchor: int
-    end_char_offset: int
 
 
 def with_logical_anchors(annotation):
@@ -702,6 +732,13 @@ def extract_paragraph_text(datadir, year) -> Dict[str, int]:
         pa['logical_begin_anchor'] = anchor
         pa['logical_end_anchor'] = anchor
         all_paragraph_texts.append(pa['text'])
+        for line_range in pa['line_ranges']:
+            line_anchor = line_ids_to_anchors[line_range['line_id']]
+            start = line_range['start']
+            end = line_range['end']
+            logical_anchor_range_for_line_anchor[line_anchor] = LogicalAnchorRange(
+                begin_logical_anchor=anchor, begin_char_offset=start, end_logical_anchor=anchor, end_char_offset=end
+            )
     store_paragraph_text(all_paragraph_texts, f'{datadir}/{logical_text_store}')
     return paragraph_anchor_idx
 
@@ -796,7 +833,7 @@ def add_attendant_annotations(resource_id: str, paragraph_anchor: Dict[str, int]
         session_id = al['metadata']['session_id']
         atts = create_attendants_for_attlist(al, session_id, resource_id, al['provenance_source'], paragraph_anchor)
         attendant_annotations.extend(atts)
-        set_logical_text_offset(al, atts)
+        # set_logical_text_offset(al, atts)
 
     all_annotations.extend(attendant_annotations)
 
@@ -881,35 +918,6 @@ def calculate_region_links_for_line_annotation(line):
     items = scan_id.split('_')
     region_url = f"{iiif_base}{items[0]}_{items[1]}/{items[2]}/{scan_id}.jpg/{bb_str}{iiif_extension}"
     return [region_url]
-
-
-class AnnotationsWrapper:
-    def __init__(self, annotations: List):
-        self.annotation_idx = {a["id"]: a for a in annotations}
-        max_anchor = max([a['end_anchor'] for a in annotations]) + 1
-        store = AnnotationStore(id=uuid.uuid4())
-        resource = store.add_resource(id="dummy", text="*" * max_anchor)
-        annotation_set = store.add_annotationset(id="type_set")
-        annotation_set.add_key("type")
-        for a in annotations:
-            a_type = a['type']
-            type_data = annotation_set.add_data(key="type", value=a_type)
-            store.annotate(
-                id=a['id'],
-                target=Selector.textselector(resource, Offset.simple(a['begin_anchor'], a['end_anchor'] + 1)),
-                data=type_data
-            )
-        # store.set_filename("out/store.json")
-        # store.save()
-        self.resource = resource
-
-    @cache
-    def get_annotations_overlapping_with_anchor_range(self, begin_anchor, end_anchor):
-        selection = self.resource.textselection(Offset.simple(begin_anchor, end_anchor + 1))
-        overlapping = [self.annotation_idx[a.id()] for a in
-                       selection.find_annotations(TextSelectionOperator.overlaps())]
-        exact = [self.annotation_idx[a.id()] for a in selection.annotations()]
-        return overlapping + exact
 
 
 def process_line_based_types():
