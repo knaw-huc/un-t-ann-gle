@@ -8,6 +8,8 @@ import re
 import sys
 import time
 import uuid
+from collections import defaultdict
+from dataclasses import dataclass
 from enum import Enum
 from functools import cache
 from typing import List, Dict, Any
@@ -584,6 +586,34 @@ def check_annotations(annotations):
             id_set.add(a_id)
 
 
+# maps line anchor to LogicalAnchorRange
+logical_anchor_range_for_line_anchor = defaultdict(lambda: LogicalAnchorRange(-1, -2, -3, -4))
+
+
+@dataclass
+class LogicalAnchorRange:
+    begin_logical_anchor: int
+    begin_char_offset: int
+    end_logical_anchor: int
+    end_char_offset: int
+
+
+def with_logical_anchors(annotation):
+    if 'logical_begin_anchor' not in annotation:
+        begin_logical_range = logical_anchor_range_for_line_anchor[annotation['begin_anchor']]
+        annotation['logical_begin_anchor'] = begin_logical_range.begin_logical_anchor
+        annotation['logical_begin_char_offset'] = begin_logical_range.begin_char_offset
+
+        end_logical_range = logical_anchor_range_for_line_anchor[annotation['end_anchor']]
+        annotation['logical_end_anchor'] = end_logical_range.end_logical_anchor
+        annotation['logical_end_char_offset'] = end_logical_range.end_char_offset
+    return annotation
+
+
+def add_logical_anchors(annotations):
+    return [with_logical_anchors(a) for a in annotations]
+
+
 def untanngle_year(year: int, data_dir: str):
     datadir = f"{data_dir}/{year}"
     logfile = f'{datadir}/untanngle-republic-{year}.log'
@@ -651,10 +681,13 @@ def untanngle_year(year: int, data_dir: str):
     logging.info(f"fix_scan_annotations({resource_id})")
     fix_scan_annotations(resource_id)
 
+    logging.info(f"add_logical_anchors()")
+    _annotations = add_logical_anchors(all_annotations)
+
     # logging.info("add_provenance()")
     # add_provenance()
 
-    store_annotations(all_annotations, f'{datadir}/{annotation_store}')
+    store_annotations(_annotations, f'{datadir}/{annotation_store}')
 
 
 def extract_paragraph_text(datadir, year) -> Dict[str, int]:
@@ -673,7 +706,7 @@ def extract_paragraph_text(datadir, year) -> Dict[str, int]:
     return paragraph_anchor_idx
 
 
-def traverse_session_files(sessions_folder, resource_id):
+def traverse_session_files(sessions_folder, resource_id) -> IndexedSegmentedText:
     all_textlines = segmentedtext.IndexedSegmentedText(resource_id)
     # Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
     for f_name in get_session_files(sessions_folder):
