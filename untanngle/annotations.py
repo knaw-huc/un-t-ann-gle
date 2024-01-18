@@ -297,6 +297,10 @@ class ScanPageAnnotation:
     provenance_source: str
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
     resource_id: str
     iiif_url: str
     image_range: List[List[Union[List[ImageCoords], str]]]
@@ -325,6 +329,10 @@ class ColumnAnnotation:
     provenance_source: str
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
     resource_id: str
     inventory_id: str
     image_coords: ImageCoords
@@ -385,6 +393,10 @@ class TextRegionAnnotation(Annotation):
     metadata: TextRegionMetadata
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
     coords: List[List[int]]
     region_links: List[str]
 
@@ -470,6 +482,10 @@ class LineAnnotation(Annotation):
     metadata: LineMetadata
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
     baseline: List[List[int]]
     coords: List[List[int]]
     region_links: List[str]
@@ -557,6 +573,10 @@ class SessionAnnotation(Annotation):
     inventory_id: str
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
     evidence: List[Evidence]
     metadata: SessionMetadata
     provenance_source: str
@@ -723,14 +743,14 @@ class AttendantAnnotation(Annotation):
     # inventory_id: str
     metadata: AttendantMetadata
     begin_anchor: int
-    end_anchor: int
     begin_char_offset: int
+    end_anchor: int
     end_char_offset: int
-    region_links: List[str]
     logical_begin_anchor: int
     logical_begin_char_offset: int
     logical_end_anchor: int
     logical_end_char_offset: int
+    region_links: List[str]
 
     # provenance: Provenance
 
@@ -794,10 +814,10 @@ class ResolutionAnnotation(Annotation):
     provenance_source: str
     begin_anchor: int
     end_anchor: int
-    # logical_begin_anchor: int
-    # logical_begin_char_offset: int
-    # logical_end_anchor: int
-    # logical_end_char_offset: int
+    logical_begin_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
     region_links: List[str]
     metadata: dict
     # provenance: Provenance
@@ -882,6 +902,8 @@ class RepublicParagraphAnnotation(Annotation):
     provenance_source: str
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_end_anchor: int
     metadata: RepublicParagraphMetadata
     line_ranges: List[LineRange]
     text: str
@@ -928,6 +950,10 @@ class ReviewedAnnotation(Annotation):
     provenance_source: str
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
     metadata: ReviewedMetadata
     line_ranges: List[LineRange]
     text: str
@@ -962,6 +988,10 @@ class PageAnnotation(Annotation):
     resource_id: str
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
     metadata: PageMetadata
     coords: List[List[int]]
     region_links: List[str]
@@ -991,6 +1021,10 @@ class ScanAnnotation(Annotation):
     iiif_url: str
     begin_anchor: int
     end_anchor: int
+    logical_begin_anchor: int
+    logical_begin_char_offset: int
+    logical_end_anchor: int
+    logical_end_char_offset: int
     metadata: ScanMetadata
     region_links: List[str]
 
