@@ -177,10 +177,7 @@ def convert(annotation_store_path: str, textrepo_url: str,
         inventory_annotations = [a for a in annotations if "inventory_id" in a and a["inventory_id"] == inventory_id]
         begin_anchor = min(a["begin_anchor"] for a in inventory_annotations)
         end_anchor = max(a["end_anchor"] for a in inventory_annotations)
-        logical_begin_anchor = min(
-            a["logical_begin_anchor"]
-            for a in inventory_annotations
-            if "logical_begin_anchor" in a)
+        logical_begin_anchor = 0
         logical_end_anchor = max(
             a["logical_end_anchor"]
             for a in inventory_annotations
