@@ -75,7 +75,7 @@ def upload(annorepo_base_url: str,
 
             print(f"  {number_of_annotations} annotations found.")
 
-            chunk_size = 5000
+            chunk_size = 50_000
             chunked_annotations = chunk_list(annotation_list, chunk_size)
             number_of_chunks = len(chunked_annotations)
             print(
