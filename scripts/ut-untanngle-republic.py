@@ -455,7 +455,11 @@ def collect_attendant_info(span, paras, paragraph_anchor: Dict[str, int]):
                     # p_start_offset = p['metadata']['start_offset'] - (
                     #             p['metadata']['paragraph_index'] * 2)  # because of double(?) space between paragraphs
                     # ic(par_text, pattern)
-                    p_start_offset = par_text.index(pattern)
+                    if pattern in par_text:
+                        p_start_offset = par_text.index(pattern)
+                    else:
+                        p_start_offset = par_text.replace("\n"," ").index(pattern.replace("\n"," "))
+
                     if '\n' in pattern:
                         parts = pattern.split('\n')
                         p_end_offset = len(parts[-1])
