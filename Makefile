@@ -11,7 +11,8 @@ out/web_annotations.json: ./scripts/convert-to-web-annotations.py untanngle/*.py
 	poetry run ./scripts/convert-to-web-annotations.py -t https://textrepo.republic-caf.diginfra.org/api/ -v 42df1275-81cd-489c-b28c-345780c3889b -c data/image-to-canvas.csv data/1728-annotationstore-220718.json -o out
 
 .PHONY: republic-annotations
-republic-annotations: out/web_annotations.json
+republic-annotations:
+	for y in {1705..1796}; do ./scripts/ut-run-republic-pipeline-for-year.sh $$y conf/republic-local.env; done
 
 out/mondriaan-web-annotations.json: ./scripts/ut-convert-mondriaan.py untanngle/*.py data/mondriaan-anno.json data/mondriaan-text.json
 	poetry run scripts/ut-convert-mondriaan.py > out/mondriaan-web-annotations.json
