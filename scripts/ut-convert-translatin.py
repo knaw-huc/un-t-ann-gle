@@ -121,7 +121,7 @@ def main():
 
         logger.info(f"<= {anno_file_path}")
         web_annotations = tf.convert(project=f'translatin:{base}',
-                                     anno_file=anno_file_path,
+                                     anno_files=[anno_file_path],
                                      text_file=text_file_path,
                                      textrepo_url=textrepo_url,
                                      textrepo_file_version=tr_version_id)

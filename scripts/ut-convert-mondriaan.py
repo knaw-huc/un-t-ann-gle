@@ -13,7 +13,7 @@ def main():
     textfile = f'{basedir}/mondriaan-text.json'
     anno_file = f"{basedir}/mondriaan-anno.json"
     web_annotations = textfabric.convert(project='mondriaan',
-                                         anno_file=anno_file,
+                                         anno_files=[anno_file],
                                          text_file=textfile,
                                          textrepo_url="https://mondriaan.tt.di.huc.knaw.nl/textrepo",
                                          textrepo_file_version="c637abd5-7e07-4a3d-962e-fb40d4656ec4")

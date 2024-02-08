@@ -107,11 +107,13 @@ class AnnotationTransformer:
 
 
 def convert(project: str,
-            anno_file: str, text_file: str,
+            anno_files: List[str], text_file: str,
             textrepo_url: str, textrepo_file_version: str,
             text_in_body: bool = False):
     tf_tokens = read_tf_tokens(text_file)
-    tf_annotations = read_tf_annotations(anno_file)
+    tf_annotations = []
+    for anno_file in anno_files:
+        tf_annotations.extend(read_tf_annotations(anno_file))
     return build_web_annotations(project=project,
                                  tf_annotations=tf_annotations, tokens=tf_tokens,
                                  textrepo_url=textrepo_url, textrepo_file_version=textrepo_file_version,
@@ -119,6 +121,7 @@ def convert(project: str,
 
 
 def read_tf_tokens(textfile):
+    logger.info(f"<= {textfile}")
     with open(textfile) as f:
         contents = json.load(f)
     return contents["_ordered_segments"]
@@ -126,6 +129,7 @@ def read_tf_tokens(textfile):
 
 def read_tf_annotations(anno_file):
     tf_annotations = []
+    logger.info(f"<= {anno_file}")
     with open(anno_file) as f:
         content = json.load(f)
         for _id, properties in content.items():

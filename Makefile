@@ -37,18 +37,29 @@ translatin-untangle:
 	(cd data/translatin && git pull)
 	poetry run ./scripts/ut-convert-translatin.py
 
+.PHONY: suriano-untangle
+suriano-untangle:
+	(cd data/suriano && git pull)
+	poetry run ./scripts/ut-convert-suriano.py
+
+.PHONY: suriano-upload-annotations
+suriano-upload-annotations: scripts/ut-upload-web-annotations.py out/suriano-web_annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano -l "Correspondence of Christofforo Suriano" -k b85c4064-b736-49ee-ada4-fa9eb2139bd4 out/suriano-web_annotations.json
+
 .PHONY: help
 help:
 	@echo "make-tools for untanngle"
 	@echo
 	@echo "Please use \`make <target>', where <target> is one of:"
-	@echo "  install                - to install the necessary requirements"
+	@echo "  install                    - to install the necessary requirements"
 	@echo
-	@echo "  republic-annotations   - to generate the republic web-annotations"
-	@echo "  republic-1706          - to run the republic untangle pipeline for 1706"
-	@echo "  republic-1796          - to run the republic untangle pipeline for 1796"
+	@echo "  republic-annotations       - to generate the republic web-annotations"
+	@echo "  republic-1706              - to run the republic untangle pipeline for 1706"
+	@echo "  republic-1796              - to run the republic untangle pipeline for 1796"
 	@echo
-	@echo "  mondriaan-annotations  - to generate the mondriaan web-annotations"
+	@echo "  mondriaan-annotations      - to generate the mondriaan web-annotations"
 	@echo
-	@echo "  translatin-untangle    - to untangle the textfabric export for translatin"
+	@echo "  suriano-untangle           - to untangle the textfabric export for suriano"
+	@echo "  suriano-upload-annotations - to upload the web annotations for suriano"
+	@echo "  translatin-untangle        - to untangle the textfabric export for translatin"
 
