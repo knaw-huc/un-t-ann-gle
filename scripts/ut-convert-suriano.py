@@ -15,8 +15,10 @@ textfile = f'{basedir}/text.json'
 anno_files = sorted(glob.glob(f"{basedir}/anno-*.json"))
 textrepo_base_uri = "https://suriano.tt.di.huc.knaw.nl/textrepo"
 external_id = "suriano"
+export_path = "out/suriano-web_annotations.json"
 
 
+@logger.catch()
 def main():
     start = time.perf_counter()
     textrepo_file_version = upload_to_tr(textfile)
@@ -26,10 +28,9 @@ def main():
                                  textrepo_url=textrepo_base_uri,
                                  textrepo_file_version=textrepo_file_version)
     logger.info(f"{len(web_annotations)} annotations")
-    export_path = "out/suriano-web_annotations.json"
-    logger.info(f"=> {export_path}")
-    with open(export_path, "w") as f:
-        json.dump(obj=web_annotations, fp=f, indent=2)
+
+    store_web_annotations(web_annotations)
+
     show_annotation_counts(web_annotations)
     end = time.perf_counter()
     print(f"untangling took {end - start:0.4f} seconds")
@@ -53,6 +54,12 @@ def check_file_types(client: TextRepoClient):
     available_type_names = [t.name for t in client.read_file_types()]
     if name not in available_type_names:
         client.create_file_type(name=name, mimetype="application/json")
+
+
+def store_web_annotations(web_annotations):
+    logger.info(f"=> {export_path}")
+    with open(export_path, "w") as f:
+        json.dump(obj=web_annotations, fp=f, indent=2)
 
 
 def show_annotation_counts(web_annotations: List[Dict[str, Any]]):

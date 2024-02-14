@@ -11,6 +11,40 @@ import untanngle.annotations as ann
 import untanngle.camel_casing as cc
 import untanngle.textfabric as tf
 
+basedir = 'data/translatin'
+textrepo_url = "https://translatin.tt.di.huc.knaw.nl/textrepo"
+export_path = f"out/translatin/web_annotations-{base}.json"
+
+
+@logger.catch()
+def main():
+    trc = TextRepoClient(base_uri=textrepo_url, verbose=True)
+    check_file_types(trc)
+
+    manifestations_table_path = 'data/translatin-tables/manifestations.tsv'
+    # manifestation_metadata_idx = load_manifestation_metadata(manifestations_table_path)
+
+    for _dir in glob(f"{basedir}/*/"):
+        base = _dir.split('/')[-2]
+        anno_file_path = f'{_dir}anno.json'
+        text_file_path = f'{_dir}text.json'
+
+        logger.info(f"<= {text_file_path}")
+        tr_version_id = upload_segmented_text(base, text_file_path, trc)
+
+        logger.info(f"<= {anno_file_path}")
+        web_annotations = tf.convert(project=f'translatin:{base}',
+                                     anno_files=[anno_file_path],
+                                     text_file=text_file_path,
+                                     textrepo_url=textrepo_url,
+                                     textrepo_file_version=tr_version_id)
+        extended_annotations = add_image_targets(web_annotations)
+        translatin_web_annotations = update_manifestation_annotations(extended_annotations)
+
+        logger.info(f"=> {export_path}")
+        with open(export_path, 'w') as f:
+            json.dump(translatin_web_annotations, fp=f, indent=4, ensure_ascii=False)
+
 
 def upload_segmented_text(external_id: str, text_file_path: str, client: TextRepoClient) -> str:
     with open(text_file_path) as f:
@@ -99,39 +133,6 @@ def update_manifestation_annotations(
 
         new_annotations.append(cc.keys_to_camel_case(new_annotation))
     return new_annotations
-
-
-@logger.catch()
-def main():
-    basedir = 'data/translatin'
-    textrepo_url = "https://translatin.tt.di.huc.knaw.nl/textrepo"
-    trc = TextRepoClient(base_uri=textrepo_url, verbose=True)
-    check_file_types(trc)
-
-    manifestations_table_path = 'data/translatin-tables/manifestations.tsv'
-    # manifestation_metadata_idx = load_manifestation_metadata(manifestations_table_path)
-
-    for _dir in glob(f"{basedir}/*/"):
-        base = _dir.split('/')[-2]
-        anno_file_path = f'{_dir}anno.json'
-        text_file_path = f'{_dir}text.json'
-
-        logger.info(f"<= {text_file_path}")
-        tr_version_id = upload_segmented_text(base, text_file_path, trc)
-
-        logger.info(f"<= {anno_file_path}")
-        web_annotations = tf.convert(project=f'translatin:{base}',
-                                     anno_files=[anno_file_path],
-                                     text_file=text_file_path,
-                                     textrepo_url=textrepo_url,
-                                     textrepo_file_version=tr_version_id)
-        extended_annotations = add_image_targets(web_annotations)
-        translatin_web_annotations = update_manifestation_annotations(extended_annotations)
-
-        export_path = f"out/translatin/web_annotations-{base}.json"
-        logger.info(f"=> {export_path}")
-        with open(export_path, 'w') as f:
-            json.dump(translatin_web_annotations, fp=f, indent=4, ensure_ascii=False)
 
 
 if __name__ == '__main__':
