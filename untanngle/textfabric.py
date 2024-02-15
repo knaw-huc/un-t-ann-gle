@@ -1,4 +1,5 @@
 import json
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Any, List
@@ -27,6 +28,7 @@ class IAnnotation:
     text: str = ""
     begin_anchor: int = 0
     end_anchor: int = 0
+    text_num: str = ""
     metadata: Dict[str, any] = field(default_factory=dict)
 
 
@@ -38,11 +40,13 @@ def as_class_name(string: str) -> str:
 class AnnotationTransformer:
     project: str
     textrepo_url: str
-    textrepo_version: str
+    textrepo_versions: Dict[str, str]
     text_in_body: bool
 
     def as_web_annotation(self, ia: IAnnotation) -> Dict[str, Any]:
         body_type = f"{ia.namespace}:{as_class_name(ia.type)}"
+        text_num = ia.text_num
+        textrepo_version = self.textrepo_versions[text_num]
         anno = {
             "@context": [
                 "http://www.w3.org/ns/anno.jsonld",
@@ -64,7 +68,7 @@ class AnnotationTransformer:
             },
             "target": [
                 {
-                    "source": f"{self.textrepo_url}/rest/versions/{self.textrepo_version}/contents",
+                    "source": f"{self.textrepo_url}/rest/versions/{textrepo_version}/contents",
                     "type": "Text",
                     "selector": {
                         "type": "tt:TextAnchorSelector",
@@ -74,7 +78,7 @@ class AnnotationTransformer:
                 },
                 {
                     "source": (
-                        f"{self.textrepo_url}/view/versions/{self.textrepo_version}/segments/index/{ia.begin_anchor}/{ia.end_anchor}"),
+                        f"{self.textrepo_url}/view/versions/{textrepo_version}/segments/index/{ia.begin_anchor}/{ia.end_anchor}"),
                     "type": "Text"
                 }
             ]
@@ -107,24 +111,32 @@ class AnnotationTransformer:
 
 
 def convert(project: str,
-            anno_files: List[str], text_file: str,
-            textrepo_url: str, textrepo_file_version: str,
-            text_in_body: bool = False):
-    tf_tokens = read_tf_tokens(text_file)
+            anno_files: List[str],
+            text_files: List[str],
+            textrepo_url: str,
+            textrepo_file_versions: Dict[str, str],
+            text_in_body: bool = False) -> List[Dict[str, Any]]:
+    tf_tokens = read_tf_tokens(text_files)
     tf_annotations = []
     for anno_file in anno_files:
         tf_annotations.extend(read_tf_annotations(anno_file))
     return build_web_annotations(project=project,
-                                 tf_annotations=tf_annotations, tokens=tf_tokens,
-                                 textrepo_url=textrepo_url, textrepo_file_version=textrepo_file_version,
+                                 tf_annotations=tf_annotations,
+                                 tokens_per_text=tf_tokens,
+                                 textrepo_url=textrepo_url,
+                                 textrepo_file_versions=textrepo_file_versions,
                                  text_in_body=text_in_body)
 
 
-def read_tf_tokens(textfile):
-    logger.info(f"<= {textfile}")
-    with open(textfile) as f:
-        contents = json.load(f)
-    return contents["_ordered_segments"]
+def read_tf_tokens(text_files):
+    tokens_per_text = {}
+    for text_file in text_files:
+        text_num = get_file_num(text_file)
+        logger.info(f"<= {text_file}")
+        with open(text_file) as f:
+            contents = json.load(f)
+        tokens_per_text[text_num] = contents["_ordered_segments"]
+    return tokens_per_text
 
 
 def read_tf_annotations(anno_file):
@@ -217,7 +229,7 @@ def get_parent_lang(a: IAnnotation, node_parents: Dict[str, str], ia_idx: Dict[s
         else:
             return get_parent_lang(parent, node_parents, ia_idx)
     else:
-        logger.warning(f"node {a.id} has no parents, and no metadata.lang -> returning default 'en'")
+        # logger.warning(f"node {a.id} has no parents, and no metadata.lang -> returning default 'en'")
         return 'en'
 
 
@@ -231,11 +243,18 @@ def modify_note_annotations(ia: List[IAnnotation], node_parents: Dict[str, str])
     return ia
 
 
-def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: str, textrepo_file_version: str,
+target_pattern = re.compile(r"(\d+):(\d+)-(\d+)")
+
+
+def build_web_annotations(project: str,
+                          tf_annotations: List[TFAnnotation],
+                          tokens_per_text: Dict[str, List[str]],
+                          textrepo_url: str,
+                          textrepo_file_versions: Dict[str, str],
                           text_in_body: bool):
     at = AnnotationTransformer(project=project,
                                textrepo_url=textrepo_url,
-                               textrepo_version=textrepo_file_version,
+                               textrepo_versions=textrepo_file_versions,
                                text_in_body=text_in_body)
     ia_idx = {}
     note_target = {}
@@ -245,12 +264,16 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
     for a in [a for a in tf_annotations]:
         match a.type:
             case 'element':
-                target = a.target
-                parts = target.split('-')
-                begin_anchor = int(parts[0])
-                end_anchor = int(parts[1])
-                text = "".join(tokens[begin_anchor:end_anchor])
-                ia = IAnnotation(id=a.id, namespace=a.namespace, type=a.body, text=text,
+                match = target_pattern.match(a.target)
+                text_num = match.group(1)
+                begin_anchor = int(match.group(2))
+                end_anchor = int(match.group(3))
+                text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
+                ia = IAnnotation(id=a.id,
+                                 namespace=a.namespace,
+                                 type=a.body,
+                                 text=text,
+                                 text_num=text_num,
                                  begin_anchor=begin_anchor,
                                  end_anchor=end_anchor - 1)
                 ia_idx[a.id] = ia
@@ -259,14 +282,16 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
                 if anno_id in ia_idx:
                     ia_idx[anno_id].tf_node = int(a.body)
                 # else:
+                #     logger.warning(f"node target ({anno_id}) not in ia_idx index")
                 #     ic(a)
             case 'mark':
                 note_anno_id = a.target
                 if note_anno_id in ia_idx:
                     element_anno_id = int(a.body)
                     note_target[note_anno_id] = element_anno_id
-                # else:
-                #     ic(a)
+                else:
+                    logger.warning(f"mark target ({note_anno_id}) not in ia_idx index")
+                    ic(a)
             case 'attribute':
                 element_anno_id = a.target
                 if element_anno_id in ia_idx:
@@ -275,16 +300,22 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
                         k = 'tei:id'
                     ia_idx[element_anno_id].metadata[k] = v
                 # else:
+                #     logger.warning(f"attribute target ({element_anno_id}) not in ia_idx index")
                 #     ic(a)
             case 'anno':
                 element_anno_id = a.target
                 if element_anno_id in ia_idx:
                     ia_idx[element_anno_id].metadata["anno"] = a.body
-                # else:
-                #     ic(a)
+                else:
+                    logger.warning(f"anno target ({element_anno_id}) not in ia_idx index")
+                    ic(a)
             case 'format':
+                # logger.warning("format annotation skipped")
+                # ic(a)
                 pass
             case 'pi':
+                logger.warning("pi annotation skipped")
+                ic(a)
                 pass
             case 'edge':
                 match a.body:
@@ -301,6 +332,7 @@ def build_web_annotations(project: str, tf_annotations, tokens, textrepo_url: st
                         pass
                     case _:
                         if a.body.startswith('sibling='):
+                            logger.warning("edge/sibling annotation skipped")
                             pass
                         else:
                             logger.warning(f"unhandled edge body: {a.body}")
@@ -350,3 +382,12 @@ def as_link_anno(from_ia_id: str, to_ia_id: str, purpose: str, ia_id_to_body_id:
         "body": body_id,
         "target": target_id
     }
+
+
+file_num_pattern = re.compile(r".*-(\d+).json")
+
+
+def get_file_num(tf_text_file: str) -> str:
+    match = file_num_pattern.match(tf_text_file)
+    if match:
+        return match.group(1)

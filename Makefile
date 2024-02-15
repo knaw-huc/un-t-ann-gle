@@ -44,7 +44,7 @@ suriano-untangle:
 
 .PHONY: suriano-upload-annotations
 suriano-upload-annotations: scripts/ut-upload-web-annotations.py out/suriano-web_annotations.json
-	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano -l "Correspondence of Christofforo Suriano" -k b85c4064-b736-49ee-ada4-fa9eb2139bd4 out/suriano-web_annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano-0.0.4 -l "Correspondence of Christofforo Suriano" -k b85c4064-b736-49ee-ada4-fa9eb2139bd4 out/suriano-web_annotations.json
 
 .PHONY: help
 help:

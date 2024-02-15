@@ -16,9 +16,9 @@ external_id = "mondriaan"
 def main():
     web_annotations = textfabric.convert(project=external_id,
                                          anno_files=anno_files,
-                                         text_file=textfile,
+                                         text_files=textfile,
                                          textrepo_url=textrepo_base_uri,
-                                         textrepo_file_version="c637abd5-7e07-4a3d-962e-fb40d4656ec4")
+                                         textrepo_file_versions="c637abd5-7e07-4a3d-962e-fb40d4656ec4")
     # selection = [w for w in web_annotations if w["body"]["type"] in ("tei:Pb", "tei:Div")]
     # print(json.dumps(selection, indent=2))
     print(json.dumps(web_annotations, indent=2))
