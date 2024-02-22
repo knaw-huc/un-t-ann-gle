@@ -5,6 +5,7 @@ import uuid
 from abc import ABCMeta, abstractmethod
 from functools import total_ordering
 from json import JSONEncoder
+from typing import List
 
 
 @total_ordering
@@ -232,6 +233,9 @@ class IndexedSegmentedText(SegmentedText):
         else:
             self.text_grid_spec = {'begin_offset_in_resource': None,
                                    'end_offset_in_resource': None, 'anchor_type': 'index_int'}
+
+    def segments(self) -> List[str]:
+        return self._ordered_segments
 
     def __repr__(self):
         return str(self._ordered_segments)

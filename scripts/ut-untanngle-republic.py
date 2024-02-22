@@ -216,7 +216,7 @@ def sanity_check(node):
 # depth-first, post order traversal is necessary. Examples: processing a json hierarchy with dictionaries
 # and lists (republic) or parsing TEI XML (DBNL document).
 def traverse(node: Dict[str, Any], node_type: AnnTypes, text: IndexedSegmentedText, annotations, resource_id: str,
-             provenance_source: str):
+             provenance_source: str, line_anchor_idx: Dict[str, int]):
     # find the list that represents the children, each child is a dict
     config = untanngle_config[node_type]
     key_of_children = config['child_key']
@@ -248,11 +248,12 @@ def traverse(node: Dict[str, Any], node_type: AnnTypes, text: IndexedSegmentedTe
 
         if node_text is None:
             node_text = '\n'
-
+        line_anchor = len(line_anchor_idx)
+        line_anchor_idx[node['id']] = line_anchor
         text.append(node_text)
     else:  # if non-leaf node, first visit children
         for child in children:
-            traverse(child, type_of_children, text, annotations, resource_id, provenance_source)
+            traverse(child, type_of_children, text, annotations, resource_id, provenance_source, line_anchor_idx)
 
         end_index = text.len() - 1
         annotation_info['end_anchor'] = end_index  # after child text segments are added
@@ -680,7 +681,7 @@ def untanngle_year(year: int, data_dir: str):
     annotation_store = f'annotationstore-{year}.json'
     resource_id = f'volume-{year}'
 
-    all_textlines = traverse_session_files(f'{datadir}/{sessions_folder}', resource_id)
+    all_textlines, line_anchor_idx = traverse_session_files(f'{datadir}/{sessions_folder}', resource_id)
     store_segmented_text(all_textlines, f'{datadir}/{text_store}')
 
     deduplicate_annotations(all_annotations, AnnTypes.SCAN)
@@ -704,7 +705,7 @@ def untanngle_year(year: int, data_dir: str):
     logging.info(f"check_for_missing_attendance_lists_in_session_annotations({resource_id})")
     check_for_missing_attendance_lists_in_session_annotations(resource_id)
 
-    paragraph_anchor_idx = extract_paragraph_text(datadir, year)
+    paragraph_anchor_idx = extract_paragraph_text(datadir, year, line_anchor_idx)
 
     logging.info(f"add_attendant_annotations({resource_id})")
     add_attendant_annotations(resource_id, paragraph_anchor_idx)
@@ -740,13 +741,13 @@ def untanngle_year(year: int, data_dir: str):
     store_annotations(_annotations, f'{datadir}/{annotation_store}')
 
 
-def extract_paragraph_text(datadir, year) -> Dict[str, int]:
+def extract_paragraph_text(datadir, year, line_anchor_idx) -> Dict[str, int]:
     paragraph_anchor_idx = {}
     logical_text_store = f'logical-textstore-{year}.json'
     all_paragraph_texts = []
     paragraph_annotations = [a for a in all_annotations if
                              a['type'] in [AnnTypes.RESOLUTION_REVIEW.value, AnnTypes.PARAGRAPH.value]]
-    for pa in paragraph_annotations:
+    for pa in sorted(paragraph_annotations, key=lambda a: line_anchor_idx[a['line_ranges'][0]['line_id']]):
         anchor = len(all_paragraph_texts)
         paragraph_anchor_idx[pa['id']] = anchor
         pa['logical_begin_anchor'] = anchor
@@ -763,7 +764,8 @@ def extract_paragraph_text(datadir, year) -> Dict[str, int]:
     return paragraph_anchor_idx
 
 
-def traverse_session_files(sessions_folder, resource_id) -> IndexedSegmentedText:
+def traverse_session_files(sessions_folder, resource_id) -> (IndexedSegmentedText, dict[str, Any]):
+    line_anchor_idx = {}
     all_textlines = segmentedtext.IndexedSegmentedText(resource_id)
     # Process per file, properly concatenate results, maintaining proper referencing the baseline text elements
     for f_name in get_session_files(sessions_folder):
@@ -774,7 +776,8 @@ def traverse_session_files(sessions_folder, resource_id) -> IndexedSegmentedText
         annotation_array = []
         provenance_source = f"{session_es_index}/_doc/{source_data['id']}"
 
-        traverse(source_data, AnnTypes.SESSION, text_array, annotation_array, resource_id, provenance_source)
+        traverse(source_data, AnnTypes.SESSION, text_array, annotation_array, resource_id, provenance_source,
+                 line_anchor_idx)
 
         # properly concatenate annotation info taking ongoing line indexes into account
         for ai in annotation_array:
@@ -784,7 +787,7 @@ def traverse_session_files(sessions_folder, resource_id) -> IndexedSegmentedText
         all_textlines.extend(text_array)
         all_annotations.extend(annotation_array)
     logging.info(f"{len(all_annotations)} annotations")
-    return all_textlines
+    return all_textlines, line_anchor_idx
 
 
 def traverse_resolution_files(resolutions_folder, resource_id):
