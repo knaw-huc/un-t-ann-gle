@@ -458,7 +458,7 @@ def collect_attendant_info(span, paras, paragraph_anchor: Dict[str, int]):
                     if pattern in par_text:
                         p_start_offset = par_text.index(pattern)
                     else:
-                        p_start_offset = par_text.replace("\n"," ").index(pattern.replace("\n"," "))
+                        p_start_offset = par_text.replace("\n", " ").index(pattern.replace("\n", " "))
 
                     if '\n' in pattern:
                         parts = pattern.split('\n')
@@ -475,6 +475,9 @@ def collect_attendant_info(span, paras, paragraph_anchor: Dict[str, int]):
                         'logical_begin_char_offset': p_start_offset,
                         'logical_end_char_offset': p_end_offset
                     }
+                    if result['logical_begin_anchor'] > result['logical_end_anchor']:
+                        logging.error(
+                            f"logical_begin_anchor ({result['logical_begin_anchor']}) > logical_end_anchor ({result['logical_end_anchor']})")
                     if (result['logical_begin_anchor'] == result['logical_end_anchor']) and (
                             result['logical_begin_char_offset'] >= result['logical_end_char_offset']):
                         logging.error(
@@ -641,6 +644,19 @@ def with_logical_anchors(annotation):
         end_logical_range = logical_anchor_range_for_line_anchor[annotation['end_anchor']]
         annotation['logical_end_anchor'] = end_logical_range.end_logical_anchor
         annotation['logical_end_char_offset'] = end_logical_range.end_char_offset
+
+        if begin_logical_range.begin_logical_anchor > end_logical_range.end_logical_anchor:
+            logging.warn(
+                f"begin_logical_range.begin_logical_anchor ({begin_logical_range.begin_logical_anchor}) >"
+                f" end_logical_range.end_logical_anchor ({end_logical_range.end_logical_anchor}) for {annotation['id']},"
+                f" swapping"
+            )
+            annotation['logical_begin_anchor'], annotation['logical_end_anchor'] = \
+                annotation['logical_end_anchor'], annotation['logical_begin_anchor']
+            annotation['logical_begin_char_offset'] = end_logical_range.begin_char_offset
+            annotation['logical_end_char_offset'] = begin_logical_range.end_char_offset
+            # else:
+        #     logging.info(f"logical range is valid for {annotation['id']}")
     return annotation
 
 
@@ -858,6 +874,9 @@ def set_logical_text_offset(al, atts):
     al['logical_begin_char_offset'] = min_logical_position[1]
     al['logical_end_anchor'] = max_logical_position[0]
     al['logical_end_char_offset'] = max_logical_position[1]
+    if al['logical_begin_anchor'] > al['logical_end_anchor']:
+        logging.error(
+            f"logical_begin_anchor ({al['logical_begin_anchor']}) > logical_end_anchor ({al['logical_end_anchor']})")
 
 
 def add_region_links_to_page_annotations(resource_id):

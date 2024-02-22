@@ -158,6 +158,29 @@ def create_volume_annotation(
     )
 
 
+def sanity_check(web_annotations):
+    for a in web_annotations:
+        body_id = a['body']['id']
+        targets = a['target']
+        errors = []
+        text_targets_with_selector = [t for t in targets if t['type'] == 'Text' and 'selector' in t]
+        for t in text_targets_with_selector:
+            start = t['selector']['start']
+            end = t['selector']['end']
+            if start > end:
+                errors.append(f"  start ({start}) > end ({end}) for Text target")
+        logical_text_targets_with_selector = [t for t in targets if t['type'] == 'LogicalText' and 'selector' in t]
+        for t in logical_text_targets_with_selector:
+            start = t['selector']['start']
+            end = t['selector']['end']
+            if start > end:
+                errors.append(f"  start ({start}) > end ({end}) for LogicalText target")
+        if errors:
+            logger.error(f"target errors for body.id {body_id}:")
+            for e in errors:
+                logger.error(e)
+
+
 def convert(annotation_store_path: str, textrepo_url: str,
             physical_version_id: str, logical_version_id: str,
             canvas_index_path: str,
@@ -190,6 +213,8 @@ def convert(annotation_store_path: str, textrepo_url: str,
                                                      version_id=physical_version_id,
                                                      logical_version_id=logical_version_id)
         web_annotations.append(volume_annotation)
+
+    sanity_check(web_annotations)
 
     export_to_file(web_annotations, export_path)
     export_sample(web_annotations, export_path)
