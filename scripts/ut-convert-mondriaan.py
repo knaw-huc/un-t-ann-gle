@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
-import json
+import glob
 
 from loguru import logger
 
-import textfabric
+import untanngle.textfabric as tf
 
-basedir = 'data/watm'
-textfile = f'{basedir}/mondriaan-text.json'
-anno_files = [f"{basedir}/mondriaan-anno.json"]
-textrepo_base_uri = "https://mondriaan.tt.di.huc.knaw.nl/textrepo"
-external_id = "mondriaan"
+basedir = 'data/mondriaan/0.8.14'
+text_files = sorted(glob.glob(f'{basedir}/text-*.json'))
+anno_files = sorted(glob.glob(f"{basedir}/anno-*.json"))
+textrepo_base_uri: str = "https://mondriaan.tt.di.huc.knaw.nl/textrepo"
+project_name = "mondriaan"
+export_path = f"out/{project_name}-web_annotations.json"
+excluded_types = ["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk"]
 
 
 @logger.catch()
 def main():
-    web_annotations = textfabric.convert(project=external_id,
-                                         anno_files=anno_files,
-                                         text_files=textfile,
-                                         textrepo_url=textrepo_base_uri,
-                                         textrepo_file_versions="c637abd5-7e07-4a3d-962e-fb40d4656ec4")
-    # selection = [w for w in web_annotations if w["body"]["type"] in ("tei:Pb", "tei:Div")]
-    # print(json.dumps(selection, indent=2))
-    print(json.dumps(web_annotations, indent=2))
+    tf.untangle_tf_export(
+        project_name=project_name,
+        text_files=text_files,
+        anno_files=anno_files,
+        textrepo_base_uri=textrepo_base_uri,
+        export_path=export_path,
+        excluded_types=excluded_types
+    )
 
 
 if __name__ == '__main__':

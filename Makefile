@@ -15,7 +15,7 @@ republic-annotations:
 	for y in {1705..1796}; do ./scripts/ut-run-republic-pipeline-for-year.sh $$y conf/republic-local.env; done
 
 out/mondriaan-web-annotations.json: ./scripts/ut-convert-mondriaan.py untanngle/*.py data/mondriaan-anno.json data/mondriaan-text.json
-	poetry run scripts/ut-convert-mondriaan.py > out/mondriaan-web-annotations.json
+	poetry run ./scripts/ut-convert-mondriaan.py > out/mondriaan-web-annotations.json
 
 .PHONY: mondriaan-annotations
 mondriaan-annotations: out/mondriaan-web-annotations.json
@@ -37,6 +37,11 @@ translatin-untangle:
 	(cd data/translatin && git pull)
 	poetry run ./scripts/ut-convert-translatin.py
 
+.PHONY: mondriaan-untangle
+mondriaan-untangle:
+	(cd data/mondriaan && git pull)
+	poetry run ./scripts/ut-convert-mondriaan.py
+
 .PHONY: suriano-untangle
 suriano-untangle:
 	(cd data/suriano && git pull)
@@ -44,7 +49,7 @@ suriano-untangle:
 
 .PHONY: suriano-upload-annotations
 suriano-upload-annotations: scripts/ut-upload-web-annotations.py out/suriano-web_annotations.json
-	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano-0.0.4 -l "Correspondence of Christofforo Suriano" -k b85c4064-b736-49ee-ada4-fa9eb2139bd4 out/suriano-web_annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano-0.0.5 -l "Correspondence of Christofforo Suriano (watm 0.0.5)" -k b85c4064-b736-49ee-ada4-fa9eb2139bd4 out/suriano-web_annotations.json
 
 .PHONY: help
 help:
@@ -57,9 +62,10 @@ help:
 	@echo "  republic-1706              - to run the republic untangle pipeline for 1706"
 	@echo "  republic-1796              - to run the republic untangle pipeline for 1796"
 	@echo
-	@echo "  mondriaan-annotations      - to generate the mondriaan web-annotations"
-	@echo
 	@echo "  suriano-untangle           - to untangle the textfabric export for suriano"
 	@echo "  suriano-upload-annotations - to upload the web annotations for suriano"
+	@echo
 	@echo "  translatin-untangle        - to untangle the textfabric export for translatin"
+	@echo
+	@echo "  mondriaan-untangle         - to untangle the textfabric export for mondriaan"
 

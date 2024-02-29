@@ -11,9 +11,9 @@ import untanngle.annotations as ann
 import untanngle.camel_casing as cc
 import untanngle.textfabric as tf
 
-basedir = 'data/translatin'
+basedir = 'data/translatin/0.1.1'
 textrepo_url = "https://translatin.tt.di.huc.knaw.nl/textrepo"
-export_path = f"out/translatin/web_annotations-{base}.json"
+export_path = f"out/translatin/web_annotations.json"
 
 
 @logger.catch()
@@ -35,7 +35,7 @@ def main():
         logger.info(f"<= {anno_file_path}")
         web_annotations = tf.convert(project=f'translatin:{base}',
                                      anno_files=[anno_file_path],
-                                     text_files=text_file_path,
+                                     text_files=[text_file_path],
                                      textrepo_url=textrepo_url,
                                      textrepo_file_versions=tr_version_id)
         extended_annotations = add_image_targets(web_annotations)

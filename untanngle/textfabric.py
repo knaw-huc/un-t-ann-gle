@@ -1,5 +1,6 @@
 import json
 import re
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Any, List
@@ -8,6 +9,7 @@ from icecream import ic
 from loguru import logger
 
 from untanngle import camel_casing as cc
+from untanngle import utils as ut
 
 
 @dataclass
@@ -102,7 +104,7 @@ class AnnotationTransformer:
                 anno["body"].pop("text")
         else:
             canvas_target = {
-                "@context": "https://knaw-huc.github.io/ns/republic.jsonld",
+                "@context": "https://knaw-huc.github.io/ns/huc-di-tt.jsonld",
                 "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/20633ef4-27af-4b13-9ffe-dfc0f9dad1d7",
                 "type": "Canvas"
             }
@@ -201,13 +203,13 @@ def sanity_check(ia: List[IAnnotation]):
                 ic(anno1.id, anno1.metadata, anno1.begin_anchor, anno1.end_anchor)
                 ic(anno2.id, anno2.metadata, anno2.begin_anchor, anno2.end_anchor)
 
-    sentence_annotations = [a for a in ia if a.type == 'letter']
+    sentence_annotations = [a for a in ia if a.type == 'sentence']
     for i in range(len(sentence_annotations)):
         for j in range(i + 1, len(sentence_annotations)):
             anno1 = sentence_annotations[i]
-            anno2 = letter_annotations[j]
+            anno2 = sentence_annotations[j]
             if annotations_overlap(anno1, anno2):
-                logger.error("Overlapping Letter annotations: ")
+                logger.error("Overlapping Sentence annotations: ")
                 ic(anno1.id, anno1.metadata, anno1.begin_anchor, anno1.end_anchor)
                 ic(anno2.id, anno2.metadata, anno2.begin_anchor, anno2.end_anchor)
 
@@ -218,7 +220,7 @@ def sanity_check(ia: List[IAnnotation]):
 
 
 def annotations_overlap(anno1, anno2):
-    return (anno1.end_anchor - 1) >= anno2.begin_anchor
+    return (anno1.text_num == anno2.text_num) and (anno1.end_anchor - 1) >= anno2.begin_anchor
 
 
 def get_parent_lang(a: IAnnotation, node_parents: Dict[str, str], ia_idx: Dict[str, IAnnotation]) -> str:
@@ -243,7 +245,9 @@ def modify_note_annotations(ia: List[IAnnotation], node_parents: Dict[str, str])
     return ia
 
 
-target_pattern = re.compile(r"(\d+):(\d+)-(\d+)")
+single_target_pattern = re.compile(r"(\d+):(\d+)")
+range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
+range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
 
 
 def build_web_annotations(project: str,
@@ -264,19 +268,41 @@ def build_web_annotations(project: str,
     for a in [a for a in tf_annotations]:
         match a.type:
             case 'element':
-                match = target_pattern.match(a.target)
-                text_num = match.group(1)
-                begin_anchor = int(match.group(2))
-                end_anchor = int(match.group(3))
-                text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
-                ia = IAnnotation(id=a.id,
-                                 namespace=a.namespace,
-                                 type=a.body,
-                                 text=text,
-                                 text_num=text_num,
-                                 begin_anchor=begin_anchor,
-                                 end_anchor=end_anchor - 1)
-                ia_idx[a.id] = ia
+                match0 = single_target_pattern.fullmatch(a.target)
+                match1 = range_target_pattern1.fullmatch(a.target)
+                match2 = range_target_pattern2.fullmatch(a.target)
+                if match2:
+                    logger.warning(f"annotation spanning multiple texts: {a}")
+
+                elif match1:
+                    text_num = match1.group(1)
+                    begin_anchor = int(match1.group(2))
+                    end_anchor = int(match1.group(3))
+                    text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
+                    ia = IAnnotation(id=a.id,
+                                     namespace=a.namespace,
+                                     type=a.body,
+                                     text=text,
+                                     text_num=text_num,
+                                     begin_anchor=begin_anchor,
+                                     end_anchor=end_anchor - 1)
+                    ia_idx[a.id] = ia
+
+                elif match0:
+                    text_num = match0.group(1)
+                    begin_anchor = end_anchor = int(match0.group(2))
+                    text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
+                    ia = IAnnotation(id=a.id,
+                                     namespace=a.namespace,
+                                     type=a.body,
+                                     text=text,
+                                     text_num=text_num,
+                                     begin_anchor=begin_anchor,
+                                     end_anchor=end_anchor)
+                    ia_idx[a.id] = ia
+
+                else:
+                    logger.warning(f"unknown element target pattern: {a}")
             case 'node':
                 anno_id = a.target
                 if anno_id in ia_idx:
@@ -391,3 +417,30 @@ def get_file_num(tf_text_file: str) -> str:
     match = file_num_pattern.match(tf_text_file)
     if match:
         return match.group(1)
+
+
+def untangle_tf_export(
+        project_name: str,
+        text_files: List[str],
+        anno_files: List[str],
+        textrepo_base_uri: str,
+        export_path: str,
+        excluded_types: List[str] = []
+):
+    start = time.perf_counter()
+    textrepo_file_version = ut.upload_to_tr(textrepo_base_uri=textrepo_base_uri,
+                                            project_name=project_name,
+                                            tf_text_files=text_files)
+    web_annotations = convert(project=project_name,
+                              anno_files=anno_files,
+                              text_files=text_files,
+                              textrepo_url=textrepo_base_uri,
+                              textrepo_file_versions=textrepo_file_version)
+    logger.info(f"{len(web_annotations)} annotations")
+    filtered_web_annotations = [a for a in web_annotations if
+                                'type' in a['body'] and a['body']['type'] not in excluded_types]
+    ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=export_path)
+    print(f"text files: {len(text_files)}")
+    ut.show_annotation_counts(web_annotations, excluded_types)
+    end = time.perf_counter()
+    print(f"untangling {project_name} took {end - start:0.4f} seconds")
