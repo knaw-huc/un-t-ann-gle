@@ -33,10 +33,8 @@ def main():
         tr_version_id = upload_segmented_text(base, text_file_path, trc)
 
         logger.info(f"<= {anno_file_path}")
-        web_annotations = tf.convert(project=f'translatin:{base}',
-                                     anno_files=[anno_file_path],
-                                     text_files=[text_file_path],
-                                     textrepo_url=textrepo_url,
+        web_annotations = tf.convert(project=f'translatin:{base}', anno_files=[anno_file_path],
+                                     text_files=[text_file_path], textrepo_url=textrepo_url,
                                      textrepo_file_versions=tr_version_id)
         extended_annotations = add_image_targets(web_annotations)
         translatin_web_annotations = update_manifestation_annotations(extended_annotations)

@@ -12,18 +12,14 @@ textrepo_base_uri: str = "https://mondriaan.tt.di.huc.knaw.nl/textrepo"
 project_name = "mondriaan"
 export_path = f"out/{project_name}-web_annotations.json"
 excluded_types = ["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk"]
+tier0_type = "tf:File"
 
 
 @logger.catch()
 def main():
-    tf.untangle_tf_export(
-        project_name=project_name,
-        text_files=text_files,
-        anno_files=anno_files,
-        textrepo_base_uri=textrepo_base_uri,
-        export_path=export_path,
-        excluded_types=excluded_types
-    )
+    tf.untangle_tf_export(project_name=project_name, text_files=text_files, anno_files=anno_files,
+                          textrepo_base_uri=textrepo_base_uri, export_path=export_path, tier0_type=tier0_type,
+                          excluded_types=excluded_types)
 
 
 if __name__ == '__main__':

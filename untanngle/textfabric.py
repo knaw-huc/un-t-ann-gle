@@ -97,7 +97,7 @@ class AnnotationTransformer:
                 "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02%2F3783%2FNL-HaNA_1.01.02_3783_0002.jpg/full/full/0/default.jpg",
                 "type": "Image"
             })
-        if ia.type == "folder":
+        if ia.type == "file":
             anno["body"]["metadata"]["manifest"] = \
                 "https://images.diginfra.net/api/pim/imageset/67533019-4ca0-4b08-b87e-fd5590e7a077/manifest"
             if "text" in anno["body"]:
@@ -112,12 +112,8 @@ class AnnotationTransformer:
         return anno
 
 
-def convert(project: str,
-            anno_files: List[str],
-            text_files: List[str],
-            textrepo_url: str,
-            textrepo_file_versions: Dict[str, str],
-            text_in_body: bool = False) -> List[Dict[str, Any]]:
+def convert(project: str, anno_files: List[str], text_files: List[str], textrepo_url: str,
+            textrepo_file_versions: Dict[str, str], text_in_body: bool = False) -> List[Dict[str, Any]]:
     tf_tokens = read_tf_tokens(text_files)
     tf_annotations = []
     for anno_file in anno_files:
@@ -419,24 +415,26 @@ def get_file_num(tf_text_file: str) -> str:
         return match.group(1)
 
 
-def untangle_tf_export(
-        project_name: str,
-        text_files: List[str],
-        anno_files: List[str],
-        textrepo_base_uri: str,
-        export_path: str,
-        excluded_types: List[str] = []
-):
+def sanity_check1(web_annotations: List, tier0_type: str):
+    tier0_annotations = [a for a in web_annotations if "type" in a['body'] and a['body']['type'] == tier0_type]
+    if not tier0_annotations:
+        logger.error(f"no tier0 annotations found, tier0 = '{tier0_type}'")
+    else:
+        for a in tier0_annotations:
+            if 'manifest' not in a['body']['metadata']:
+                logger.error(f"missing required body.metadata.manifest field for {a}")
+
+
+def untangle_tf_export(project_name: str, text_files: List[str], anno_files: List[str], textrepo_base_uri: str,
+                       export_path: str, tier0_type: str, excluded_types: List[str] = []):
     start = time.perf_counter()
     textrepo_file_version = ut.upload_to_tr(textrepo_base_uri=textrepo_base_uri,
                                             project_name=project_name,
                                             tf_text_files=text_files)
-    web_annotations = convert(project=project_name,
-                              anno_files=anno_files,
-                              text_files=text_files,
-                              textrepo_url=textrepo_base_uri,
-                              textrepo_file_versions=textrepo_file_version)
+    web_annotations = convert(project=project_name, anno_files=anno_files, text_files=text_files,
+                              textrepo_url=textrepo_base_uri, textrepo_file_versions=textrepo_file_version)
     logger.info(f"{len(web_annotations)} annotations")
+    sanity_check1(web_annotations, tier0_type)
     filtered_web_annotations = [a for a in web_annotations if
                                 'type' in a['body'] and a['body']['type'] not in excluded_types]
     ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=export_path)
