@@ -4,9 +4,10 @@ from datetime import datetime
 
 from icecream import ic
 from loguru import logger
+from provenance import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
 from uri import URI
 
-from untanngle.provenance import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
+from utils import trim_trailing_slash
 
 
 @logger.catch()
@@ -49,13 +50,6 @@ def post_provenance(base_url: str, api_key: str):
     ic(pd)
     id = pc.add_provenance(pd)
     ic(id)
-
-
-def trim_trailing_slash(url: str):
-    if url.endswith('/'):
-        return url[0:-1]
-    else:
-        return url
 
 
 if __name__ == '__main__':

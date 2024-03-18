@@ -10,6 +10,7 @@ from textrepo.client import TextRepoClient
 import untanngle.annotations as ann
 import untanngle.camel_casing as cc
 import untanngle.textfabric as tf
+from utils import add_segmented_text_type_if_missing
 
 basedir = 'data/translatin/0.1.1'
 textrepo_url = "https://translatin.tt.di.huc.knaw.nl/textrepo"
@@ -19,7 +20,7 @@ export_path = f"out/translatin/web_annotations.json"
 @logger.catch()
 def main():
     trc = TextRepoClient(base_uri=textrepo_url, verbose=True)
-    check_file_types(trc)
+    add_segmented_text_type_if_missing(trc)
 
     manifestations_table_path = 'data/translatin-tables/manifestations.tsv'
     # manifestation_metadata_idx = load_manifestation_metadata(manifestations_table_path)
@@ -52,13 +53,6 @@ def upload_segmented_text(external_id: str, text_file_path: str, client: TextRep
                                        contents=content,
                                        as_latest_version=True)
     return version_id.version_id
-
-
-def check_file_types(client: TextRepoClient):
-    name = "segmented_text"
-    available_type_names = [t.name for t in client.read_file_types()]
-    if name not in available_type_names:
-        client.create_file_type(name=name, mimetype="application/json")
 
 
 def with_image_targets(annotation: Dict[str, any], iiif_url: str = None) -> (Dict[str, any], str):

@@ -2,13 +2,13 @@
 import argparse
 import json
 import random
-from itertools import zip_longest
 from time import sleep
-from typing import List, Any
 
 import requests
 from icecream import ic
 from loguru import logger
+
+from utils import chunk_list
 
 url = "https://switch.sd.di.huc.knaw.nl/textanno"
 chunk_size = 1_000_000
@@ -67,12 +67,8 @@ def upload_and_save_ref(annotations, chunk, path):
             json.dump(annotations, f)
     else:
         ic(chunk)
-        ic(result_response,result_response.content)
+        ic(result_response, result_response.content)
         exit(result_response.status_code)
-
-
-def chunk_list(big_list: List[Any], chunk_size: int) -> List[List[Any]]:
-    return [[i for i in item if i] for item in list(zip_longest(*[iter(big_list)] * chunk_size))]
 
 
 def calc_next_delay(retry_count):

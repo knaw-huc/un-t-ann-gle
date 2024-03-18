@@ -3,31 +3,20 @@ import argparse
 import glob
 import json
 import os.path
-from itertools import zip_longest
-from typing import List, Any
+from typing import List
 
 import progressbar
 from annorepo.client import AnnoRepoClient
 from loguru import logger
 
-
-def chunk_list(big_list: List[Any], chunk_size: int) -> List[List[Any]]:
-    return [[i for i in item if i] for item in list(zip_longest(*[iter(big_list)] * chunk_size))]
-
-
-def trim_trailing_slash(url: str):
-    if url.endswith('/'):
-        return url[0:-1]
-    else:
-        return url
-
+from utils import trim_trailing_slash, chunk_list
 
 tier_metadata_fields = ['volume', 'na:File']
 
 
 def upload(annorepo_base_url: str,
            container_id: str,
-           input: List[str],
+           input_paths: List[str],
            container_label: str = 'A Container for Web Annotations',
            api_key: str = None):
     ar = AnnoRepoClient(annorepo_base_url, verbose=False, api_key=api_key)
@@ -52,7 +41,7 @@ def upload(annorepo_base_url: str,
     ca.set_anonymous_user_read_access(has_read_access=True)
 
     inputfiles = []
-    for p in input:
+    for p in input_paths:
         if os.path.isdir(p):
             inputfiles.extend(glob.glob(f'{p}/*.json'))
         else:

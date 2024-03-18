@@ -13,6 +13,8 @@ from provenance.client import ProvenanceClient, ProvenanceData, ProvenanceHow, P
 from textrepo.client import TextRepoClient
 from uri import URI
 
+from utils import trim_trailing_slash, add_segmented_text_type_if_missing
+
 version_id_idx_path = "out/version_id_idx.json"
 
 
@@ -90,13 +92,6 @@ def export_for_text_repo(data_dir, idx, phys_log, path, prov_key, prov_url, trc,
         logger.error(f"file not found: {path}")
 
 
-def trim_trailing_slash(url: str):
-    if url.endswith('/'):
-        return url[0:-1]
-    else:
-        return url
-
-
 def load_version_id_idx(version_id_idx_path: str):
     if exists(version_id_idx_path):
         logger.info(f"<= {version_id_idx_path}")
@@ -151,19 +146,12 @@ def main():
     data_dir = trim_trailing_slash(args.data_dir)
     version_id_idx = load_version_id_idx(version_id_idx_path)
     trc = TextRepoClient(args.textrepo_base_url, verbose=True)
-    check_file_types(trc)
+    add_segmented_text_type_if_missing(trc)
     prov_url = args.provenance_base_url
     prov_key = args.provenance_api_key
     for year in sorted(years):
         upload(year, data_dir, trc, version_id_idx, prov_url, prov_key)
     logger.info("done!")
-
-
-def check_file_types(trc):
-    name = "logical_segmented_text"
-    available_type_names = [t.name for t in trc.read_file_types()]
-    if name not in available_type_names:
-        trc.create_file_type(name=name, mimetype="application/json")
 
 
 if __name__ == '__main__':
