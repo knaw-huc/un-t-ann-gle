@@ -7,7 +7,7 @@ from loguru import logger
 from provenance import ProvenanceClient, ProvenanceData, ProvenanceHow, ProvenanceWhy, ProvenanceResource
 from uri import URI
 
-from utils import trim_trailing_slash
+from untanngle.utils import trim_trailing_slash
 
 
 @logger.catch()

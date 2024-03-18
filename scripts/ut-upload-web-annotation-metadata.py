@@ -8,7 +8,7 @@ import requests
 from icecream import ic
 from loguru import logger
 
-from utils import chunk_list
+from untanngle.utils import chunk_list
 
 url = "https://switch.sd.di.huc.knaw.nl/textanno"
 chunk_size = 1_000_000

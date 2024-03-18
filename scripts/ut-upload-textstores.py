@@ -2,7 +2,6 @@
 
 import argparse
 import glob
-import json
 import subprocess
 from datetime import datetime
 from os.path import exists
@@ -13,7 +12,7 @@ from provenance.client import ProvenanceClient, ProvenanceData, ProvenanceHow, P
 from textrepo.client import TextRepoClient
 from uri import URI
 
-from utils import trim_trailing_slash, add_segmented_text_type_if_missing
+from untanngle.utils import trim_trailing_slash, add_segmented_text_type_if_missing, read_json, write_json
 
 version_id_idx_path = "out/version_id_idx.json"
 
@@ -81,7 +80,7 @@ def export_for_text_repo(data_dir, idx, phys_log, path, prov_key, prov_url, trc,
         if year not in idx:
             idx[year] = {}
         idx[year][phys_log] = version_id.version_id
-        store_version_id_idx(idx)
+        write_json(idx)
         logger.info(f"verify: {trc.base_uri}/view/versions/{version_id.version_id}/segments/index/0/39")
         store_provenance(textrepo_version_url=f"{trc.base_uri}/rest/versions/{version_id.version_id}",
                          session_files_path=f"{data_dir}/{year}/sessions",
@@ -94,17 +93,12 @@ def export_for_text_repo(data_dir, idx, phys_log, path, prov_key, prov_url, trc,
 
 def load_version_id_idx(version_id_idx_path: str):
     if exists(version_id_idx_path):
-        logger.info(f"<= {version_id_idx_path}")
-        with open(version_id_idx_path) as f:
-            return json.load(f)
+        # logger.info(f"<= {version_id_idx_path}")
+        # with open(version_id_idx_path) as f:
+        #     return json.load(f)
+        return read_json(version_id_idx_path)
     else:
         return {}
-
-
-def store_version_id_idx(idx):
-    logger.info(f"=> {version_id_idx_path}")
-    with open(version_id_idx_path, "w") as f:
-        json.dump(idx, fp=f, ensure_ascii=False)
 
 
 @logger.catch

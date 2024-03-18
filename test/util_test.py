@@ -3,7 +3,7 @@ import unittest
 from textrepo.client import TextRepoClient
 
 import textfabric as tf
-from utils import trc_has_document_with_external_id
+from untanngle.utils import trc_has_document_with_external_id
 
 
 class MyTestCase(unittest.TestCase):

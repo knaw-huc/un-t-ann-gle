@@ -9,7 +9,7 @@ import progressbar
 from annorepo.client import AnnoRepoClient
 from loguru import logger
 
-from utils import trim_trailing_slash, chunk_list
+from untanngle.utils import trim_trailing_slash, chunk_list
 
 tier_metadata_fields = ['volume', 'na:File']
 

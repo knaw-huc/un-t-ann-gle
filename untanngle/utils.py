@@ -94,3 +94,16 @@ def trim_trailing_slash(url: str):
 
 def chunk_list(big_list: List[Any], chunk_size: int) -> List[List[Any]]:
     return [[i for i in item if i] for item in list(zip_longest(*[iter(big_list)] * chunk_size))]
+
+
+def read_json(path: str) -> Any:
+    logger.info(f"<= {path}")
+    with open(path, "r") as f:
+        data = json.load(f)
+    return data
+
+
+def write_json(output_path: str):
+    logger.info(f"=> {version_id_idx_path}")
+    with open(version_id_idx_path, "w") as f:
+        json.dump(output_path, fp=f, ensure_ascii=False)

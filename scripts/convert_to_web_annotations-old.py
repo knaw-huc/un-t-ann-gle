@@ -8,6 +8,7 @@ from rdflib import Graph
 
 from untanngle.annotations import LineAnnotation, AttendantAnnotation, AttendantsListAnnotation, ColumnAnnotation, \
     ResolutionAnnotation, ScanPageAnnotation, SessionAnnotation, TextRegionAnnotation
+from untanngle.utils import read_json
 
 
 def scanpage_as_web_annotation(annotation: dict) -> dict:
@@ -115,9 +116,9 @@ def print_example_conversions(annotations, scanpage_iiif: dict, textrepo_base_ur
 
 
 def convert(input_file: str, textrepo_base_url: str):
-    print(f'> importing {input_file} ...')
-    with open(input_file) as f:
-        annotations = json.load(f)
+    # print(f'> importing {input_file} ...')
+    # with open(input_file) as f:
+    annotations = read_json(input_file)
     num_annotations = len(annotations)
     print(f'> {num_annotations} annotations loaded')
 

@@ -10,7 +10,7 @@ from textrepo.client import TextRepoClient
 import untanngle.annotations as ann
 import untanngle.camel_casing as cc
 import untanngle.textfabric as tf
-from utils import add_segmented_text_type_if_missing
+from untanngle.utils import add_segmented_text_type_if_missing
 
 basedir = 'data/translatin/0.1.1'
 textrepo_url = "https://translatin.tt.di.huc.knaw.nl/textrepo"
