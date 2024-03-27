@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
+import argparse
 import functools
 import json
-import sys
-from typing import Set
+from typing import Set, List
 
 import requests
 from loguru import logger
@@ -69,20 +69,40 @@ def get_defined_props(context_list) -> Set[str]:
 
 
 @logger.catch
-def main(path: str):
-    logger.info(f"<= {path}")
-    with open(path) as f:
-        annotations = json.load(f)
+def examine(paths: List[str], namespace: str):
     undefined_props = set()
-    for anno in annotations:
-        defined_props = get_defined_props(anno['@context'])
-        props = get_property_set(anno)
-        undefined_props.update(props - defined_props)
-    print(f"# undefined properties found:")
-    for p in sorted(list(undefined_props)):
-        print(f"{p}: republic:{p}")
+    for path in paths:
+        logger.info(f"<= {path}")
+        with open(path) as f:
+            annotations = json.load(f)
+        for anno in annotations:
+            defined_props = get_defined_props(anno['@context'])
+            props = get_property_set(anno)
+            undefined_props.update(props - defined_props)
+    if undefined_props:
+        print(f"# undefined properties found:")
+        for p in sorted(list(undefined_props)):
+            print(f"{p}: {namespace}:{p}")
+    else:
+        print(f"# np undefined properties found")
 
 
 if __name__ == '__main__':
-    input_path = sys.argv[1]
-    main(input_path)
+    parser = argparse.ArgumentParser(
+        description="Find undefined properties in the given annotations, and make yaml lines"
+                    " to be included in a the yaml form of a jsonld context",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("annotations_file",
+                        help="The file containing the web annotations to examine",
+                        nargs='+',
+                        type=str)
+    parser.add_argument("-n",
+                        "--namespace",
+                        help="The namespace name to use in the yaml lines",
+                        type=str,
+                        default='ns'
+                        )
+
+    args = parser.parse_args()
+
+    examine(args.annotations_file, args.namespace)
