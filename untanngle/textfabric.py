@@ -335,45 +335,11 @@ def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], toke
     ref_links = []
     target_links = []
     bar = ut.default_progress_bar(len(tf_annotations))
-    for i, a in enumerate(tf_annotations):
+    for i, tf_annotation in enumerate(tf_annotations):
         bar.update(i)
-        match a.type:
+        match tf_annotation.type:
             case 'element':
-                match0 = single_target_pattern.fullmatch(a.target)
-                match1 = range_target_pattern1.fullmatch(a.target)
-                match2 = range_target_pattern2.fullmatch(a.target)
-                if match2:
-                    logger.warning(f"annotation spanning multiple texts: {a}")
-
-                elif match1:
-                    text_num = match1.group(1)
-                    begin_anchor = int(match1.group(2))
-                    end_anchor = int(match1.group(3))
-                    text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
-                    tf_annos = IAnnotation(id=a.id,
-                                           namespace=a.namespace,
-                                           type=a.body,
-                                           text=text,
-                                           text_num=text_num,
-                                           begin_anchor=begin_anchor,
-                                           end_anchor=end_anchor - 1)
-                    tf_annotation_idx[a.id] = tf_annos
-
-                elif match0:
-                    text_num = match0.group(1)
-                    begin_anchor = end_anchor = int(match0.group(2))
-                    text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
-                    tf_annos = IAnnotation(id=a.id,
-                                           namespace=a.namespace,
-                                           type=a.body,
-                                           text=text,
-                                           text_num=text_num,
-                                           begin_anchor=begin_anchor,
-                                           end_anchor=end_anchor)
-                    tf_annotation_idx[a.id] = tf_annos
-
-                else:
-                    logger.warning(f"unknown element target pattern: {a}")
+                handle_element(tf_annotation, tf_annotation_idx, tokens_per_text)
             # case 'node':
             #     anno_id = a.target
             #     if anno_id in tf_annotation_idx:
@@ -382,60 +348,20 @@ def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], toke
             #     #     logger.warning(f"node target ({anno_id}) not in tf_annotation_idx index")
             #     #     ic(a)
             case 'mark':
-                note_anno_id = a.target
-                if note_anno_id in tf_annotation_idx:
-                    element_anno_id = int(a.body)
-                    note_target[note_anno_id] = element_anno_id
-                else:
-                    logger.warning(f"mark target ({note_anno_id}) not in tf_annotation_idx index")
-                    ic(a)
+                handle_mark(tf_annotation, note_target, tf_annotation_idx)
             case 'attribute':
-                element_anno_id = a.target
-                if element_anno_id in tf_annotation_idx:
-                    (k, v) = a.body.split('=', 1)
-                    if k == 'id':
-                        k = 'tei:id'
-                    tf_annotation_idx[element_anno_id].metadata[k] = v
-                # else:
-                #     logger.warning(f"attribute target ({element_anno_id}) not in tf_annotation_idx index")
-                #     ic(a)
+                handle_attribute(tf_annotation, tf_annotation_idx)
             case 'anno':
-                element_anno_id = a.target
-                if element_anno_id in tf_annotation_idx:
-                    tf_annotation_idx[element_anno_id].metadata["anno"] = a.body
-                else:
-                    logger.warning(f"anno target ({element_anno_id}) not in tf_annotation_idx index")
-                    ic(a)
+                handle_anno(tf_annotation, tf_annotation_idx)
             case 'format':
-                # logger.warning("format annotation skipped")
-                # ic(a)
-                pass
+                handle_format()
             case 'pi':
-                logger.warning("pi annotation skipped")
-                ic(a)
-                pass
+                handle_pi(tf_annotation)
             case 'edge':
-                match a.body:
-                    case 'parent':
-                        child_id, parent_id = a.target.split('->')
-                        node_parents[child_id] = parent_id
-                    case 'link_ref':
-                        from_id, to_id = a.target.split('->')
-                        ref_links.append((from_id, to_id))
-                        pass
-                    case 'link_target':
-                        from_id, to_id = a.target.split('->')
-                        target_links.append((from_id, to_id))
-                        pass
-                    case _:
-                        if a.body.startswith('sibling='):
-                            logger.warning("edge/sibling annotation skipped")
-                            pass
-                        else:
-                            logger.warning(f"unhandled edge body: {a.body}")
+                handle_edge(tf_annotation, node_parents, ref_links, target_links)
 
             case _:
-                logger.warning(f"unhandled type: {a.type}")
+                logger.warning(f"unhandled type: {tf_annotation.type}")
     print()
     tf_annos = sorted(tf_annotation_idx.values(),
                       key=lambda anno: (anno.begin_anchor * 100_000 + (
@@ -481,6 +407,108 @@ def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], toke
 
     logger.info("keys_to_camel_case")
     return [cc.keys_to_camel_case(a) for a in web_annotations]
+
+
+def handle_format():
+    # logger.warning("format annotation skipped")
+    # ic(a)
+    pass
+
+
+def handle_edge(tf_annotation, node_parents, ref_links, target_links):
+    match tf_annotation.body:
+        case 'parent':
+            child_id, parent_id = tf_annotation.target.split('->')
+            node_parents[child_id] = parent_id
+        case 'link_ref':
+            from_id, to_id = tf_annotation.target.split('->')
+            ref_links.append((from_id, to_id))
+            pass
+        case 'link_target':
+            from_id, to_id = tf_annotation.target.split('->')
+            target_links.append((from_id, to_id))
+            pass
+        case _:
+            if tf_annotation.body.startswith('sibling='):
+                logger.warning("edge/sibling annotation skipped")
+                pass
+            else:
+                logger.warning(f"unhandled edge body: {tf_annotation.body}")
+
+
+def handle_pi(tf_annotation):
+    logger.warning("pi annotation skipped")
+    ic(tf_annotation)
+    pass
+
+
+def handle_anno(tf_annotation, tf_annotation_idx):
+    element_anno_id = tf_annotation.target
+    if element_anno_id in tf_annotation_idx:
+        tf_annotation_idx[element_anno_id].metadata["anno"] = tf_annotation.body
+    else:
+        logger.warning(f"anno target ({element_anno_id}) not in tf_annotation_idx index")
+        ic(tf_annotation)
+
+
+def handle_attribute(tf_annotation, tf_annotation_idx):
+    element_anno_id = tf_annotation.target
+    if element_anno_id in tf_annotation_idx:
+        (k, v) = tf_annotation.body.split('=', 1)
+        if k == 'id':
+            k = 'tei:id'
+        tf_annotation_idx[element_anno_id].metadata[k] = v
+    # else:
+    #     logger.warning(f"attribute target ({element_anno_id}) not in tf_annotation_idx index")
+    #     ic(a)
+
+
+def handle_mark(tf_annotation, note_target, tf_annotation_idx):
+    note_anno_id = tf_annotation.target
+    if note_anno_id in tf_annotation_idx:
+        element_anno_id = int(tf_annotation.body)
+        note_target[note_anno_id] = element_anno_id
+    else:
+        logger.warning(f"mark target ({note_anno_id}) not in tf_annotation_idx index")
+        ic(tf_annotation)
+
+
+def handle_element(a, tf_annotation_idx, tokens_per_text):
+    match0 = single_target_pattern.fullmatch(a.target)
+    match1 = range_target_pattern1.fullmatch(a.target)
+    match2 = range_target_pattern2.fullmatch(a.target)
+    if match2:
+        logger.warning(f"annotation spanning multiple texts: {a}")
+
+    elif match1:
+        text_num = match1.group(1)
+        begin_anchor = int(match1.group(2))
+        end_anchor = int(match1.group(3))
+        text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
+        tf_annos = IAnnotation(id=a.id,
+                               namespace=a.namespace,
+                               type=a.body,
+                               text=text,
+                               text_num=text_num,
+                               begin_anchor=begin_anchor,
+                               end_anchor=end_anchor - 1)
+        tf_annotation_idx[a.id] = tf_annos
+
+    elif match0:
+        text_num = match0.group(1)
+        begin_anchor = end_anchor = int(match0.group(2))
+        text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
+        tf_annos = IAnnotation(id=a.id,
+                               namespace=a.namespace,
+                               type=a.body,
+                               text=text,
+                               text_num=text_num,
+                               begin_anchor=begin_anchor,
+                               end_anchor=end_anchor)
+        tf_annotation_idx[a.id] = tf_annos
+
+    else:
+        logger.warning(f"unknown element target pattern: {a}")
 
 
 def as_link_anno(from_ia_id: str, to_ia_id: str, purpose: str, ia_id_to_body_id: dict[str, str]) -> dict[str, str]:
