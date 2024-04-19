@@ -4,7 +4,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Any
 
 from icecream import ic
 from loguru import logger
@@ -32,17 +32,17 @@ class IAnnotation:
     begin_anchor: int = 0
     end_anchor: int = 0
     text_num: str = ""
-    metadata: Dict[str, any] = field(default_factory=dict)
+    metadata: dict[str, any] = field(default_factory=dict)
 
 
 @dataclass
 class AnnotationTransformer:
     project: str
     textrepo_url: str
-    textrepo_versions: Dict[str, str]
+    textrepo_versions: dict[str, str]
     text_in_body: bool
 
-    def as_web_annotation(self, ia: IAnnotation) -> Dict[str, Any]:
+    def as_web_annotation(self, ia: IAnnotation) -> dict[str, Any]:
         body_type = f"{ia.namespace}:{as_class_name(ia.type)}"
         text_num = ia.text_num
         textrepo_version = self.textrepo_versions[text_num]
@@ -150,7 +150,7 @@ def as_class_name(string: str) -> str:
 
 
 def convert(project: str, anno_files: list[str], text_files: list[str], anno2node_path: str, textrepo_url: str,
-            textrepo_file_versions: Dict[str, str], text_in_body: bool = False) -> list[Dict[str, Any]]:
+            textrepo_file_versions: dict[str, str], text_in_body: bool = False) -> list[dict[str, Any]]:
     tf_tokens = read_tf_tokens(text_files)
     tf_annotations = []
     for anno_file in anno_files:
@@ -210,14 +210,15 @@ def read_tf_annotations_from_json(anno_file):
     return tf_annotations
 
 
-def read_tsv_records(path: str) -> list[Dict[str, any]]:
+def read_tsv_records(path: str) -> list[dict[str, any]]:
+    # csv.field_size_limit(sys.maxsize)
     logger.info(f"<= {path}")
-    with open(path) as f:
-        records = [row for row in csv.DictReader(f, delimiter='\t')]
-    return records # type *is* correct!
+    with open(path, encoding='utf8') as f:
+        records = [row for row in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE)]
+    return records  # type *is* correct!
 
 
-def modify_pb_annotations(ia: list[IAnnotation], tokens) -> list[IAnnotation]:
+def modify_pb_annotations(ia: list[IAnnotation], tokens: list[str]) -> list[IAnnotation]:
     pb_end_anchor = 0
     last_page_in_div = None
     for i, a in enumerate(ia):
@@ -290,7 +291,7 @@ def annotations_overlap(anno1, anno2):
     return (anno1.text_num == anno2.text_num) and (anno1.end_anchor - 1) >= anno2.begin_anchor
 
 
-def get_parent_lang(a: IAnnotation, node_parents: Dict[str, str], ia_idx: Dict[str, IAnnotation]) -> str:
+def get_parent_lang(a: IAnnotation, node_parents: dict[str, str], ia_idx: dict[str, IAnnotation]) -> str:
     if a.id in node_parents:
         parent = ia_idx[node_parents[a.id]]
         if 'lang' in parent.metadata:
@@ -302,7 +303,7 @@ def get_parent_lang(a: IAnnotation, node_parents: Dict[str, str], ia_idx: Dict[s
         return 'en'
 
 
-def modify_note_annotations(ia: list[IAnnotation], node_parents: Dict[str, str]) -> list[IAnnotation]:
+def modify_note_annotations(ia: list[IAnnotation], node_parents: dict[str, str]) -> list[IAnnotation]:
     ia_idx = {a.id: a for a in ia}
     for a in ia:
         if a.type == 'note' and 'lang' not in a.metadata:
@@ -317,8 +318,8 @@ range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
 range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
 
 
-def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], tokens_per_text: Dict[str, list[str]],
-                          textrepo_url: str, textrepo_file_versions: Dict[str, str], text_in_body: bool,
+def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], tokens_per_text: dict[str, list[str]],
+                          textrepo_url: str, textrepo_file_versions: dict[str, str], text_in_body: bool,
                           anno2node_path: str):
     at = AnnotationTransformer(project=project,
                                textrepo_url=textrepo_url,
@@ -475,7 +476,7 @@ def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], toke
     return [cc.keys_to_camel_case(a) for a in web_annotations]
 
 
-def as_link_anno(from_ia_id: str, to_ia_id: str, purpose: str, ia_id_to_body_id: Dict[str, str]) -> Dict[str, str]:
+def as_link_anno(from_ia_id: str, to_ia_id: str, purpose: str, ia_id_to_body_id: dict[str, str]) -> dict[str, str]:
     body_id = ia_id_to_body_id[from_ia_id]
     target_id = ia_id_to_body_id[to_ia_id]
     return {
@@ -498,7 +499,7 @@ def get_file_num(tf_text_file: str) -> str:
         return match.group(1)
 
 
-def sanity_check1(web_annotations: List, tier0_type: str):
+def sanity_check1(web_annotations: list, tier0_type: str):
     tier0_annotations = [a for a in web_annotations if "type" in a['body'] and a['body']['type'] == tier0_type]
     if not tier0_annotations:
         logger.error(f"no tier0 annotations found, tier0 = '{tier0_type}'")
