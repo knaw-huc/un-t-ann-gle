@@ -51,6 +51,11 @@ suriano-untangle:
 suriano-upload-annotations: scripts/ut-upload-web-annotations.py out/suriano-web_annotations.json
 	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano-0.0.5 -l "Correspondence of Christofforo Suriano (watm 0.0.5)" -k b85c4064-b736-49ee-ada4-fa9eb2139bd4 out/suriano-web_annotations.json
 
+.PHONY: vangogh-untangle
+vangogh-untangle:
+	(cd data/vangogh && git pull)
+	poetry run ./scripts/ut-convert-vangogh.py
+
 .PHONY: help
 help:
 	@echo "make-tools for untanngle"
@@ -68,4 +73,6 @@ help:
 	@echo "  translatin-untangle        - to untangle the textfabric export for translatin"
 	@echo
 	@echo "  mondriaan-untangle         - to untangle the textfabric export for mondriaan"
+	@echo
+	@echo "  vangogh-untangle           - to untangle the textfabric export for vangogh"
 

@@ -1,3 +1,4 @@
+import csv
 import json
 import re
 import time
@@ -32,10 +33,6 @@ class IAnnotation:
     end_anchor: int = 0
     text_num: str = ""
     metadata: Dict[str, any] = field(default_factory=dict)
-
-
-def as_class_name(string: str) -> str:
-    return string[0].capitalize() + string[1:]
 
 
 @dataclass
@@ -92,7 +89,7 @@ class AnnotationTransformer:
             if "type" not in anno["body"]["metadata"]:
                 anno["body"]["metadata"]["type"] = f"tt:{as_class_name(ia.type)}Metadata"
         if ia.type == "letter":
-            anno["body"]["metadata"]["folder"] = "proeftuin"
+            # anno["body"]["metadata"]["folder"] = "proeftuin"
             anno["target"].append({
                 "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02%2F3783%2FNL-HaNA_1.01.02_3783_0002.jpg/full/full/0/default.jpg",
                 "type": "Image"
@@ -112,7 +109,47 @@ class AnnotationTransformer:
         return anno
 
 
-def convert(project: str, anno_files: List[str], text_files: List[str], textrepo_url: str,
+def untangle_tf_export(project_name: str, text_files: List[str], anno_files: List[str],
+                       anno2node_path: str, textrepo_base_uri: str, text_in_body: bool,
+                       export_path: str, tier0_type: str, excluded_types: List[str] = []):
+    start = time.perf_counter()
+
+    out_files = []
+    for tsv in text_files:
+        text_num = get_file_num(tsv)
+        json_path = f"out/textfile-{text_num}.json"
+        logger.info(f"<= {tsv}")
+        with open(tsv) as f:
+            segments = [r['token'].encode('raw_unicode_escape').decode('unicode_escape') for r in
+                        csv.DictReader(f, delimiter='\t')]
+        store_segmented_text(segments=segments, store_path=json_path)
+        out_files.append(json_path)
+
+    if textrepo_base_uri:
+        textrepo_file_version = ut.upload_to_tr(textrepo_base_uri=textrepo_base_uri,
+                                                project_name=project_name,
+                                                tf_text_files=out_files)
+    else:
+        textrepo_file_version = dummy_version(text_files)
+    web_annotations = convert(project=project_name, anno_files=anno_files, text_files=text_files,
+                              anno2node_path=anno2node_path, text_in_body=text_in_body,
+                              textrepo_url=textrepo_base_uri, textrepo_file_versions=textrepo_file_version)
+    logger.info(f"{len(web_annotations)} annotations")
+    sanity_check1(web_annotations, tier0_type)
+    filtered_web_annotations = [a for a in web_annotations if
+                                'type' in a['body'] and a['body']['type'] not in excluded_types]
+    ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=export_path)
+    print(f"text files: {len(text_files)}")
+    ut.show_annotation_counts(web_annotations, excluded_types)
+    end = time.perf_counter()
+    print(f"untangling {project_name} took {end - start:0.4f} seconds")
+
+
+def as_class_name(string: str) -> str:
+    return string[0].capitalize() + string[1:]
+
+
+def convert(project: str, anno_files: List[str], text_files: List[str], anno2node_path: str, textrepo_url: str,
             textrepo_file_versions: Dict[str, str], text_in_body: bool = False) -> List[Dict[str, Any]]:
     tf_tokens = read_tf_tokens(text_files)
     tf_annotations = []
@@ -123,10 +160,24 @@ def convert(project: str, anno_files: List[str], text_files: List[str], textrepo
                                  tokens_per_text=tf_tokens,
                                  textrepo_url=textrepo_url,
                                  textrepo_file_versions=textrepo_file_versions,
-                                 text_in_body=text_in_body)
+                                 text_in_body=text_in_body,
+                                 anno2node_path=anno2node_path)
 
 
 def read_tf_tokens(text_files):
+    tokens_per_text = {}
+    for text_file in text_files:
+        text_num = get_file_num(text_file)
+        logger.info(f"<= {text_file}")
+        with open(text_file) as f:
+            tokens = []
+            for row in csv.DictReader(f, delimiter='\t'):
+                tokens.append(row['token'].encode('raw_unicode_escape').decode('unicode_escape'))
+        tokens_per_text[text_num] = tokens
+    return tokens_per_text
+
+
+def read_tf_tokens_from_json(text_files):
     tokens_per_text = {}
     for text_file in text_files:
         text_num = get_file_num(text_file)
@@ -138,6 +189,18 @@ def read_tf_tokens(text_files):
 
 
 def read_tf_annotations(anno_file):
+    tf_annotations = []
+    logger.info(f"<= {anno_file}")
+    with open(anno_file) as f:
+        for row in csv.DictReader(f, delimiter='\t'):
+            tf_annotations.append(
+                TFAnnotation(id=row["annoid"], type=row["kind"], namespace=row["namespace"],
+                             body=row["body"], target=row["target"])
+            )
+    return tf_annotations
+
+
+def read_tf_annotations_from_json(anno_file):
     tf_annotations = []
     logger.info(f"<= {anno_file}")
     with open(anno_file) as f:
@@ -184,11 +247,13 @@ def is_div_with_pb(a):
 
 
 def sanity_check(ia: List[IAnnotation]):
+    logger.info("check for annotations_with_invalid_anchor_range")
     annotations_with_invalid_anchor_range = [a for a in ia if a.begin_anchor > a.end_anchor]
     if annotations_with_invalid_anchor_range:
         logger.error("There are annotations with invalid anchor range:")
         ic(annotations_with_invalid_anchor_range)
 
+    logger.info("check for overlapping letter annotations")
     letter_annotations = [a for a in ia if a.type == 'letter']
     for i in range(len(letter_annotations)):
         for j in range(i + 1, len(letter_annotations)):
@@ -199,6 +264,7 @@ def sanity_check(ia: List[IAnnotation]):
                 ic(anno1.id, anno1.metadata, anno1.begin_anchor, anno1.end_anchor)
                 ic(anno2.id, anno2.metadata, anno2.begin_anchor, anno2.end_anchor)
 
+    logger.info("check for overlapping sentence annotations")
     sentence_annotations = [a for a in ia if a.type == 'sentence']
     for i in range(len(sentence_annotations)):
         for j in range(i + 1, len(sentence_annotations)):
@@ -209,6 +275,7 @@ def sanity_check(ia: List[IAnnotation]):
                 ic(anno1.id, anno1.metadata, anno1.begin_anchor, anno1.end_anchor)
                 ic(anno2.id, anno2.metadata, anno2.begin_anchor, anno2.end_anchor)
 
+    logger.info("check for note annotations without lang")
     note_annotations_without_lang = [a for a in ia if a.type == 'note' and 'lang' not in a.metadata]
     if note_annotations_without_lang:
         logger.error("There are note annotations without lang metadata:")
@@ -246,22 +313,25 @@ range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
 range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
 
 
-def build_web_annotations(project: str,
-                          tf_annotations: List[TFAnnotation],
-                          tokens_per_text: Dict[str, List[str]],
-                          textrepo_url: str,
-                          textrepo_file_versions: Dict[str, str],
-                          text_in_body: bool):
+def build_web_annotations(project: str, tf_annotations: List[TFAnnotation], tokens_per_text: Dict[str, List[str]],
+                          textrepo_url: str, textrepo_file_versions: Dict[str, str], text_in_body: bool,
+                          anno2node_path: str):
     at = AnnotationTransformer(project=project,
                                textrepo_url=textrepo_url,
                                textrepo_versions=textrepo_file_versions,
                                text_in_body=text_in_body)
-    ia_idx = {}
+    logger.info(f"<= {anno2node_path}")
+    with open(anno2node_path) as f:
+        tf_node_for_annotation_id = {row["annotation"]: row["node"] for row in csv.DictReader(f, delimiter='\t')}
+
+    tf_annotation_idx = {}
     note_target = {}
     node_parents = {}
     ref_links = []
     target_links = []
-    for a in [a for a in tf_annotations]:
+    bar = ut.default_progress_bar(len(tf_annotations))
+    for i, a in enumerate(tf_annotations):
+        bar.update(i)
         match a.type:
             case 'element':
                 match0 = single_target_pattern.fullmatch(a.target)
@@ -275,61 +345,61 @@ def build_web_annotations(project: str,
                     begin_anchor = int(match1.group(2))
                     end_anchor = int(match1.group(3))
                     text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
-                    ia = IAnnotation(id=a.id,
-                                     namespace=a.namespace,
-                                     type=a.body,
-                                     text=text,
-                                     text_num=text_num,
-                                     begin_anchor=begin_anchor,
-                                     end_anchor=end_anchor - 1)
-                    ia_idx[a.id] = ia
+                    tf_annos = IAnnotation(id=a.id,
+                                           namespace=a.namespace,
+                                           type=a.body,
+                                           text=text,
+                                           text_num=text_num,
+                                           begin_anchor=begin_anchor,
+                                           end_anchor=end_anchor - 1)
+                    tf_annotation_idx[a.id] = tf_annos
 
                 elif match0:
                     text_num = match0.group(1)
                     begin_anchor = end_anchor = int(match0.group(2))
                     text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
-                    ia = IAnnotation(id=a.id,
-                                     namespace=a.namespace,
-                                     type=a.body,
-                                     text=text,
-                                     text_num=text_num,
-                                     begin_anchor=begin_anchor,
-                                     end_anchor=end_anchor)
-                    ia_idx[a.id] = ia
+                    tf_annos = IAnnotation(id=a.id,
+                                           namespace=a.namespace,
+                                           type=a.body,
+                                           text=text,
+                                           text_num=text_num,
+                                           begin_anchor=begin_anchor,
+                                           end_anchor=end_anchor)
+                    tf_annotation_idx[a.id] = tf_annos
 
                 else:
                     logger.warning(f"unknown element target pattern: {a}")
-            case 'node':
-                anno_id = a.target
-                if anno_id in ia_idx:
-                    ia_idx[anno_id].tf_node = int(a.body)
-                # else:
-                #     logger.warning(f"node target ({anno_id}) not in ia_idx index")
-                #     ic(a)
+            # case 'node':
+            #     anno_id = a.target
+            #     if anno_id in tf_annotation_idx:
+            #         tf_annotation_idx[anno_id].tf_node = int(a.body)
+            #     # else:
+            #     #     logger.warning(f"node target ({anno_id}) not in tf_annotation_idx index")
+            #     #     ic(a)
             case 'mark':
                 note_anno_id = a.target
-                if note_anno_id in ia_idx:
+                if note_anno_id in tf_annotation_idx:
                     element_anno_id = int(a.body)
                     note_target[note_anno_id] = element_anno_id
                 else:
-                    logger.warning(f"mark target ({note_anno_id}) not in ia_idx index")
+                    logger.warning(f"mark target ({note_anno_id}) not in tf_annotation_idx index")
                     ic(a)
             case 'attribute':
                 element_anno_id = a.target
-                if element_anno_id in ia_idx:
+                if element_anno_id in tf_annotation_idx:
                     (k, v) = a.body.split('=', 1)
                     if k == 'id':
                         k = 'tei:id'
-                    ia_idx[element_anno_id].metadata[k] = v
+                    tf_annotation_idx[element_anno_id].metadata[k] = v
                 # else:
-                #     logger.warning(f"attribute target ({element_anno_id}) not in ia_idx index")
+                #     logger.warning(f"attribute target ({element_anno_id}) not in tf_annotation_idx index")
                 #     ic(a)
             case 'anno':
                 element_anno_id = a.target
-                if element_anno_id in ia_idx:
-                    ia_idx[element_anno_id].metadata["anno"] = a.body
+                if element_anno_id in tf_annotation_idx:
+                    tf_annotation_idx[element_anno_id].metadata["anno"] = a.body
                 else:
-                    logger.warning(f"anno target ({element_anno_id}) not in ia_idx index")
+                    logger.warning(f"anno target ({element_anno_id}) not in tf_annotation_idx index")
                     ic(a)
             case 'format':
                 # logger.warning("format annotation skipped")
@@ -361,32 +431,43 @@ def build_web_annotations(project: str,
 
             case _:
                 logger.warning(f"unhandled type: {a.type}")
+    print()
+    tf_annos = sorted(tf_annotation_idx.values(),
+                      key=lambda anno: (anno.begin_anchor * 100_000 + (
+                              1000 - anno.end_anchor)) * 100_000 + anno.tf_node)
 
-    ia = sorted(ia_idx.values(),
-                key=lambda anno: (anno.begin_anchor * 100_000 + (1000 - anno.end_anchor)) * 100_000 + anno.tf_node)
+    for tfa in tf_annos:
+        tfa.tf_node = tf_node_for_annotation_id[tfa.id]
 
-    # ia = modify_pb_annotations(ia, tokens)
+    # tf_annos = modify_pb_annotations(tf_annos, tokens)
     # ic(node_parents)
-    ia = modify_note_annotations(ia, node_parents)
+    logger.info("modify_note_annotations")
+    tf_annos = modify_note_annotations(tf_annos, node_parents)
 
     # TODO: convert ptr annotations to annotation linking the ptr target to the body.id of the m:Note with the corresponding id
     # TODO: convert rs annotations to annotation linking the rkd url in metadata.anno to the rd target
     # TODO: convert ref annotations
 
-    sanity_check(ia)
+    # logger.info("sanity_check")
+    # sanity_check(tf_annos)
 
-    tf_node_to_ia_id = {a.tf_node: a.id for a in ia}
-    web_annotations = [at.as_web_annotation(a) for a in ia]
-    ia_id_to_body_id = {tf_node_to_ia_id[wa["body"]["tf:textfabric_node"]]: wa["body"]["id"] for wa in web_annotations}
+    logger.info("as_web_annotation")
+    tf_node_to_ia_id = {a.tf_node: a.id for a in tf_annos}
+    web_annotations = [at.as_web_annotation(a) for a in tf_annos]
+    tf_id_to_body_id = {tf_node_to_ia_id[wa["body"]["tf:textfabric_node"]]: wa["body"]["id"] for wa in web_annotations}
 
+    # tf_id_to_body_id = {}
+
+    logger.info("ref_annotations")
     ref_annotations = [
-        as_link_anno(from_ia_id, to_ia_id, "referencing", ia_id_to_body_id)
+        as_link_anno(from_ia_id, to_ia_id, "referencing", tf_id_to_body_id)
         for from_ia_id, to_ia_id in ref_links
     ]
     web_annotations.extend(ref_annotations)
 
+    logger.info("target_annotations")
     target_annotations = [
-        as_link_anno(from_ia_id, to_ia_id, "targeting", ia_id_to_body_id)
+        as_link_anno(from_ia_id, to_ia_id, "targeting", tf_id_to_body_id)
         for from_ia_id, to_ia_id in target_links
     ]
     web_annotations.extend(target_annotations)
@@ -406,7 +487,8 @@ def as_link_anno(from_ia_id: str, to_ia_id: str, purpose: str, ia_id_to_body_id:
     }
 
 
-file_num_pattern = re.compile(r".*-(\d+).json")
+file_num_pattern_from_json = re.compile(r".*-(\d+).json")
+file_num_pattern = re.compile(r".*-(\d+).tsv")
 
 
 def get_file_num(tf_text_file: str) -> str:
@@ -425,20 +507,16 @@ def sanity_check1(web_annotations: List, tier0_type: str):
                 logger.error(f"missing required body.metadata.manifest field for {a}")
 
 
-def untangle_tf_export(project_name: str, text_files: List[str], anno_files: List[str], textrepo_base_uri: str,
-                       export_path: str, tier0_type: str, excluded_types: List[str] = []):
-    start = time.perf_counter()
-    textrepo_file_version = ut.upload_to_tr(textrepo_base_uri=textrepo_base_uri,
-                                            project_name=project_name,
-                                            tf_text_files=text_files)
-    web_annotations = convert(project=project_name, anno_files=anno_files, text_files=text_files,
-                              textrepo_url=textrepo_base_uri, textrepo_file_versions=textrepo_file_version)
-    logger.info(f"{len(web_annotations)} annotations")
-    sanity_check1(web_annotations, tier0_type)
-    filtered_web_annotations = [a for a in web_annotations if
-                                'type' in a['body'] and a['body']['type'] not in excluded_types]
-    ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=export_path)
-    print(f"text files: {len(text_files)}")
-    ut.show_annotation_counts(web_annotations, excluded_types)
-    end = time.perf_counter()
-    print(f"untangling {project_name} took {end - start:0.4f} seconds")
+def store_segmented_text(segments: List[str], store_path: str):
+    data = {"_ordered_segments": segments}
+    logger.info(f"=> {store_path}")
+    with open(store_path, 'w', encoding='UTF8') as filehandle:
+        json.dump(data, filehandle, indent=4, ensure_ascii=False)
+
+
+def dummy_version(text_files):
+    textrepo_file_version = {}
+    for text_file in text_files:
+        file_num = get_file_num(text_file)
+        textrepo_file_version[file_num] = f"placeholder-{file_num}"
+    return textrepo_file_version
