@@ -119,7 +119,7 @@ class WatmProcessor:
     def create_web_annotations(self, anno_file: str, text_file: str, tr_version_id: str) -> str:
         logger.info(f"converting {anno_file}")
         web_annotations = textfabric.convert(project='mondriaan', anno_files=[anno_file], text_files=text_file,
-                                             textrepo_url=self.config.textrepo_base_uri,
+                                             anno2node_path=anno2node_path, textrepo_url=self.config.textrepo_base_uri,
                                              textrepo_file_versions=tr_version_id,
                                              text_in_body=self.config.text_in_annotation_body)
         annotations_json = "out/mondriaan-web-annotations.json"
