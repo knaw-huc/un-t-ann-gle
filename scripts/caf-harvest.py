@@ -6,17 +6,17 @@ import os
 from datetime import datetime
 
 from elasticsearch7.client import Elasticsearch
-from icecream import ic
 from loguru import logger
 
 es = Elasticsearch("https://annotation.republic-caf.diginfra.org/elasticsearch")
 resolutions_index = "full_resolutions"
-lines_index = "session_lines"
+session_index = "session_metadata"
+textregion_index = "session_text_regions"
 
 
 # for each session in session output_dir, retrieve json data from proper CAF resolutions index
-def retrieve_res_json(session_id: str, caf_resolutions_output_dir: str):
-    session_date = session_id[8:18]
+def retrieve_res_json(session_id: str, caf_resolutions_output_dir: str, session_date: str):
+    # session_date = session_id[8:18]
     query = {
         "range": {
             "metadata.session_date": {"gte": session_date, "lte": session_date}
@@ -31,7 +31,7 @@ def retrieve_res_json(session_id: str, caf_resolutions_output_dir: str):
     if number_of_resolutions > 0:
         logger.info(f"=> {out_path} ({number_of_resolutions:4} resolutions)")
         with open(out_path, 'w') as filehandle:
-            json.dump(response, filehandle, indent=4)
+            json.dump([h['_source'] for h in response['hits']['hits']], filehandle, indent=4)
     else:
         logger.warning(f"no resolutions found for session {session_id}")
 
@@ -66,23 +66,27 @@ def harvest_year(year: str):
 
     # start with harvesting all required session data from proper CAF session ES index
     query = {"term": {"metadata.session_year": year}}
-    response = es.search(index=lines_index, query=query, sort="_id", size=10000)
+    response = es.search(index=session_index, query=query, sort="_id", size=10000)
 
     # generate separate session json file for each session in the ES response
-    for session in response['hits']['hits']:
-        file_name = session['_id'] + '.json'
+    date_for_session_id = {}
+    for session_hit in response['hits']['hits']:
+        session = session_hit['_source']
+        session_id = session['id']
+        file_name = session_id + '.json'
+        date_for_session_id[session_id] = session['metadata']['session_date']
         output_path = f"{caf_sessions_output_dir}/{file_name}"
         logger.info(f"=> {output_path}")
         with open(output_path, 'w') as filehandle:
             json.dump(session, filehandle, indent=4)
 
     # pattern to filter session json files generated during the process
-    session_file_pattern = f"{caf_sessions_output_dir}/session-{year}-*"
+    session_file_pattern = f"{caf_sessions_output_dir}/session-*.json"
     session_file_names = (f for f in glob.glob(session_file_pattern))
     for n in sorted(session_file_names):
         base = os.path.basename(n)
         session_id = os.path.splitext(base)[0]
-        retrieve_res_json(session_id, caf_resolutions_output_dir)
+        retrieve_res_json(session_id, caf_resolutions_output_dir, date_for_session_id[session_id])
 
 
 def all_years():
