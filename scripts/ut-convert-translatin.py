@@ -35,8 +35,8 @@ def main():
 
         logger.info(f"<= {anno_file_path}")
         web_annotations = tf.convert(project=f'translatin:{base}', anno_files=[anno_file_path],
-                                     text_files=[text_file_path], textrepo_url=textrepo_url,
-                                     textrepo_file_versions=tr_version_id)
+                                     text_files=[text_file_path], anno2node_path=anno2node_path,
+                                     textrepo_url=textrepo_url, textrepo_file_versions=tr_version_id)
         extended_annotations = add_image_targets(web_annotations)
         translatin_web_annotations = update_manifestation_annotations(extended_annotations)
 
