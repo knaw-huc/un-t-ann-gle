@@ -109,19 +109,19 @@ class AnnotationTransformer:
         return anno
 
 
-def untangle_tf_export(project_name: str, text_files: List[str], anno_files: List[str],
+def untangle_tf_export(project_name: str, text_files: list[str], anno_files: list[str],
                        anno2node_path: str, textrepo_base_uri: str, text_in_body: bool,
-                       export_path: str, tier0_type: str, excluded_types: List[str] = []):
+                       export_path: str, tier0_type: str, excluded_types: list[str] = []):
     start = time.perf_counter()
 
     out_files = []
     for tsv in text_files:
         text_num = get_file_num(tsv)
         json_path = f"out/textfile-{text_num}.json"
-        logger.info(f"<= {tsv}")
-        with open(tsv) as f:
-            segments = [r['token'].encode('raw_unicode_escape').decode('unicode_escape') for r in
-                        csv.DictReader(f, delimiter='\t')]
+        segments = [
+            r['token'].encode('raw_unicode_escape').decode('unicode_escape')
+            for r in read_tsv_records(tsv)
+        ]
         store_segmented_text(segments=segments, store_path=json_path)
         out_files.append(json_path)
 
@@ -149,8 +149,8 @@ def as_class_name(string: str) -> str:
     return string[0].capitalize() + string[1:]
 
 
-def convert(project: str, anno_files: List[str], text_files: List[str], anno2node_path: str, textrepo_url: str,
-            textrepo_file_versions: Dict[str, str], text_in_body: bool = False) -> List[Dict[str, Any]]:
+def convert(project: str, anno_files: list[str], text_files: list[str], anno2node_path: str, textrepo_url: str,
+            textrepo_file_versions: Dict[str, str], text_in_body: bool = False) -> list[Dict[str, Any]]:
     tf_tokens = read_tf_tokens(text_files)
     tf_annotations = []
     for anno_file in anno_files:
@@ -168,11 +168,7 @@ def read_tf_tokens(text_files):
     tokens_per_text = {}
     for text_file in text_files:
         text_num = get_file_num(text_file)
-        logger.info(f"<= {text_file}")
-        with open(text_file) as f:
-            tokens = []
-            for row in csv.DictReader(f, delimiter='\t'):
-                tokens.append(row['token'].encode('raw_unicode_escape').decode('unicode_escape'))
+        tokens = [r['token'].encode('raw_unicode_escape').decode('unicode_escape') for r in read_tsv_records(text_file)]
         tokens_per_text[text_num] = tokens
     return tokens_per_text
 
@@ -188,16 +184,17 @@ def read_tf_tokens_from_json(text_files):
     return tokens_per_text
 
 
-def read_tf_annotations(anno_file):
-    tf_annotations = []
-    logger.info(f"<= {anno_file}")
-    with open(anno_file) as f:
-        for row in csv.DictReader(f, delimiter='\t'):
-            tf_annotations.append(
-                TFAnnotation(id=row["annoid"], type=row["kind"], namespace=row["namespace"],
-                             body=row["body"], target=row["target"])
-            )
-    return tf_annotations
+def read_tf_annotations(anno_file) -> list[TFAnnotation]:
+    return [
+        TFAnnotation(
+            id=row["annoid"],
+            type=row["kind"],
+            namespace=row["namespace"],
+            body=row["body"],
+            target=row["target"]
+        )
+        for row in read_tsv_records(anno_file)
+    ]
 
 
 def read_tf_annotations_from_json(anno_file):
@@ -213,7 +210,14 @@ def read_tf_annotations_from_json(anno_file):
     return tf_annotations
 
 
-def modify_pb_annotations(ia: List[IAnnotation], tokens) -> List[IAnnotation]:
+def read_tsv_records(path: str) -> list[Dict[str, any]]:
+    logger.info(f"<= {path}")
+    with open(path) as f:
+        records = [row for row in csv.DictReader(f, delimiter='\t')]
+    return records # type *is* correct!
+
+
+def modify_pb_annotations(ia: list[IAnnotation], tokens) -> list[IAnnotation]:
     pb_end_anchor = 0
     last_page_in_div = None
     for i, a in enumerate(ia):
@@ -246,7 +250,7 @@ def is_div_with_pb(a):
         and a.metadata["type"] in ("original", "translation", "postalData")
 
 
-def sanity_check(ia: List[IAnnotation]):
+def sanity_check(ia: list[IAnnotation]):
     logger.info("check for annotations_with_invalid_anchor_range")
     annotations_with_invalid_anchor_range = [a for a in ia if a.begin_anchor > a.end_anchor]
     if annotations_with_invalid_anchor_range:
@@ -298,7 +302,7 @@ def get_parent_lang(a: IAnnotation, node_parents: Dict[str, str], ia_idx: Dict[s
         return 'en'
 
 
-def modify_note_annotations(ia: List[IAnnotation], node_parents: Dict[str, str]) -> List[IAnnotation]:
+def modify_note_annotations(ia: list[IAnnotation], node_parents: Dict[str, str]) -> list[IAnnotation]:
     ia_idx = {a.id: a for a in ia}
     for a in ia:
         if a.type == 'note' and 'lang' not in a.metadata:
@@ -313,17 +317,14 @@ range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
 range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
 
 
-def build_web_annotations(project: str, tf_annotations: List[TFAnnotation], tokens_per_text: Dict[str, List[str]],
+def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], tokens_per_text: Dict[str, list[str]],
                           textrepo_url: str, textrepo_file_versions: Dict[str, str], text_in_body: bool,
                           anno2node_path: str):
     at = AnnotationTransformer(project=project,
                                textrepo_url=textrepo_url,
                                textrepo_versions=textrepo_file_versions,
                                text_in_body=text_in_body)
-    logger.info(f"<= {anno2node_path}")
-    with open(anno2node_path) as f:
-        tf_node_for_annotation_id = {row["annotation"]: row["node"] for row in csv.DictReader(f, delimiter='\t')}
-
+    tf_node_for_annotation_id = {row['annotation']: row['node'] for row in read_tsv_records(anno2node_path)}
     tf_annotation_idx = {}
     note_target = {}
     node_parents = {}
@@ -507,7 +508,7 @@ def sanity_check1(web_annotations: List, tier0_type: str):
                 logger.error(f"missing required body.metadata.manifest field for {a}")
 
 
-def store_segmented_text(segments: List[str], store_path: str):
+def store_segmented_text(segments: list[str], store_path: str):
     data = {"_ordered_segments": segments}
     logger.info(f"=> {store_path}")
     with open(store_path, 'w', encoding='UTF8') as filehandle:
