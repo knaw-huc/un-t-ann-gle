@@ -82,7 +82,7 @@ def examine(paths: List[str], namespace: str):
     if undefined_props:
         print(f"# undefined properties found:")
         for p in sorted(list(undefined_props)):
-            print(f"{p}: {namespace}:{p}")
+            print(f"  {p}: {namespace}:{p}")
     else:
         print(f"# no undefined properties found")
 
