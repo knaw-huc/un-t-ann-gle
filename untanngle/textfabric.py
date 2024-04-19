@@ -136,8 +136,11 @@ def untangle_tf_export(project_name: str, text_files: list[str], anno_files: lis
                               textrepo_url=textrepo_base_uri, textrepo_file_versions=textrepo_file_version)
     logger.info(f"{len(web_annotations)} annotations")
     sanity_check1(web_annotations, tier0_type)
-    filtered_web_annotations = [a for a in web_annotations if
-                                'type' in a['body'] and a['body']['type'] not in excluded_types]
+    filtered_web_annotations = [
+        a for a in web_annotations if
+        ('type' in a['body'] and a['body']['type'] not in excluded_types)
+        or 'type' not in a['body']
+    ]
     ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=export_path)
     print(f"text files: {len(text_files)}")
     ut.show_annotation_counts(web_annotations, excluded_types)
@@ -320,7 +323,7 @@ range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
 
 def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], tokens_per_text: dict[str, list[str]],
                           textrepo_url: str, textrepo_file_versions: dict[str, str], text_in_body: bool,
-                          anno2node_path: str):
+                          anno2node_path: str) -> list[dict]:
     at = AnnotationTransformer(project=project,
                                textrepo_url=textrepo_url,
                                textrepo_versions=textrepo_file_versions,
@@ -460,6 +463,7 @@ def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], toke
 
     # tf_id_to_body_id = {}
 
+    # ic(ref_links)
     logger.info("ref_annotations")
     ref_annotations = [
         as_link_anno(from_ia_id, to_ia_id, "referencing", tf_id_to_body_id)
@@ -467,12 +471,15 @@ def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], toke
     ]
     web_annotations.extend(ref_annotations)
 
+    # ic(target_links)
     logger.info("target_annotations")
     target_annotations = [
         as_link_anno(from_ia_id, to_ia_id, "targeting", tf_id_to_body_id)
         for from_ia_id, to_ia_id in target_links
     ]
     web_annotations.extend(target_annotations)
+
+    logger.info("keys_to_camel_case")
     return [cc.keys_to_camel_case(a) for a in web_annotations]
 
 

@@ -5,6 +5,7 @@ from loguru import logger
 
 import untanngle.textfabric as tf
 
+# basedir = 'data/vangogh/0.0.1'
 basedir = 'data/vangogh/0.1.0'
 text_files = sorted(glob.glob(f'{basedir}/text-*.tsv'))
 anno_files = sorted(glob.glob(f"{basedir}/anno-*.tsv"))
@@ -13,7 +14,7 @@ textrepo_base_uri: str = None
 # textrepo_base_uri: str = "https://vangogh.tt.di.huc.knaw.nl/textrepo"
 project_name = "vangogh"
 export_path = f"out/{project_name}-web_annotations.json"
-excluded_types = ["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk"]
+excluded_types = ["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk", "nlp:Sentence"]
 tier0_type = "tf:File"
 
 
@@ -27,7 +28,7 @@ def main():
         anno2node_path=anno2node_path,
         export_path=export_path,
         tier0_type=tier0_type,
-        text_in_body=True,
+        text_in_body=False,
         excluded_types=excluded_types
     )
 
