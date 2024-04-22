@@ -158,6 +158,8 @@ def untangle_tf_export(config: TFUntangleConfig):
     ]
     ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=f"{export_dir}/web-annotations.json")
     print(f"text files: {len(text_files)}")
+    print(f"annotations: {len(filtered_web_annotations)}")
+    print(f"tier0 = {config.tier0_type}")
     ut.show_annotation_counts(web_annotations, config.excluded_types)
     end = time.perf_counter()
     print(f"untangling {config.project_name} took {end - start:0.4f} seconds")
