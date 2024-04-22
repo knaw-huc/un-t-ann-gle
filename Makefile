@@ -1,5 +1,6 @@
 all: help
 SHELL=/bin/bash
+include .local/.env
 
 .PHONY: install
 install:
@@ -41,7 +42,7 @@ mondriaan-untangle:
 
 .PHONY: mondriaan-upload-annotations
 mondriaan-upload-annotations: scripts/ut-upload-web-annotations.py out/mondriaan/web-annotations.json
-	poetry run scripts/ut-upload-web-annotations.py -a https://mondriaan.annorepo.dev.clariah.nl -c mondriaan-0.9.0 -l "Correspondence of Mondriaan (watm 0.9.0)" -k $$MONDRIAAN_API_KEY out/mondriaan/web-annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://mondriaan.annorepo.dev.clariah.nl -c mondriaan-0.9.0 -l "Correspondence of Mondriaan (watm 0.9.0)" -k $(MONDRIAAN_API_KEY) out/mondriaan/web-annotations.json
 
 # suriano
 .PHONY: suriano-untangle
@@ -51,13 +52,17 @@ suriano-untangle:
 
 .PHONY: suriano-upload-annotations
 suriano-upload-annotations: scripts/ut-upload-web-annotations.py out/suriano/web-annotations.json
-	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano-0.0.5 -l "Correspondence of Christofforo Suriano (watm 0.0.5)" -k $$SURIANO_API_KEY out/suriano/web-annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano-0.0.5 -l "Correspondence of Christofforo Suriano (watm 0.0.5)" -k $(SURIANO_API_KEY) out/suriano/web-annotations.json
 
 # vangogh
 .PHONY: vangogh-untangle
 vangogh-untangle:
 	(cd data/vangogh && git pull)
 	poetry run ./scripts/ut-convert-vangogh.py
+
+.PHONY:  vangogh-upload-annotations
+vangogh-upload-annotations: scripts/ut-upload-web-annotations.py out/vangogh/web-annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://vangogh.annorepo.dev.clariah.nl -c vangogh-$(VANGOGH_VERSION) -l "Correspondence of Vincent van Gogh (watm $(VANGOGH_VERSION))" -k $(VANGOGH_API_KEY) out/vangogh/web-annotations.json
 
 .PHONY: help
 help:
@@ -70,13 +75,13 @@ help:
 	@echo "  republic-1706                - to run the republic untangle pipeline for 1706"
 	@echo "  republic-1796                - to run the republic untangle pipeline for 1796"
 	@echo
-	@echo "  suriano-untangle             - to untangle the textfabric export for suriano"
-	@echo "  suriano-upload-annotations   - to upload the web annotations for suriano"
+	@echo "  suriano-untangle             - to untangle the textfabric export for suriano ($(SURIANO_VERSION))"
+	@echo "  suriano-upload-annotations   - to upload the web annotations for suriano ($(SURIANO_VERSION))"
 	@echo
-	@echo "  translatin-untangle          - to untangle the textfabric export for translatin"
+	@echo "  translatin-untangle          - to untangle the textfabric export for translatin ($(TRANSLATIN_VERSION))"
 	@echo
-	@echo "  mondriaan-untangle           - to untangle the textfabric export for mondriaan"
-	@echo "  mondriaan-upload-annotations - to upload the web annotations for mondriaan"
+	@echo "  mondriaan-untangle           - to untangle the textfabric export for mondriaan ($(MONDRIAAN_VERSION))"
+	@echo "  mondriaan-upload-annotations - to upload the web annotations for mondriaan ($(MONDRIAAN_VERSION))"
 	@echo
-	@echo "  vangogh-untangle             - to untangle the textfabric export for vangogh"
-
+	@echo "  vangogh-untangle             - to untangle the textfabric export for vangogh ($(VANGOGH_VERSION))"
+	@echo "  vangogh-upload-annotations   - to upload the web annotations for vangogh ($(VANGOGH_VERSION))"
