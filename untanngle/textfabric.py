@@ -157,12 +157,16 @@ def untangle_tf_export(config: TFUntangleConfig):
         or 'type' not in a['body']
     ]
     ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=f"{export_dir}/web-annotations.json")
+    end = time.perf_counter()
+    print_report(config, text_files, web_annotations, filtered_web_annotations, start, end)
+
+
+def print_report(config, text_files, web_annotations, filtered_web_annotations, start, end):
+    print(f"untangling {config.project_name} took {end - start:0.4f} seconds")
     print(f"text files: {len(text_files)}")
     print(f"annotations: {len(filtered_web_annotations)}")
     print(f"tier0 = {config.tier0_type}")
     ut.show_annotation_counts(web_annotations, config.excluded_types)
-    end = time.perf_counter()
-    print(f"untangling {config.project_name} took {end - start:0.4f} seconds")
 
 
 def as_class_name(string: str) -> str:
