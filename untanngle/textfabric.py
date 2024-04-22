@@ -4,6 +4,7 @@ import json
 import os
 import re
 import time
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Union
@@ -71,6 +72,7 @@ class AnnotationTransformer:
                 }
             ],
             "type": "Annotation",
+            "id": f"urn:{self.project}:annotation:{ia.id}",
             "purpose": "tagging",
             "generated": datetime.today().isoformat(),
             "body": {
@@ -134,10 +136,7 @@ def untangle_tf_export(config: TFUntangleConfig):
     for tsv in text_files:
         text_num = get_file_num(tsv)
         json_path = f"{export_dir}/textfile-{text_num}.json"
-        segments = [
-            r['token'].replace('\\n', '\n').replace('\\t', '\t')
-            for r in read_tsv_records(tsv)
-        ]
+        segments = read_tokens(tsv)
         store_segmented_text(segments=segments, store_path=json_path)
         out_files.append(json_path)
 
@@ -183,11 +182,11 @@ def convert(project: str, anno_files: list[str], text_files: list[str], anno2nod
                                  anno2node_path=anno2node_path)
 
 
-def read_tf_tokens(text_files):
+def read_tf_tokens(text_files) -> dict[str, list[str]]:
     tokens_per_text = {}
     for text_file in text_files:
         text_num = get_file_num(text_file)
-        tokens = [r['token'].replace('\\n', '\n').replace('\\t', '\t') for r in read_tsv_records(text_file)]
+        tokens = read_tokens(text_file)
         tokens_per_text[text_num] = tokens
     return tokens_per_text
 
@@ -235,6 +234,20 @@ def read_tsv_records(path: str) -> list[dict[str, any]]:
     with open(path, encoding='utf8') as f:
         records = [row for row in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE)]
     return records  # type *is* correct!
+
+
+def token(row: list[str]) -> str:
+    if row:
+        return row[0].replace('\\n', '\n').replace('\\t', '\t')
+    else:
+        return ""
+
+
+def read_tokens(path: str) -> list[str]:
+    logger.info(f"<= {path}")
+    with open(path, encoding='utf8') as f:
+        tokens = [token(row) for row in csv.reader(f, delimiter='\t', quoting=csv.QUOTE_NONE)]
+    return tokens[1:]  # type *is* correct!
 
 
 def modify_pb_annotations(ia: list[IAnnotation], tokens: list[str]) -> list[IAnnotation]:
@@ -337,9 +350,15 @@ range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
 range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
 
 
-def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], tokens_per_text: dict[str, list[str]],
-                          textrepo_url: str, textrepo_file_versions: dict[str, str], text_in_body: bool,
-                          anno2node_path: str) -> list[dict]:
+def build_web_annotations(
+        project: str,
+        tf_annotations: list[TFAnnotation],
+        tokens_per_text: dict[str, list[str]],
+        textrepo_url: str,
+        textrepo_file_versions: dict[str, str],
+        text_in_body: bool,
+        anno2node_path: str
+) -> list[dict]:
     at = AnnotationTransformer(project=project,
                                textrepo_url=textrepo_url,
                                textrepo_versions=textrepo_file_versions,
@@ -395,20 +414,18 @@ def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], toke
     # TODO: convert rs annotations to annotation linking the rkd url in metadata.anno to the rd target
     # TODO: convert ref annotations
 
-    # logger.info("sanity_check")
-    # sanity_check(tf_annos)
+    logger.info("sanity_check")
+    sanity_check(tf_annos)
 
     logger.info("as_web_annotation")
     tf_node_to_ia_id = {a.tf_node: a.id for a in tf_annos}
     web_annotations = [at.as_web_annotation(a) for a in tf_annos]
     tf_id_to_body_id = {tf_node_to_ia_id[wa["body"]["tf:textfabric_node"]]: wa["body"]["id"] for wa in web_annotations}
 
-    # tf_id_to_body_id = {}
-
     # ic(ref_links)
     logger.info("ref_annotations")
     ref_annotations = [
-        as_link_anno(from_ia_id, to_ia_id, "referencing", tf_id_to_body_id)
+        as_link_anno(from_ia_id, to_ia_id, "referencing", tf_id_to_body_id, project)
         for from_ia_id, to_ia_id in ref_links
     ]
     web_annotations.extend(ref_annotations)
@@ -416,7 +433,7 @@ def build_web_annotations(project: str, tf_annotations: list[TFAnnotation], toke
     # ic(target_links)
     logger.info("target_annotations")
     target_annotations = [
-        as_link_anno(from_ia_id, to_ia_id, "targeting", tf_id_to_body_id)
+        as_link_anno(from_ia_id, to_ia_id, "targeting", tf_id_to_body_id, project)
         for from_ia_id, to_ia_id in target_links
     ]
     web_annotations.extend(target_annotations)
@@ -527,11 +544,18 @@ def handle_element(a, tf_annotation_idx, tokens_per_text):
         logger.warning(f"unknown element target pattern: {a}")
 
 
-def as_link_anno(from_ia_id: str, to_ia_id: str, purpose: str, ia_id_to_body_id: dict[str, str]) -> dict[str, str]:
+def as_link_anno(
+        from_ia_id: str,
+        to_ia_id: str,
+        purpose: str,
+        ia_id_to_body_id: dict[str, str],
+        project_name: str
+) -> dict[str, str]:
     body_id = ia_id_to_body_id[from_ia_id]
     target_id = ia_id_to_body_id[to_ia_id]
     return {
         "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": f"urn:{project_name}:annotation:{uuid.uuid4()}",
         "type": "Annotation",
         "purpose": purpose,
         "generated": datetime.today().isoformat(),
