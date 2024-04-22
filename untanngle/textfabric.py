@@ -4,13 +4,26 @@ import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, Union
 
 from icecream import ic
 from loguru import logger
 
 from untanngle import camel_casing as cc
 from untanngle import utils as ut
+
+
+@dataclass
+class TFUntangleConfig:
+    project_name: str
+    text_files: list[str]
+    anno_files: list[str]
+    anno2node_path: str
+    export_path: str
+    tier0_type: str
+    excluded_types: list[str]
+    textrepo_base_uri: Union[str, None] = None
+    text_in_body: bool = False
 
 
 @dataclass
@@ -109,13 +122,11 @@ class AnnotationTransformer:
         return anno
 
 
-def untangle_tf_export(project_name: str, text_files: list[str], anno_files: list[str],
-                       anno2node_path: str, textrepo_base_uri: str, text_in_body: bool,
-                       export_path: str, tier0_type: str, excluded_types: list[str] = []):
+def untangle_tf_export(config: TFUntangleConfig):
     start = time.perf_counter()
 
     out_files = []
-    for tsv in text_files:
+    for tsv in config.text_files:
         text_num = get_file_num(tsv)
         json_path = f"out/textfile-{text_num}.json"
         segments = [
@@ -125,27 +136,27 @@ def untangle_tf_export(project_name: str, text_files: list[str], anno_files: lis
         store_segmented_text(segments=segments, store_path=json_path)
         out_files.append(json_path)
 
-    if textrepo_base_uri:
-        textrepo_file_version = ut.upload_to_tr(textrepo_base_uri=textrepo_base_uri,
-                                                project_name=project_name,
+    if config.textrepo_base_uri:
+        textrepo_file_version = ut.upload_to_tr(textrepo_base_uri=config.textrepo_base_uri,
+                                                project_name=config.project_name,
                                                 tf_text_files=out_files)
     else:
-        textrepo_file_version = dummy_version(text_files)
-    web_annotations = convert(project=project_name, anno_files=anno_files, text_files=text_files,
-                              anno2node_path=anno2node_path, text_in_body=text_in_body,
-                              textrepo_url=textrepo_base_uri, textrepo_file_versions=textrepo_file_version)
+        textrepo_file_version = dummy_version(config.text_files)
+    web_annotations = convert(project=config.project_name, anno_files=config.anno_files, text_files=config.text_files,
+                              anno2node_path=config.anno2node_path, text_in_body=config.text_in_body,
+                              textrepo_url=config.textrepo_base_uri, textrepo_file_versions=textrepo_file_version)
     logger.info(f"{len(web_annotations)} annotations")
-    sanity_check1(web_annotations, tier0_type)
+    sanity_check1(web_annotations, config.tier0_type)
     filtered_web_annotations = [
         a for a in web_annotations if
-        ('type' in a['body'] and a['body']['type'] not in excluded_types)
+        ('type' in a['body'] and a['body']['type'] not in config.excluded_types)
         or 'type' not in a['body']
     ]
-    ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=export_path)
-    print(f"text files: {len(text_files)}")
-    ut.show_annotation_counts(web_annotations, excluded_types)
+    ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=config.export_path)
+    print(f"text files: {len(config.text_files)}")
+    ut.show_annotation_counts(web_annotations, config.excluded_types)
     end = time.perf_counter()
-    print(f"untangling {project_name} took {end - start:0.4f} seconds")
+    print(f"untangling {config.project_name} took {end - start:0.4f} seconds")
 
 
 def as_class_name(string: str) -> str:

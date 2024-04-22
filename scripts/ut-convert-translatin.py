@@ -15,6 +15,7 @@ from untanngle.utils import add_segmented_text_type_if_missing
 basedir = 'data/translatin/0.1.1'
 textrepo_url = "https://translatin.tt.di.huc.knaw.nl/textrepo"
 export_path = f"out/translatin/web_annotations.json"
+anno2node_path = f"{basedir}/anno2node.tsv"
 
 
 @logger.catch()
