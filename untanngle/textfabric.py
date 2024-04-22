@@ -1,5 +1,7 @@
 import csv
+import glob
 import json
+import os
 import re
 import time
 from dataclasses import dataclass, field
@@ -16,9 +18,7 @@ from untanngle import utils as ut
 @dataclass
 class TFUntangleConfig:
     project_name: str
-    text_files: list[str]
-    anno_files: list[str]
-    anno2node_path: str
+    data_path: str
     export_path: str
     tier0_type: str
     excluded_types: list[str]
@@ -124,13 +124,18 @@ class AnnotationTransformer:
 
 def untangle_tf_export(config: TFUntangleConfig):
     start = time.perf_counter()
+    text_files = sorted(glob.glob(f'{config.data_path}/text-*.tsv'))
+    anno_files = sorted(glob.glob(f"{config.data_path}/anno-*.tsv"))
+    anno2node_path = f"{config.data_path}/anno2node.tsv"
+    export_dir = f"{config.export_path}/{config.project_name}"
+    os.makedirs(name=export_dir, exist_ok=True)
 
     out_files = []
-    for tsv in config.text_files:
+    for tsv in text_files:
         text_num = get_file_num(tsv)
-        json_path = f"out/textfile-{text_num}.json"
+        json_path = f"{export_dir}/textfile-{text_num}.json"
         segments = [
-            r['token']  # .encode('raw_unicode_escape').decode('unicode_escape')
+            r['token'].replace('\\n', '\n').replace('\\t', '\t')
             for r in read_tsv_records(tsv)
         ]
         store_segmented_text(segments=segments, store_path=json_path)
@@ -141,9 +146,9 @@ def untangle_tf_export(config: TFUntangleConfig):
                                                 project_name=config.project_name,
                                                 tf_text_files=out_files)
     else:
-        textrepo_file_version = dummy_version(config.text_files)
-    web_annotations = convert(project=config.project_name, anno_files=config.anno_files, text_files=config.text_files,
-                              anno2node_path=config.anno2node_path, text_in_body=config.text_in_body,
+        textrepo_file_version = dummy_version(text_files)
+    web_annotations = convert(project=config.project_name, anno_files=anno_files, text_files=text_files,
+                              anno2node_path=anno2node_path, text_in_body=config.text_in_body,
                               textrepo_url=config.textrepo_base_uri, textrepo_file_versions=textrepo_file_version)
     logger.info(f"{len(web_annotations)} annotations")
     sanity_check1(web_annotations, config.tier0_type)
@@ -152,8 +157,8 @@ def untangle_tf_export(config: TFUntangleConfig):
         ('type' in a['body'] and a['body']['type'] not in config.excluded_types)
         or 'type' not in a['body']
     ]
-    ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=config.export_path)
-    print(f"text files: {len(config.text_files)}")
+    ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=f"{export_dir}/web-annotations.json")
+    print(f"text files: {len(text_files)}")
     ut.show_annotation_counts(web_annotations, config.excluded_types)
     end = time.perf_counter()
     print(f"untangling {config.project_name} took {end - start:0.4f} seconds")
@@ -182,8 +187,7 @@ def read_tf_tokens(text_files):
     tokens_per_text = {}
     for text_file in text_files:
         text_num = get_file_num(text_file)
-        # tokens = [r['token'].encode('raw_unicode_escape').decode('unicode_escape') for r in read_tsv_records(text_file)]
-        tokens = [r['token'] for r in read_tsv_records(text_file)]
+        tokens = [r['token'].replace('\\n', '\n').replace('\\t', '\t') for r in read_tsv_records(text_file)]
         tokens_per_text[text_num] = tokens
     return tokens_per_text
 
