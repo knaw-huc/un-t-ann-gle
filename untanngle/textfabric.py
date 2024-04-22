@@ -119,7 +119,7 @@ def untangle_tf_export(project_name: str, text_files: list[str], anno_files: lis
         text_num = get_file_num(tsv)
         json_path = f"out/textfile-{text_num}.json"
         segments = [
-            r['token'].encode('raw_unicode_escape').decode('unicode_escape')
+            r['token']  # .encode('raw_unicode_escape').decode('unicode_escape')
             for r in read_tsv_records(tsv)
         ]
         store_segmented_text(segments=segments, store_path=json_path)
@@ -171,7 +171,8 @@ def read_tf_tokens(text_files):
     tokens_per_text = {}
     for text_file in text_files:
         text_num = get_file_num(text_file)
-        tokens = [r['token'].encode('raw_unicode_escape').decode('unicode_escape') for r in read_tsv_records(text_file)]
+        # tokens = [r['token'].encode('raw_unicode_escape').decode('unicode_escape') for r in read_tsv_records(text_file)]
+        tokens = [r['token'] for r in read_tsv_records(text_file)]
         tokens_per_text[text_num] = tokens
     return tokens_per_text
 
@@ -430,7 +431,7 @@ def handle_edge(tf_annotation, node_parents, ref_links, target_links):
             pass
         case _:
             if tf_annotation.body.startswith('sibling='):
-                logger.warning("edge/sibling annotation skipped")
+                # logger.warning("edge/sibling annotation skipped")
                 pass
             else:
                 logger.warning(f"unhandled edge body: {tf_annotation.body}")
@@ -532,6 +533,10 @@ def get_file_num(tf_text_file: str) -> str:
     match = file_num_pattern.match(tf_text_file)
     if match:
         return match.group(1)
+    else:
+        match = file_num_pattern_from_json.match(tf_text_file)
+        if match:
+            return match.group(1)
 
 
 def sanity_check1(web_annotations: list, tier0_type: str):

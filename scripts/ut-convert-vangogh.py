@@ -6,7 +6,7 @@ from loguru import logger
 import untanngle.textfabric as tf
 
 # basedir = 'data/vangogh/0.0.1'
-basedir = 'data/vangogh/0.1.0'
+basedir = 'data/vangogh/0.2.0'
 text_files = sorted(glob.glob(f'{basedir}/text-*.tsv'))
 anno_files = sorted(glob.glob(f"{basedir}/anno-*.tsv"))
 anno2node_path = f"{basedir}/anno2node.tsv"
