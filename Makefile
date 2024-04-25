@@ -42,7 +42,7 @@ mondriaan-untangle:
 
 .PHONY: mondriaan-upload-annotations
 mondriaan-upload-annotations: scripts/ut-upload-web-annotations.py out/mondriaan/web-annotations.json
-	poetry run scripts/ut-upload-web-annotations.py -a https://mondriaan.annorepo.dev.clariah.nl -c mondriaan-0.9.0 -l "Correspondence of Mondriaan (watm 0.9.0)" -k $(MONDRIAAN_API_KEY) out/mondriaan/web-annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://mondriaan.annorepo.dev.clariah.nl -c mondriaan-$(MONDRIAAN_VERSION) -l "Correspondence of Mondriaan (watm $(MONDRIAAN_VERSION))" -k $(MONDRIAAN_API_KEY) out/mondriaan/web-annotations.json
 
 # suriano
 .PHONY: suriano-untangle
@@ -52,7 +52,7 @@ suriano-untangle:
 
 .PHONY: suriano-upload-annotations
 suriano-upload-annotations: scripts/ut-upload-web-annotations.py out/suriano/web-annotations.json
-	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano-0.0.5 -l "Correspondence of Christofforo Suriano (watm 0.0.5)" -k $(SURIANO_API_KEY) out/suriano/web-annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano-$(SURIANO_VERSION) -l "Correspondence of Christofforo Suriano (watm $(SURIANO_VERSION))" -k $(SURIANO_API_KEY) out/suriano/web-annotations.json
 
 # vangogh
 .PHONY: vangogh-untangle

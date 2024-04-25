@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import glob
 
 from loguru import logger
 
@@ -7,10 +6,9 @@ import untanngle.textfabric as tf
 
 project_name = 'suriano'
 
-
 config = tf.TFUntangleConfig(
     project_name=project_name,
-    data_path=f'data/{project_name}/0.0.5',
+    data_path=f'data/{project_name}/0.2.0',
     export_path=f'out',
     textrepo_base_uri=f'https://{project_name}.tt.di.huc.knaw.nl/textrepo',
     excluded_types=["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk"],
