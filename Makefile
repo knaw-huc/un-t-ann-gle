@@ -32,13 +32,13 @@ republic-1796:
 .PHONY: translatin-untangle
 translatin-untangle:
 	(cd data/translatin && git pull)
-	poetry run ./scripts/ut-convert-translatin.py
+	poetry run ./scripts/ut-convert-translatin.py $(TRANSLATIN_VERSION)
 
 # mondriaan
 .PHONY: mondriaan-untangle
 mondriaan-untangle:
 	(cd data/mondriaan && git pull)
-	poetry run ./scripts/ut-convert-mondriaan.py
+	poetry run ./scripts/ut-convert-mondriaan.py $(MONDRIAAN_VERSION)
 
 .PHONY: mondriaan-upload-annotations
 mondriaan-upload-annotations: scripts/ut-upload-web-annotations.py out/mondriaan/web-annotations.json
@@ -48,7 +48,7 @@ mondriaan-upload-annotations: scripts/ut-upload-web-annotations.py out/mondriaan
 .PHONY: suriano-untangle
 suriano-untangle:
 	(cd data/suriano && git pull)
-	poetry run ./scripts/ut-convert-suriano.py
+	poetry run ./scripts/ut-convert-suriano.py $(SURIANO_VERSION)
 
 .PHONY: suriano-upload-annotations
 suriano-upload-annotations: scripts/ut-upload-web-annotations.py out/suriano/web-annotations.json
@@ -58,7 +58,7 @@ suriano-upload-annotations: scripts/ut-upload-web-annotations.py out/suriano/web
 .PHONY: vangogh-untangle
 vangogh-untangle:
 	(cd data/vangogh && git pull)
-	poetry run ./scripts/ut-convert-vangogh.py
+	poetry run ./scripts/ut-convert-vangogh.py $(VANGOGH_VERSION)
 
 .PHONY:  vangogh-upload-annotations
 vangogh-upload-annotations: scripts/ut-upload-web-annotations.py out/vangogh/web-annotations.json
@@ -85,3 +85,6 @@ help:
 	@echo
 	@echo "  vangogh-untangle             - to untangle the textfabric export for vangogh ($(VANGOGH_VERSION))"
 	@echo "  vangogh-upload-annotations   - to upload the web annotations for vangogh ($(VANGOGH_VERSION))"
+	@echo
+	@echo "NB: set version in .local/.env"
+
