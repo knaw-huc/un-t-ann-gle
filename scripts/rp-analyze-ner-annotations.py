@@ -5,18 +5,14 @@ from itertools import groupby
 from intervaltree import IntervalTree
 from loguru import logger
 
-types = ["COM", "ORG", "LOC"]
-# types = ["COM", "ORG", "LOC", "HOE"]
+# types = ["COM", "ORG", "LOC"]
+types = ["COM", "ORG", "LOC", "HOE"]
 base_path = "/Users/bram/workspaces/republic/republic-kotlin-tools/data"
 
 
 @logger.catch
 def main():
-    ner_annos = []
-    for t in types:
-        path = f"{base_path}/{t}-annotations.json"
-        with open(path) as f:
-            ner_annos.extend(json.load(f))
+    ner_annos = read_ner_annotations()
     anno_groups = groupby(sorted(ner_annos, key=group_key), key=group_key)
     for label, group in anno_groups:
         print(label)
@@ -33,6 +29,15 @@ def main():
                     print(json.dumps(ea, indent=True))
                     print(f"    {anno_id(ea)} ({ea['reference']['tag_text']})")
         print()
+
+
+def read_ner_annotations():
+    ner_annos = []
+    for t in types:
+        path = f"{base_path}/{t}-annotations.json"
+        with open(path) as f:
+            ner_annos.extend(json.load(f))
+    return ner_annos
 
 
 def group_key(x):
