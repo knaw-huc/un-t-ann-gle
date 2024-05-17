@@ -3,6 +3,7 @@ import argparse
 import glob
 import json
 import os.path
+from collections import Counter
 from typing import List
 
 import progressbar
@@ -26,16 +27,18 @@ def upload(annorepo_base_url: str,
     #       f"- running since {ar_about['startedAt']}")
 
     ca = ar.container_adapter(container_name=container_id)
+    container_url = f"{annorepo_base_url}/w3c/{container_id}"
     if not ca.exists():
-        print(f"container {annorepo_base_url}/w3c/{container_id} not found, creating...")
+        print(f"container {container_url} not found, creating...")
         ca.create(label=container_label)
         ca.create_index(field='body.id', index_type='hashed')
         ca.create_index(field='body.type', index_type='hashed')
-        # for overlap queries
-        ca.create_index(field='target.source', index_type='ascending')
-        ca.create_index(field='target.selector.type', index_type='ascending')
-        ca.create_index(field='target.selector.start', index_type='ascending')
-        ca.create_index(field='target.selector.end', index_type='ascending')
+        ca.create_index(field='body.type', index_type='ascending')
+        # # for overlap queries
+        # ca.create_index(field='target.source', index_type='ascending')
+        # ca.create_index(field='target.selector.type', index_type='ascending')
+        # ca.create_index(field='target.selector.start', index_type='ascending')
+        # ca.create_index(field='target.selector.end', index_type='ascending')
         for f in tier_metadata_fields:
             ca.create_index(field=f'body.metadata.{f}', index_type='hashed')
     ca.set_anonymous_user_read_access(has_read_access=True)
@@ -55,11 +58,15 @@ def upload(annorepo_base_url: str,
         progressbar.ETA(),
         ']'
     ]
+    body_type_counter = Counter()
     with progressbar.ProgressBar(widgets=widgets, max_value=len(inputfiles), redirect_stdout=True) as bar:
         for i, inputfile in enumerate(inputfiles):
             print(f"reading {inputfile}...")
             with open(inputfile) as f:
                 annotation_list = json.load(f)
+            for a in annotation_list:
+                body_type = a['body']['type']
+                body_type_counter.update([body_type])
             number_of_annotations = len(annotation_list)
 
             print(f"  {number_of_annotations} annotations found.")
@@ -83,7 +90,27 @@ def upload(annorepo_base_url: str,
             with open(outfile, "w") as f:
                 json.dump(annotation_id_mapping, fp=f)
             bar.update(i)
+    preload_distinct_body_type_cache(ca)
+    print_report(body_type_counter, container_url)
     print("done!")
+
+
+def preload_distinct_body_type_cache(ca):
+    distinct_body_types = ca.read_distinct_values('body.type')
+
+
+def print_report(body_type_counter, container_url):
+    counts = [c for c in body_type_counter.items()]
+    sorted_counts = sorted(counts, key=lambda x: x[1])
+    print(f"container: {container_url}")
+    print(f"annotations: {body_type_counter.total()}")
+    print()
+    print("Annotation types:")
+    max_type_name_size = max([len(t[0]) for t in counts])
+    for t in sorted_counts:
+        body_type = t[0]
+        print(f"{body_type :{max_type_name_size}}: {t[1]}")
+    print()
 
 
 @logger.catch()
