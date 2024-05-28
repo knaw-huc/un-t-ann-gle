@@ -64,7 +64,7 @@ def upload(annorepo_base_url: str,
             print(f"reading {inputfile}...")
             with open(inputfile) as f:
                 annotation_list = json.load(f)
-            for a in annotation_list:
+            for a in [a for a in annotation_list if 'body' in a and 'type' in a['body']]:
                 body_type = a['body']['type']
                 body_type_counter.update([body_type])
             number_of_annotations = len(annotation_list)
