@@ -106,7 +106,7 @@ class AnnotationTransformer:
         if ia.type == "letter":
             # anno["body"]["metadata"]["folder"] = "proeftuin"
             anno["target"].append({
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02%2F3783%2FNL-HaNA_1.01.02_3783_0002.jpg/full/full/0/default.jpg",
+                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02%2F3783%2FNL-HaNA_1.01.02_3783_0002.jpg/full/max/0/default.jpg",
                 "type": "Image"
             })
         if ia.type == "file":

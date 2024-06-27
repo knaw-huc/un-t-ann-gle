@@ -1121,7 +1121,7 @@ def canvas_target(canvas_url: str, xywh_list: List[str] = None, coords_list: Lis
 def simple_image_target(iiif_url: str = "https://example.org/missing-iiif-url",
                         xywh: str = "0,0,0,0") -> dict:
     return {
-        "source": f'{iiif_url}/{xywh}/full/0/default.jpg',
+        "source": f'{iiif_url}/{xywh}/max/0/default.jpg',
         "type": "Image"
     }
 

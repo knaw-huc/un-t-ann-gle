@@ -31,7 +31,7 @@ attendant_classes = ('president', 'delegate', 'raadpensionaris')
 region_pattern = re.compile(r'(.jpg/)(\d+),(\d+),(\d+),(\d+)')
 image_id_pattern = re.compile(r'(images.diginfra.net/iiif/)(.*)(/)(\d+),(\d+),(\d+),(\d+)')
 iiif_base = 'https://images.diginfra.net/iiif/'
-iiif_extension = '/full/0/default.jpg'
+iiif_extension = '/max/0/default.jpg'
 
 resolution_es_index = "https://annotation.republic-caf.diginfra.org/elasticsearch/full_resolutions"
 session_es_index = "https://annotation.republic-caf.diginfra.org/elasticsearch/session_lines"
@@ -1068,7 +1068,7 @@ def add_region_links_to_text_region_annotations(resource_id):
 def fix_scan_annotations(resource_id):
     scan_annots = list(asearch.get_annotations_of_type('scan', all_annotations, resource_id))
     for sa in scan_annots:
-        sa['iiif_url'] = re.sub(r"(\d+),(\d+),(\d+),(\d+)/(full)", r'\5/,\4', sa['iiif_url'])
+        sa['iiif_url'] = re.sub(r"(\d+),(\d+),(\d+),(\d+)/(max)", r'\5/,\4', sa['iiif_url'])
         sa['region_links'] = [sa['iiif_url']]
 
 

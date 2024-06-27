@@ -37,7 +37,7 @@ attendant_classes = ('president', 'delegate', 'raadpensionaris')
 region_pattern = re.compile(r'(.jpg/)(\d+),(\d+),(\d+),(\d+)')
 image_id_pattern = re.compile(r'(images.diginfra.net/iiif/)(.*)(\/)(\d+),(\d+),(\d+),(\d+)')
 iiif_base = 'https://images.diginfra.net/iiif/'
-iiif_extension = '/full/0/default.jpg'
+iiif_extension = '/max/0/default.jpg'
 
 from enum import Enum
 
@@ -614,7 +614,7 @@ for ra in region_annots:
 
 scan_annots = list(asearch.get_annotations_of_type('scan', all_annotations, resource_id))
 for sa in scan_annots:
-    sa['iiif_url'] = re.sub(r'(\d+),(\d+),(\d+),(\d+)/(full)', r'\5/,\4', sa['iiif_url'])
+    sa['iiif_url'] = re.sub(r'(\d+),(\d+),(\d+),(\d+)/(max)', r'\5/,\4', sa['iiif_url'])
     sa['region_links'] = [sa['iiif_url']]
 
 for a in all_annotations:

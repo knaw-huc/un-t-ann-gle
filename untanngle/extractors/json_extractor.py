@@ -125,7 +125,7 @@ def correct_scanpage_imageurls(a_array):
     scan_page_annots = [ann_info for ann_info in a_array if ann_info['label'] == 'scanpage']
 
     for scan_ann in scan_page_annots:
-        scan_ann['iiif_url'] = re.sub(r'(\d+),(\d+),(\d+),(\d+)/(full)', r'\5/,\4', scan_ann['iiif_url'])
+        scan_ann['iiif_url'] = re.sub(r'(\d+),(\d+),(\d+),(\d+)/(max)', r'\5/,\4', scan_ann['iiif_url'])
 
     return
 
