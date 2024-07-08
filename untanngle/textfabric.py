@@ -60,6 +60,7 @@ class AnnotationTransformer:
         body_type = f"{ia.namespace}:{as_class_name(ia.type)}"
         text_num = ia.text_num
         textrepo_version = self.textrepo_versions[text_num]
+        body_id = f"urn:{self.project}:{ia.type}:{ia.tf_node}"
         anno = {
             "@context": [
                 "http://www.w3.org/ns/anno.jsonld",
@@ -76,7 +77,7 @@ class AnnotationTransformer:
             "purpose": "tagging",
             "generated": datetime.today().isoformat(),
             "body": {
-                "id": f"urn:{self.project}:{ia.type}:{ia.tf_node}",
+                "id": body_id,
                 "type": body_type,
                 "tf:textfabric_node": ia.tf_node
             },
@@ -100,26 +101,34 @@ class AnnotationTransformer:
         if self.text_in_body:
             anno["body"]["text"] = ia.text
         if ia.metadata:
-            anno["body"]["metadata"] = {f"{k.replace('@', '_')}": v for k, v in ia.metadata.items()}
-            if "type" not in anno["body"]["metadata"]:
-                anno["body"]["metadata"]["type"] = f"tt:{as_class_name(ia.type)}Metadata"
-        if ia.type == "letter":
-            # anno["body"]["metadata"]["folder"] = "proeftuin"
-            anno["target"].append({
-                "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02%2F3783%2FNL-HaNA_1.01.02_3783_0002.jpg/full/max/0/default.jpg",
-                "type": "Image"
+            metadata = {}
+            if "type" not in ia.metadata:
+                metadata["type"] = f"tt:{as_class_name(ia.type)}Metadata"
+            metadata.update({
+                f"{k.replace('@', '_').replace('manifestUrl', 'manifest')}": v
+                for k, v in ia.metadata.items()
             })
-        if ia.type == "file":
-            anno["body"]["metadata"]["manifest"] = \
-                "https://images.diginfra.net/api/pim/imageset/67533019-4ca0-4b08-b87e-fd5590e7a077/manifest"
-            if "text" in anno["body"]:
-                anno["body"].pop("text")
-        else:
+            if "prev" in ia.metadata:
+                prevNode = ia.metadata["prev"]
+                metadata.pop("prev")
+                metadata[f"prev{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{prevNode}"
+                nextNode = ia.metadata["next"]
+                metadata.pop("next")
+                metadata[f"next{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{nextNode}"
+            anno["body"]["metadata"] = metadata
+        # if ia.type == "letter":
+        #     # anno["body"]["metadata"]["folder"] = "proeftuin"
+        #     anno["target"].append({
+        #         "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02%2F3783%2FNL-HaNA_1.01.02_3783_0002.jpg/full/max/0/default.jpg",
+        #         "type": "Image"
+        #     })
+        if 'canvasUrl' in ia.metadata:
             canvas_target = {
                 "@context": "https://knaw-huc.github.io/ns/huc-di-tt.jsonld",
-                "source": "https://images.diginfra.net/api/pim/iiif/67533019-4ca0-4b08-b87e-fd5590e7a077/canvas/20633ef4-27af-4b13-9ffe-dfc0f9dad1d7",
+                "source": ia.metadata['canvasUrl'],
                 "type": "Canvas"
             }
+            anno['body']['metadata'].pop('canvasUrl')
             anno["target"].append(canvas_target)
         return anno
 

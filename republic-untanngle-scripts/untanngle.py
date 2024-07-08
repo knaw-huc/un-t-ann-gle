@@ -73,17 +73,28 @@ def text_region_handler(node, begin_index, end_index, annotations):
     # this will result in duplicates, so deduplication at a later stage is necessary.
 
     if 'iiif_url' in node['metadata']:
-        scan_annot_info = {'resource_id': resource_id, 'type': AnnTypes.SCAN.value, \
-                           'iiif_url': node['metadata']['iiif_url'], \
-                           'begin_anchor': begin_index, 'end_anchor': end_index}
-        scan_annot_info['id'] = node['metadata']['scan_id']
+        scan_annot_info = {
+            'resource_id': resource_id,
+            'type': AnnTypes.SCAN.value,
+            'iiif_url': node['metadata']['iiif_url'],
+            'begin_anchor': begin_index,
+            'end_anchor': end_index,
+            'id': node['metadata']['scan_id']
+        }
         annotations.append(scan_annot_info)
 
-        page_annot_info = {'resource_id': resource_id, 'type': AnnTypes.PAGE.value, \
-                           'begin_anchor': begin_index, 'end_anchor': end_index}
-        page_annot_info['id'] = node['metadata']['page_id']
-        page_annot_info['metadata'] = {'page_id': node['metadata']['page_id'], 'scan_id': node['metadata']['scan_id']}
-        page_annot_info['coords'] = node['coords']
+        page_annot_info = {
+            'resource_id': resource_id,
+            'type': AnnTypes.PAGE.value,
+            'begin_anchor': begin_index,
+            'end_anchor': end_index,
+            'id': node['metadata']['page_id'],
+            'metadata': {
+                'page_id': node['metadata']['page_id'],
+                'scan_id': node['metadata']['scan_id']
+            },
+            'coords': node['coords']
+        }
         annotations.append(page_annot_info)
 
     return
