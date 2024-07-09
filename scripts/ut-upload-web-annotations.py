@@ -12,7 +12,8 @@ from loguru import logger
 
 from untanngle.utils import trim_trailing_slash, chunk_list
 
-tier_metadata_fields = ['volume', 'na:File']
+tier_metadata_fields = [] # make project-specific?
+# tier_metadata_fields = ['volume', 'na:File']
 
 
 def upload(annorepo_base_url: str,
@@ -34,11 +35,7 @@ def upload(annorepo_base_url: str,
         ca.create_index(field='body.id', index_type='hashed')
         ca.create_index(field='body.type', index_type='hashed')
         ca.create_index(field='body.type', index_type='ascending')
-        # # for overlap queries
-        # ca.create_index(field='target.source', index_type='ascending')
-        # ca.create_index(field='target.selector.type', index_type='ascending')
-        # ca.create_index(field='target.selector.start', index_type='ascending')
-        # ca.create_index(field='target.selector.end', index_type='ascending')
+        ca.create_index(field='target.source', index_type='ascending')
         for f in tier_metadata_fields:
             ca.create_index(field=f'body.metadata.{f}', index_type='hashed')
     ca.set_anonymous_user_read_access(has_read_access=True)
