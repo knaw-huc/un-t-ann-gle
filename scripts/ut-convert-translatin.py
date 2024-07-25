@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import sys
 import urllib
 from glob import glob
 from typing import List, Dict
@@ -12,14 +13,29 @@ import untanngle.camel_casing as cc
 import untanngle.textfabric as tf
 from untanngle.utils import add_segmented_text_type_if_missing
 
-basedir = 'data/translatin/0.1.1'
-textrepo_url = "https://translatin.tt.di.huc.knaw.nl/textrepo"
-export_path = f"out/translatin/web_annotations.json"
-anno2node_path = f"{basedir}/anno2node.tsv"
+project_name = 'translatin'
 
 
 @logger.catch()
-def main():
+def main0(version: str):
+    config = tf.TFUntangleConfig(
+        project_name=project_name,
+        data_path=f'data/{project_name}/{version}',
+        export_path=f'out',
+        textrepo_base_uri=f'https://{project_name}.tt.di.huc.knaw.nl/textrepo',
+        excluded_types=["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk", "tf:Entity"],
+        tier0_type='tf:Doc'
+    )
+    tf.untangle_tf_export(config)
+
+
+@logger.catch()
+def main(version: str):
+    basedir = f'data/{project_name}/{version}'
+    textrepo_url = f"https://{project_name}.tt.di.huc.knaw.nl/textrepo"
+    export_path = f"out/{project_name}/web_annotations.json"
+    anno2node_path = f"{basedir}/anno2node.tsv"
+
     trc = TextRepoClient(base_uri=textrepo_url, verbose=True)
     add_segmented_text_type_if_missing(trc)
 
@@ -28,8 +44,8 @@ def main():
 
     for _dir in glob(f"{basedir}/*/"):
         base = _dir.split('/')[-2]
-        anno_file_path = f'{_dir}anno.json'
-        text_file_path = f'{_dir}text.json'
+        anno_file_path = f'{_dir}anno-1.json'
+        text_file_path = f'{_dir}text-0.json'
 
         logger.info(f"<= {text_file_path}")
         tr_version_id = upload_segmented_text(base, text_file_path, trc)
@@ -129,4 +145,4 @@ def update_manifestation_annotations(
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1])
