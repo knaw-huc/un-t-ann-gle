@@ -33,9 +33,9 @@ def upload(annorepo_base_url: str,
     if not ca.exists():
         print(f"container {container_url} not found, creating...")
         ca.create(label=container_label)
-        # ca.create_index(field='body.id', index_type='hashed')
+        ca.create_index(field='body.id', index_type='hashed')
         # ca.create_index(field='body.type', index_type='hashed')
-        # ca.create_index(field='body.type', index_type='ascending')
+        ca.create_index(field='body.type', index_type='ascending')
         ca.create_index(field='target.source', index_type='ascending')
         # for f in tier_metadata_fields:
         #     ca.create_index(field=f'body.metadata.{f}', index_type='hashed')
