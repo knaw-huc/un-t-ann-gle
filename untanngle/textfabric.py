@@ -11,7 +11,6 @@ from typing import Any, Union
 
 from icecream import ic
 from loguru import logger
-
 from untanngle import camel_casing as cc
 from untanngle import utils as ut
 
@@ -105,12 +104,9 @@ class AnnotationTransformer:
             if "type" not in ia.metadata:
                 metadata["type"] = f"tt:{as_class_name(ia.type)}Metadata"
             metadata.update({
-                f"{k.replace('@', '_').replace('manifestUrl', 'manifest')}": fix_urls(v)
+                f"{k.replace('@', '_').replace('manifestUrl', 'manifest')}": v
                 for k, v in ia.metadata.items()
             })
-            # if 'manifest' in metadata:
-            #     metadata['manifest'] = metadata['manifest'].replace('suriano.huygens.knaw.nl/manifests',
-            #                                                         'suriano.diginfra.org/manif')
             if "prev" in ia.metadata:
                 prevNode = ia.metadata["prev"]
                 metadata.pop("prev")
@@ -128,17 +124,12 @@ class AnnotationTransformer:
         if 'canvasUrl' in ia.metadata:
             canvas_target = {
                 "@context": "https://knaw-huc.github.io/ns/huc-di-tt.jsonld",
-                "source": fix_urls(ia.metadata['canvasUrl']),
+                "source": ia.metadata['canvasUrl'],
                 "type": "Canvas"
             }
             anno['body']['metadata'].pop('canvasUrl')
             anno["target"].append(canvas_target)
         return anno
-
-
-def fix_urls(value: str) -> str:
-    return value.replace('suriano.huygens.knaw.nl/manifests', 'suriano.diginfra.org/manif').replace(
-        'suriano.huygens.knaw.nl', 'suriano.diginfra.org')
 
 
 def untangle_tf_export(config: TFUntangleConfig):
