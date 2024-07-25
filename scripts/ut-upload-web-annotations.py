@@ -9,10 +9,11 @@ from typing import List
 import progressbar
 from annorepo.client import AnnoRepoClient
 from loguru import logger
-
 from untanngle.utils import trim_trailing_slash, chunk_list
 
-tier_metadata_fields = [] # make project-specific?
+tier_metadata_fields = []  # make project-specific?
+
+
 # tier_metadata_fields = ['volume', 'na:File']
 
 
@@ -32,12 +33,12 @@ def upload(annorepo_base_url: str,
     if not ca.exists():
         print(f"container {container_url} not found, creating...")
         ca.create(label=container_label)
-        ca.create_index(field='body.id', index_type='hashed')
-        ca.create_index(field='body.type', index_type='hashed')
-        ca.create_index(field='body.type', index_type='ascending')
+        # ca.create_index(field='body.id', index_type='hashed')
+        # ca.create_index(field='body.type', index_type='hashed')
+        # ca.create_index(field='body.type', index_type='ascending')
         ca.create_index(field='target.source', index_type='ascending')
-        for f in tier_metadata_fields:
-            ca.create_index(field=f'body.metadata.{f}', index_type='hashed')
+        # for f in tier_metadata_fields:
+        #     ca.create_index(field=f'body.metadata.{f}', index_type='hashed')
     ca.set_anonymous_user_read_access(has_read_access=True)
 
     inputfiles = []
@@ -63,6 +64,9 @@ def upload(annorepo_base_url: str,
                 annotation_list = json.load(f)
             for a in [a for a in annotation_list if 'body' in a and 'type' in a['body']]:
                 body_type = a['body']['type']
+                # ic(body_type)
+                if isinstance(body_type, list):
+                    body_type = body_type[0]
                 body_type_counter.update([body_type])
             number_of_annotations = len(annotation_list)
 
@@ -77,6 +81,7 @@ def upload(annorepo_base_url: str,
             annotation_ids = []
             for p, chunk in enumerate(chunked_annotations):
                 print(f"    chunk ({p + 1}/{number_of_chunks})", end='\r')
+                # ic(chunk)
                 annotation_ids.extend(ar.add_annotations(container_id, chunk))
             print()
             out_path = "/".join(inputfile.split("/")[:-1])
@@ -87,8 +92,8 @@ def upload(annorepo_base_url: str,
             with open(outfile, "w") as f:
                 json.dump(annotation_id_mapping, fp=f)
             bar.update(i)
-    preload_distinct_body_type_cache(ca)
     print_report(body_type_counter, container_url)
+    preload_distinct_body_type_cache(ca)
     print("done!")
 
 
@@ -100,7 +105,7 @@ def print_report(body_type_counter, container_url):
     counts = [c for c in body_type_counter.items()]
     sorted_counts = sorted(counts, key=lambda x: x[1])
     print(f"container: {container_url}")
-    print(f"annotations: {body_type_counter.total()}")
+    print(f"typed annotations: {body_type_counter.total()}")
     print()
     print("Annotation types:")
     max_type_name_size = max([len(t[0]) for t in counts])
