@@ -103,10 +103,12 @@ class AnnotationTransformer:
             metadata = {}
             if "type" not in ia.metadata:
                 metadata["type"] = f"tt:{as_class_name(ia.type)}Metadata"
+
             metadata.update({
                 f"{k.replace('@', '_').replace('manifestUrl', 'manifest')}": v
                 for k, v in ia.metadata.items()
             })
+
             if "prev" in ia.metadata:
                 prevNode = ia.metadata["prev"]
                 metadata.pop("prev")
@@ -115,20 +117,15 @@ class AnnotationTransformer:
                 metadata.pop("next")
                 metadata[f"next{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{nextNode}"
             anno["body"]["metadata"] = metadata
-        # if ia.type == "letter":
-        #     # anno["body"]["metadata"]["folder"] = "proeftuin"
-        #     anno["target"].append({
-        #         "source": "https://images.diginfra.net/iiif/NL-HaNA_1.01.02%2F3783%2FNL-HaNA_1.01.02_3783_0002.jpg/full/max/0/default.jpg",
-        #         "type": "Image"
-        #     })
-        if 'canvasUrl' in ia.metadata:
-            canvas_target = {
-                "@context": "https://knaw-huc.github.io/ns/huc-di-tt.jsonld",
-                "source": ia.metadata['canvasUrl'],
-                "type": "Canvas"
-            }
-            anno['body']['metadata'].pop('canvasUrl')
-            anno["target"].append(canvas_target)
+
+            if 'canvasUrl' in ia.metadata:
+                canvas_target = {
+                    "@context": "https://knaw-huc.github.io/ns/huc-di-tt.jsonld",
+                    "source": ia.metadata['canvasUrl'],
+                    "type": "Canvas"
+                }
+                anno['body']['metadata'].pop('canvasUrl')
+                anno["target"].append(canvas_target)
         return anno
 
 
@@ -161,7 +158,8 @@ def untangle_tf_export(config: TFUntangleConfig):
         anno2node_path=anno2node_path,
         text_in_body=config.text_in_body,
         textrepo_url=config.textrepo_base_uri,
-        textrepo_file_versions=textrepo_logical_file_version
+        textrepo_file_versions=textrepo_logical_file_version,
+        export_dir=export_dir
     )
     logger.info(f"{len(web_annotations)} annotations")
     sanity_check1(web_annotations, config.tier0_type)
@@ -187,23 +185,31 @@ def as_class_name(string: str) -> str:
     return string[0].capitalize() + string[1:]
 
 
-def convert(project: str, anno_files: list[str], text_files: list[str], anno2node_path: str, textrepo_url: str,
-            textrepo_file_versions: dict[str, str], text_in_body: bool = False) -> list[dict[str, Any]]:
+def convert(
+        project: str,
+        anno_files: list[str],
+        text_files: list[str],
+        anno2node_path: str,
+        textrepo_url: str,
+        textrepo_file_versions: dict[str, str],
+        export_dir: str,
+        text_in_body: bool = False
+) -> list[dict[str, any]]:
     tf_tokens = read_tf_tokens(text_files)
     tf_annotations = []
     for anno_file in anno_files:
         tf_annotations.extend(read_tf_annotations(anno_file))
-    # for a in tf_annotations:
-    #     if a.body == "p":
-    #         print(a.target)
 
-    return build_web_annotations(project=project,
-                                 tf_annotations=tf_annotations,
-                                 tokens_per_text=tf_tokens,
-                                 textrepo_url=textrepo_url,
-                                 textrepo_file_versions=textrepo_file_versions,
-                                 text_in_body=text_in_body,
-                                 anno2node_path=anno2node_path)
+    return build_web_annotations(
+        project=project,
+        tf_annotations=tf_annotations,
+        tokens_per_text=tf_tokens,
+        textrepo_url=textrepo_url,
+        textrepo_file_versions=textrepo_file_versions,
+        text_in_body=text_in_body,
+        anno2node_path=anno2node_path,
+        export_dir=export_dir
+    )
 
 
 def read_tf_tokens(text_files) -> dict[str, list[str]]:
@@ -399,12 +405,15 @@ def build_web_annotations(
         textrepo_url: str,
         textrepo_file_versions: dict[str, str],
         text_in_body: bool,
-        anno2node_path: str
+        anno2node_path: str,
+        export_dir: str
 ) -> list[dict]:
-    at = AnnotationTransformer(project=project,
-                               textrepo_url=textrepo_url,
-                               textrepo_versions=textrepo_file_versions,
-                               text_in_body=text_in_body)
+    at = AnnotationTransformer(
+        project=project,
+        textrepo_url=textrepo_url,
+        textrepo_versions=textrepo_file_versions,
+        text_in_body=text_in_body
+    )
     tf_node_for_annotation_id = {row['annotation']: row['node'] for row in read_tsv_records(anno2node_path)}
     tf_annotation_idx = {}
     note_target = {}
@@ -452,7 +461,9 @@ def build_web_annotations(
     logger.info("modify_note_annotations")
     tf_annos = modify_note_annotations(tf_annos, node_parents)
 
-    para_dict = determine_paragraphs(tf_annos, tokens_per_text, paragraph_types)
+    paragraph_ranges = determine_paragraphs(tf_annos, tokens_per_text, paragraph_types)
+    # debug_paragraphs(paragraph_ranges, tokens_per_text)
+    store_logical_text_files(export_dir, paragraph_ranges, tokens_per_text)
 
     # TODO: convert ptr annotations to annotation linking the ptr target to the body.id of the m:Note with the corresponding id
     # TODO: convert rs annotations to annotation linking the rkd url in metadata.anno to the rd target
@@ -486,7 +497,28 @@ def build_web_annotations(
     return [cc.keys_to_camel_case(a) for a in web_annotations]
 
 
-def determine_paragraphs(tf_annos: list[IAnnotation], tokens_per_text: dict[str, list[str]], paragraph_types: set[str]):
+def debug_paragraphs(paragraph_ranges, tokens_per_text):
+    ic(paragraph_ranges['0'][0:100])
+    for i, r in enumerate(paragraph_ranges['0'][0:100]):
+        para_text = "".join(tokens_per_text['0'][r[0]:r[1] + 1])
+        print(i)
+        print(para_text)
+        print()
+
+
+def store_logical_text_files(export_dir: str, paragraph_ranges: dict[str, list[tuple[int, int]]],
+                             tokens_per_text: dict[str, list[str]]):
+    for text_num in paragraph_ranges.keys():
+        para_segments = []
+        for range in paragraph_ranges[text_num]:
+            para_text = "".join(tokens_per_text['0'][range[0]:range[1] + 1])
+            para_segments.append(para_text)
+        json_path = f"{export_dir}/textfile-logical-{text_num}.json"
+        store_segmented_text(segments=para_segments, store_path=json_path)
+
+
+def determine_paragraphs(tf_annos: list[IAnnotation], tokens_per_text: dict[str, list[str]],
+                         paragraph_types: set[str]) -> dict[str, list[tuple[int, int]]]:
     paragraph_ranges = {}
     current_text_num = -1
     expected_begin_anchor = 0
@@ -509,12 +541,7 @@ def determine_paragraphs(tf_annos: list[IAnnotation], tokens_per_text: dict[str,
             else:
                 paragraph_ranges[current_text_num].append((ia.begin_anchor, ia.end_anchor))
                 expected_begin_anchor = ia.end_anchor + 1
-    ic(paragraph_ranges['0'][0:100])
-    for i, r in enumerate(paragraph_ranges['0'][0:100]):
-        para_text = "".join(tokens_per_text['0'][r[0]:r[1] + 1])
-        print(i)
-        print(para_text)
-        print()
+    return paragraph_ranges
 
 
 def handle_format():
