@@ -11,7 +11,6 @@ from typing import Any, Union
 
 from icecream import ic
 from loguru import logger
-
 from untanngle import camel_casing as cc
 from untanngle import utils as ut
 
@@ -152,20 +151,26 @@ def untangle_tf_export(config: TFUntangleConfig):
     out_files = []
     for tsv in text_files:
         text_num = get_file_num(tsv)
-        json_path = f"{export_dir}/textfile-{text_num}.json"
+        json_path = f"{export_dir}/textfile-physical-{text_num}.json"
         segments = read_tokens(tsv)
         store_segmented_text(segments=segments, store_path=json_path)
         out_files.append(json_path)
 
     if config.textrepo_base_uri:
-        textrepo_file_version = ut.upload_to_tr(textrepo_base_uri=config.textrepo_base_uri,
-                                                project_name=config.project_name,
-                                                tf_text_files=out_files)
+        textrepo_logical_file_version = ut.upload_to_tr(textrepo_base_uri=config.textrepo_base_uri,
+                                                        project_name=config.project_name,
+                                                        tf_text_files=out_files)
     else:
-        textrepo_file_version = dummy_version(text_files)
-    web_annotations = convert(project=config.project_name, anno_files=anno_files, text_files=text_files,
-                              anno2node_path=anno2node_path, text_in_body=config.text_in_body,
-                              textrepo_url=config.textrepo_base_uri, textrepo_file_versions=textrepo_file_version)
+        textrepo_logical_file_version = dummy_version(text_files)
+    web_annotations = convert(
+        project=config.project_name,
+        anno_files=anno_files,
+        text_files=text_files,
+        anno2node_path=anno2node_path,
+        text_in_body=config.text_in_body,
+        textrepo_url=config.textrepo_base_uri,
+        textrepo_file_versions=textrepo_logical_file_version
+    )
     logger.info(f"{len(web_annotations)} annotations")
     sanity_check1(web_annotations, config.tier0_type)
     filtered_web_annotations = [
@@ -196,6 +201,10 @@ def convert(project: str, anno_files: list[str], text_files: list[str], anno2nod
     tf_annotations = []
     for anno_file in anno_files:
         tf_annotations.extend(read_tf_annotations(anno_file))
+    # for a in tf_annotations:
+    #     if a.body == "p":
+    #         print(a.target)
+
     return build_web_annotations(project=project,
                                  tf_annotations=tf_annotations,
                                  tokens_per_text=tf_tokens,
@@ -372,6 +381,24 @@ single_target_pattern = re.compile(r"(\d+):(\d+)")
 range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
 range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
 
+paragraph_types = (
+    "p",
+    "author",
+    "biblScope",
+    "collection",
+    "date",
+    "editor",
+    "head",
+    "idno",
+    "institution",
+    "name",
+    "note",
+    "num",
+    "resp",
+    "settlement",
+    "title"
+)
+
 
 def build_web_annotations(
         project: str,
@@ -422,7 +449,7 @@ def build_web_annotations(
                 logger.warning(f"unhandled type: {tf_annotation.type}")
     print()
     tf_annos = sorted(tf_annotation_idx.values(),
-                      key=lambda anno: (anno.begin_anchor * 100_000 + (
+                      key=lambda anno: (int(anno.text_num) * 100_000_000_000 + anno.begin_anchor * 100_000 + (
                               1000 - anno.end_anchor)) * 100_000 + anno.tf_node)
 
     for tfa in tf_annos:
@@ -432,6 +459,8 @@ def build_web_annotations(
     # ic(node_parents)
     logger.info("modify_note_annotations")
     tf_annos = modify_note_annotations(tf_annos, node_parents)
+
+    para_dict = determine_paragraphs(tf_annos, tokens_per_text, paragraph_types)
 
     # TODO: convert ptr annotations to annotation linking the ptr target to the body.id of the m:Note with the corresponding id
     # TODO: convert rs annotations to annotation linking the rkd url in metadata.anno to the rd target
@@ -463,6 +492,37 @@ def build_web_annotations(
 
     logger.info("keys_to_camel_case")
     return [cc.keys_to_camel_case(a) for a in web_annotations]
+
+
+def determine_paragraphs(tf_annos: list[IAnnotation], tokens_per_text: dict[str, list[str]], paragraph_types: set[str]):
+    paragraph_ranges = {}
+    current_text_num = -1
+    expected_begin_anchor = 0
+    for ia in tf_annos:
+        if ia.type in paragraph_types:
+            # print(ia.text_num, ia.begin_anchor, ia.end_anchor)
+            if ia.text_num != current_text_num:
+                if current_text_num in tokens_per_text:
+                    number_of_tokens_in_current_text = len(tokens_per_text[current_text_num])
+                    if number_of_tokens_in_current_text > expected_begin_anchor:
+                        paragraph_ranges[current_text_num].append((expected_begin_anchor,
+                                                                   number_of_tokens_in_current_text))
+                current_text_num = ia.text_num
+                paragraph_ranges[current_text_num] = []
+                expected_begin_anchor = 0
+            if ia.begin_anchor > expected_begin_anchor:
+                paragraph_ranges[current_text_num].append((expected_begin_anchor, ia.begin_anchor - 1))
+            if ia.begin_anchor < expected_begin_anchor:
+                logger.warning(f"nested element {ia.type} ignored for paragraph sectioning")
+            else:
+                paragraph_ranges[current_text_num].append((ia.begin_anchor, ia.end_anchor))
+                expected_begin_anchor = ia.end_anchor + 1
+    ic(paragraph_ranges['0'][0:100])
+    for i, r in enumerate(paragraph_ranges['0'][0:100]):
+        para_text = "".join(tokens_per_text['0'][r[0]:r[1] + 1])
+        print(i)
+        print(para_text)
+        print()
 
 
 def handle_format():

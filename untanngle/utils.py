@@ -4,10 +4,9 @@ from itertools import zip_longest
 from typing import List, Dict, Any
 
 import progressbar
+import untanngle.textfabric as tf
 from loguru import logger
 from textrepo.client import TextRepoClient
-
-import untanngle.textfabric as tf
 
 
 def default_progress_bar(max_value):
@@ -38,9 +37,17 @@ def add_segmented_text_type_if_missing(client: TextRepoClient):
         client.create_file_type(name=name, mimetype="application/json")
 
 
+def add_logical_segmented_text_type_if_missing(client: TextRepoClient):
+    name = "logical_segmented_text"
+    available_type_names = [t.name for t in client.read_file_types()]
+    if name not in available_type_names:
+        client.create_file_type(name=name, mimetype="application/json")
+
+
 def upload_to_tr(textrepo_base_uri: str, project_name: str, tf_text_files: List[str]) -> Dict[str, str]:
     trc = TextRepoClient(textrepo_base_uri, verbose=True)
     add_segmented_text_type_if_missing(trc)
+    add_logical_segmented_text_type_if_missing(trc)
     versions = {}
     for tf_text_file in tf_text_files:
         file_num = tf.get_file_num(tf_text_file)
@@ -50,8 +57,12 @@ def upload_to_tr(textrepo_base_uri: str, project_name: str, tf_text_files: List[
             content = f.read()
         if not trc_has_document_with_external_id(trc, external_id):
             trc.create_document(external_id)
+        if "logical" in tf_text_file:
+            type = "logical_segmented_text"
+        else:
+            type = "segmented_text"
         version_id = trc.import_version(external_id=external_id,
-                                        type_name='segmented_text',
+                                        type_name=type,
                                         contents=content,
                                         as_latest_version=True)
         versions[file_num] = version_id.version_id
