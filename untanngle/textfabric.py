@@ -5,6 +5,7 @@ import os
 import re
 import time
 import uuid
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Union
@@ -19,7 +20,7 @@ single_target_pattern = re.compile(r"(\d+):(\d+)")
 range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
 range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
 
-paragraph_types = (
+paragraph_types = {
     "p",
     "author",
     "biblScope",
@@ -35,7 +36,7 @@ paragraph_types = (
     "resp",
     "settlement",
     "title"
-)
+}
 
 
 @dataclass
@@ -85,14 +86,18 @@ class AnnotationTransformer:
     textrepo_url: str
     textrepo_versions: dict[str, dict[str, str]]
     text_in_body: bool
+    logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]]
 
     def _calculate_logical_text_coords(self, ia: IAnnotation) -> TextCoords:
-        # TODO: implement mapping ia anchors to logical anchors+charoffsets
+        logical_start_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.begin_anchor]
+        last_key = len(self.logical_coords_for_physical_anchor_per_text[ia.text_num].keys())
+        ic(last_key)
+        logical_end_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.end_anchor]
         return TextCoords(
-            begin_anchor=0,
-            begin_char_offset=0,
-            end_anchor=1,
-            end_char_offset=1
+            begin_anchor=logical_start_coords.begin_anchor,
+            begin_char_offset=logical_start_coords.begin_char_offset,
+            end_anchor=logical_end_coords.end_anchor,
+            end_char_offset=logical_end_coords.end_char_offset
         )
 
     def as_web_annotation(self, ia: IAnnotation) -> dict[str, Any]:
@@ -212,10 +217,14 @@ def untangle_tf_export(config: TFUntangleConfig):
     ref_links, target_links, tf_annos = merge_raw_tf_annotations(raw_tf_annotations, anno2node_path, export_dir,
                                                                  tokens_per_file)
 
-    paragraph_ranges = determine_paragraphs(tf_annos, tokens_per_file, paragraph_types)
+    paragraph_ranges = determine_paragraphs(tf_annos, tokens_per_file)
     # debug_paragraphs(paragraph_ranges, tokens_per_text)
 
-    logical_file_paths = store_logical_text_files(export_dir, paragraph_ranges, tokens_per_file)
+    logical_file_paths, logical_coords_for_physical_anchor_per_text = store_logical_text_files(
+        export_dir,
+        paragraph_ranges,
+        tokens_per_file
+    )
     out_files.extend(logical_file_paths)
 
     if config.textrepo_base_uri:
@@ -228,7 +237,7 @@ def untangle_tf_export(config: TFUntangleConfig):
     web_annotations = tf_annotations_to_web_annotations(
         tf_annos, ref_links, target_links, config.project_name,
         config.text_in_body, config.textrepo_base_uri,
-        textrepo_file_versions
+        textrepo_file_versions, logical_coords_for_physical_anchor_per_text
     )
 
     logger.info(f"{len(web_annotations)} annotations")
@@ -519,13 +528,16 @@ def merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_
     return ref_links, target_links, tf_annos
 
 
-def tf_annotations_to_web_annotations(tf_annos, ref_links, target_links, project, text_in_body, textrepo_url,
-                                      textrepo_file_versions: dict[str, dict[str, str]]):
+def tf_annotations_to_web_annotations(tf_annos, ref_links, target_links,
+                                      project: str, text_in_body: bool, textrepo_url: str,
+                                      textrepo_file_versions: dict[str, dict[str, str]],
+                                      logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]]):
     at = AnnotationTransformer(
         project=project,
         textrepo_url=textrepo_url,
         textrepo_versions=textrepo_file_versions,
-        text_in_body=text_in_body
+        text_in_body=text_in_body,
+        logical_coords_for_physical_anchor_per_text=logical_coords_for_physical_anchor_per_text
     )
     logger.info("as_web_annotation")
     tf_node_to_ia_id = {a.tf_node: a.id for a in tf_annos}
@@ -562,21 +574,40 @@ def store_logical_text_files(
         export_dir: str,
         paragraph_ranges: dict[str, list[tuple[int, int]]],
         tokens_per_text: dict[str, list[str]]
-) -> list[str]:
+) -> (list[str], dict[str, dict[str, TextCoords]]):
     file_paths = []
+    logical_coords_for_physical_anchor_per_text = defaultdict(lambda: {})
     for text_num in paragraph_ranges.keys():
-        para_segments = []
-        for range in paragraph_ranges[text_num]:
-            para_text = "".join(tokens_per_text['0'][range[0]:range[1] + 1])
-            para_segments.append(para_text)
+        par_segments = []
+        no_of_tokens = len(tokens_per_text[text_num])
+        ic(text_num, no_of_tokens)
+        for par_range in paragraph_ranges[text_num]:
+            par_anchor = len(par_segments)
+            token_list = tokens_per_text[text_num][par_range[0]:par_range[1] + 1]
+            para_text = "".join(token_list)
+            par_segments.append(para_text)
+            char_offset = 0
+            for physical_anchor in range(par_range[0], min(par_range[1] + 1, no_of_tokens)):
+                # ic(text_num, no_of_tokens, physical_anchor)
+                par_token = tokens_per_text[text_num][physical_anchor]
+                end_char_offset = char_offset + len(par_token) - 1
+                logical_coords_for_physical_anchor_per_text[text_num][physical_anchor] = TextCoords(
+                    begin_anchor=par_anchor,
+                    begin_char_offset=char_offset,
+                    end_anchor=par_anchor,
+                    end_char_offset=end_char_offset
+                )
+                char_offset = end_char_offset + 1
+
         json_path = f"{export_dir}/textfile-logical-{text_num}.json"
         file_paths.append(json_path)
-        store_segmented_text(segments=para_segments, store_path=json_path)
-    return file_paths
+        store_segmented_text(segments=par_segments, store_path=json_path)
+    return file_paths, logical_coords_for_physical_anchor_per_text
 
 
-def determine_paragraphs(tf_annos: list[IAnnotation], tokens_per_text: dict[str, list[str]],
-                         paragraph_types: set[str]) -> dict[str, list[tuple[int, int]]]:
+def determine_paragraphs(
+        tf_annos: list[IAnnotation], tokens_per_text: dict[str, list[str]]
+) -> dict[str, list[tuple[int, int]]]:
     paragraph_ranges = {}
     current_text_num = -1
     expected_begin_anchor = 0
