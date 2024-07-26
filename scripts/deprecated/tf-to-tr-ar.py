@@ -19,6 +19,7 @@ from uri import URI
 
 from untanngle import textfabric
 
+## deprecated; use ut-convert-*.py scripts
 
 @dataclass
 class Config:
