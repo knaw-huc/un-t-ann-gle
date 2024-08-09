@@ -46,7 +46,7 @@ def add_logical_segmented_text_type_if_missing(client: TextRepoClient):
 
 
 def upload_to_tr(textrepo_base_uri: str, project_name: str, tf_text_files: list[str]) -> dict[str, dict[str, str]]:
-    trc = TextRepoClient(textrepo_base_uri, verbose=True)
+    trc = TextRepoClient(textrepo_base_uri)
     add_segmented_text_type_if_missing(trc)
     add_logical_segmented_text_type_if_missing(trc)
     versions = defaultdict(lambda: {})

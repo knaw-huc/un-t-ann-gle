@@ -91,7 +91,6 @@ class AnnotationTransformer:
     def _calculate_logical_text_coords(self, ia: IAnnotation) -> TextCoords:
         logical_start_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.begin_anchor]
         last_key = len(self.logical_coords_for_physical_anchor_per_text[ia.text_num].keys())
-        ic(last_key)
         logical_end_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.end_anchor]
         return TextCoords(
             begin_anchor=logical_start_coords.begin_anchor,
@@ -177,6 +176,7 @@ class AnnotationTransformer:
                 prevNode = ia.metadata["prev"]
                 metadata.pop("prev")
                 metadata[f"prev{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{prevNode}"
+            if "next" in ia.metadata:
                 nextNode = ia.metadata["next"]
                 metadata.pop("next")
                 metadata[f"next{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{nextNode}"
@@ -198,8 +198,17 @@ def untangle_tf_export(config: TFUntangleConfig):
     text_files = sorted(glob.glob(f'{config.data_path}/text-*.tsv'))
     anno_files = sorted(glob.glob(f"{config.data_path}/anno-*.tsv"))
     anno2node_path = f"{config.data_path}/anno2node.tsv"
+    entity_meta_path = f"{config.data_path}/entitymeta.json"
+    logical_pairs_path = f"{config.data_path}/logicalpairs.tsv"
+    pos_to_node_path = f"{config.data_path}/pos2node.tsv"
     export_dir = f"{config.export_path}/{config.project_name}"
     os.makedirs(name=export_dir, exist_ok=True)
+
+    entity_metadata = load_entity_metadata(entity_meta_path)
+    node_for_pos = load_node_for_pos(pos_to_node_path)
+    # ic(node_for_pos)
+    token_subst = read_token_substitutions(logical_pairs_path)
+    # ic(token_subst)
 
     out_files = []
     for tsv in text_files:
@@ -223,7 +232,9 @@ def untangle_tf_export(config: TFUntangleConfig):
     logical_file_paths, logical_coords_for_physical_anchor_per_text = store_logical_text_files(
         export_dir,
         paragraph_ranges,
-        tokens_per_file
+        tokens_per_file,
+        node_for_pos,
+        token_subst
     )
     out_files.extend(logical_file_paths)
 
@@ -251,6 +262,40 @@ def untangle_tf_export(config: TFUntangleConfig):
     end = time.perf_counter()
 
     print_report(config, text_files, web_annotations, filtered_web_annotations, start, end)
+
+
+def read_token_substitutions(path: str):
+    token_subst = {}
+    if os.path.exists(path):
+        logger.info(f"<= {path}")
+        with open(path, encoding='utf8') as f:
+            for record in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE):
+                token_subst[record['token1']] = record['str'] + " "
+                token1_num = int(record['token1'])
+                break_token = f"{token1_num + 1}"
+                token_subst[break_token] = ""
+                token_subst[record['token2']] = ""
+    return token_subst
+
+
+def load_node_for_pos(path: str):
+    node_for_pos = {}
+    if os.path.exists(path):
+        logger.info(f"<= {path}")
+        with open(path, encoding='utf8') as f:
+            for record in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE):
+                node_for_pos[record['position']] = record['node']
+    return node_for_pos
+
+
+def load_entity_metadata(entity_meta_path):
+    if os.path.exists(entity_meta_path):
+        logger.info(f"<= {entity_meta_path}")
+        with open(entity_meta_path) as f:
+            entity_metadata = json.load(f)
+    else:
+        entity_metadata = None
+    return entity_metadata
 
 
 def print_report(config, text_files, web_annotations, filtered_web_annotations, start, end):
@@ -573,24 +618,31 @@ def debug_paragraphs(paragraph_ranges, tokens_per_text):
 def store_logical_text_files(
         export_dir: str,
         paragraph_ranges: dict[str, list[tuple[int, int]]],
-        tokens_per_text: dict[str, list[str]]
+        tokens_per_text: dict[str, list[str]],
+        node_for_pos: dict[str, str],
+        node_subst: dict[str, str]
 ) -> (list[str], dict[str, dict[str, TextCoords]]):
     file_paths = []
     logical_coords_for_physical_anchor_per_text = defaultdict(lambda: {})
     for text_num in paragraph_ranges.keys():
         par_segments = []
         no_of_tokens = len(tokens_per_text[text_num])
-        ic(text_num, no_of_tokens)
+        # ic(text_num, no_of_tokens)
         for par_range in paragraph_ranges[text_num]:
             par_anchor = len(par_segments)
-            token_list = tokens_per_text[text_num][par_range[0]:par_range[1] + 1]
-            para_text = "".join(token_list)
-            par_segments.append(para_text)
+            para_text = ''
             char_offset = 0
             for physical_anchor in range(par_range[0], min(par_range[1] + 1, no_of_tokens)):
-                # ic(text_num, no_of_tokens, physical_anchor)
-                par_token = tokens_per_text[text_num][physical_anchor]
-                end_char_offset = char_offset + len(par_token) - 1
+                pos = f"{text_num}:{physical_anchor}"
+                node = node_for_pos[pos]
+                if node in node_subst:
+                    par_token = node_subst[node]
+                    para_text += par_token
+                    end_char_offset = char_offset + len(par_token) - 1
+                else:
+                    par_token = tokens_per_text[text_num][physical_anchor].replace("\n", " ")
+                    para_text += par_token
+                    end_char_offset = char_offset + len(par_token) - 1
                 logical_coords_for_physical_anchor_per_text[text_num][physical_anchor] = TextCoords(
                     begin_anchor=par_anchor,
                     begin_char_offset=char_offset,
@@ -598,6 +650,7 @@ def store_logical_text_files(
                     end_char_offset=end_char_offset
                 )
                 char_offset = end_char_offset + 1
+            par_segments.append(para_text)
 
         json_path = f"{export_dir}/textfile-logical-{text_num}.json"
         file_paths.append(json_path)
@@ -605,9 +658,8 @@ def store_logical_text_files(
     return file_paths, logical_coords_for_physical_anchor_per_text
 
 
-def determine_paragraphs(
-        tf_annos: list[IAnnotation], tokens_per_text: dict[str, list[str]]
-) -> dict[str, list[tuple[int, int]]]:
+def determine_paragraphs(tf_annos: list[IAnnotation], tokens_per_text: dict[str, list[str]]) -> dict[
+    str, list[tuple[int, int]]]:
     paragraph_ranges = {}
     current_text_num = -1
     expected_begin_anchor = 0
@@ -682,8 +734,10 @@ def handle_attribute(tf_annotation, tf_annotation_idx):
         (k, v) = tf_annotation.body.split('=', 1)
         if k == 'id':
             k = 'tei:id'
+        if k in tf_annotation_idx[element_anno_id].metadata:
+            logger.warning(f"extra assignment to {k} for {element_anno_id}")
         tf_annotation_idx[element_anno_id].metadata[k] = v
-    # else:
+        # else:
     #     logger.warning(f"attribute target ({element_anno_id}) not in tf_annotation_idx index")
     #     ic(a)
 

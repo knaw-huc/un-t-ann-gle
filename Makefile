@@ -47,7 +47,9 @@ mondriaan-upload-annotations: scripts/ut-upload-web-annotations.py out/mondriaan
 # suriano
 .PHONY: suriano-untangle
 suriano-untangle:
-	(cd data/suriano && git pull)
+#	(cd data/suriano && git pull)
+#	(cd data/suriano && scp -r tt-docker-vm:/data/deploy/suriano/watm/$(SURIANO_VERSION) .)
+	(cd data/suriano && rsync -cav tt-docker-vm:/data/deploy/suriano/watm/$(SURIANO_VERSION) .)
 	poetry run ./scripts/ut-convert-suriano.py $(SURIANO_VERSION)
 
 .PHONY: suriano-upload-annotations
