@@ -176,10 +176,15 @@ class AnnotationTransformer:
                 prevNode = ia.metadata["prev"]
                 metadata.pop("prev")
                 metadata[f"prev{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{prevNode}"
+
             if "next" in ia.metadata:
                 nextNode = ia.metadata["next"]
                 metadata.pop("next")
                 metadata[f"next{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{nextNode}"
+
+            if "eid" in ia.metadata:
+                metadata["entityId"] = f"urn:{self.project}:entity:{ia.metadata['eid']}-{ia.metadata['kind']}"
+
             anno["body"]["metadata"] = metadata
 
             if 'canvasUrl' in ia.metadata:
@@ -191,6 +196,30 @@ class AnnotationTransformer:
                 anno['body']['metadata'].pop('canvasUrl')
                 anno["target"].append(canvas_target)
         return anno
+
+    def create_entity_annotations(self, entity_metadata: dict[str, dict[str, str]]) -> list[dict[str, any]]:
+        return [
+            self._entity_metadata_annotation(k, v)
+            for k, v in entity_metadata.items()
+        ]
+
+    def _entity_metadata_annotation(self, key: str, value: dict[str, str]) -> dict[str, any]:
+        body_id = f"urn:{self.project}:entity_metadata:{key}"
+        entity_id = f"urn:{self.project}:entity:{key}"
+        return {
+            "@context": [
+                "http://www.w3.org/ns/anno.jsonld"
+            ],
+            "type": "Annotation",
+            "id": f"urn:{self.project}:annotation:{key}",
+            "generated": datetime.today().isoformat(),
+            "body": {
+                "id": body_id,
+                "type": "EntityMetadata",
+                "metadata": [{"label": mk, "value": mv} for mk, mv in value.items()]
+            },
+            "target": entity_id
+        }
 
 
 def untangle_tf_export(config: TFUntangleConfig):
@@ -248,16 +277,17 @@ def untangle_tf_export(config: TFUntangleConfig):
     web_annotations = tf_annotations_to_web_annotations(
         tf_annos, ref_links, target_links, config.project_name,
         config.text_in_body, config.textrepo_base_uri,
-        textrepo_file_versions, logical_coords_for_physical_anchor_per_text
+        textrepo_file_versions, logical_coords_for_physical_anchor_per_text,
+        entity_metadata
     )
 
-    logger.info(f"{len(web_annotations)} annotations")
     sanity_check1(web_annotations, config.tier0_type)
     filtered_web_annotations = [
         a for a in web_annotations if
         ('type' in a['body'] and a['body']['type'] not in config.excluded_types)
         or 'type' not in a['body']
     ]
+    logger.info(f"{len(filtered_web_annotations)} annotations")
     ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=f"{export_dir}/web-annotations.json")
     end = time.perf_counter()
 
@@ -573,10 +603,13 @@ def merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_
     return ref_links, target_links, tf_annos
 
 
-def tf_annotations_to_web_annotations(tf_annos, ref_links, target_links,
-                                      project: str, text_in_body: bool, textrepo_url: str,
-                                      textrepo_file_versions: dict[str, dict[str, str]],
-                                      logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]]):
+def tf_annotations_to_web_annotations(
+        tf_annos, ref_links, target_links,
+        project: str, text_in_body: bool, textrepo_url: str,
+        textrepo_file_versions: dict[str, dict[str, str]],
+        logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]],
+        entity_metadata: dict[str, dict[str, str]]
+):
     at = AnnotationTransformer(
         project=project,
         textrepo_url=textrepo_url,
@@ -602,6 +635,11 @@ def tf_annotations_to_web_annotations(tf_annos, ref_links, target_links,
         for from_ia_id, to_ia_id in target_links
     ]
     web_annotations.extend(target_annotations)
+
+    if entity_metadata:
+        entity_annotations = at.create_entity_annotations(entity_metadata)
+        web_annotations.extend(entity_annotations)
+
     logger.info("keys_to_camel_case")
     return [cc.keys_to_camel_case(a) for a in web_annotations]
 
