@@ -87,6 +87,7 @@ class AnnotationTransformer:
     textrepo_versions: dict[str, dict[str, str]]
     text_in_body: bool
     logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]]
+    entity_metadata: dict[str, dict[str, str]]
 
     def _calculate_logical_text_coords(self, ia: IAnnotation) -> TextCoords:
         logical_start_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.begin_anchor]
@@ -183,7 +184,14 @@ class AnnotationTransformer:
                 metadata[f"next{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{nextNode}"
 
             if "eid" in ia.metadata:
-                metadata["entityId"] = f"urn:{self.project}:entity:{ia.metadata['eid']}-{ia.metadata['kind']}"
+                entity_id = f"{ia.metadata['eid']}-{ia.metadata['kind']}"
+                metadata["entityId"] = f"urn:{self.project}:entity:{entity_id}"
+                if self.entity_metadata:
+                    metadata["details"] = [
+                        {"label": mk, "value": mv}
+                        for mk, mv
+                        in self.entity_metadata[entity_id].items()
+                    ]
 
             anno["body"]["metadata"] = metadata
 
@@ -197,10 +205,10 @@ class AnnotationTransformer:
                 anno["target"].append(canvas_target)
         return anno
 
-    def create_entity_annotations(self, entity_metadata: dict[str, dict[str, str]]) -> list[dict[str, any]]:
+    def create_entity_annotations(self) -> list[dict[str, any]]:
         return [
             self._entity_metadata_annotation(k, v)
-            for k, v in entity_metadata.items()
+            for k, v in self.entity_metadata.items()
         ]
 
     def _entity_metadata_annotation(self, key: str, value: dict[str, str]) -> dict[str, any]:
@@ -615,7 +623,8 @@ def tf_annotations_to_web_annotations(
         textrepo_url=textrepo_url,
         textrepo_versions=textrepo_file_versions,
         text_in_body=text_in_body,
-        logical_coords_for_physical_anchor_per_text=logical_coords_for_physical_anchor_per_text
+        logical_coords_for_physical_anchor_per_text=logical_coords_for_physical_anchor_per_text,
+        entity_metadata=entity_metadata
     )
     logger.info("as_web_annotation")
     tf_node_to_ia_id = {a.tf_node: a.id for a in tf_annos}
@@ -637,7 +646,7 @@ def tf_annotations_to_web_annotations(
     web_annotations.extend(target_annotations)
 
     if entity_metadata:
-        entity_annotations = at.create_entity_annotations(entity_metadata)
+        entity_annotations = at.create_entity_annotations()
         web_annotations.extend(entity_annotations)
 
     logger.info("keys_to_camel_case")
