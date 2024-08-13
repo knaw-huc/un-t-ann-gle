@@ -1,8 +1,10 @@
+import copy
 import csv
 import glob
 import json
 import os
 import re
+import sys
 import time
 import uuid
 from collections import defaultdict
@@ -11,6 +13,7 @@ from datetime import datetime
 from typing import Any, Union
 
 from icecream import ic
+from intervaltree import IntervalTree
 from loguru import logger
 
 from untanngle import camel_casing as cc
@@ -627,9 +630,16 @@ def tf_annotations_to_web_annotations(
         entity_metadata=entity_metadata
     )
     logger.info("as_web_annotation")
+
     tf_node_to_ia_id = {a.tf_node: a.id for a in tf_annos}
     web_annotations = [at.as_web_annotation(a) for a in tf_annos]
+
     tf_id_to_body_id = {tf_node_to_ia_id[wa["body"]["tf:textfabric_node"]]: wa["body"]["id"] for wa in web_annotations}
+
+    if project == 'suriano':
+        letter_body_annotations = generate_letter_body_annotations(web_annotations)
+        web_annotations.extend(letter_body_annotations)
+
     # ic(ref_links)
     logger.info("ref_annotations")
     ref_annotations = [
@@ -637,6 +647,7 @@ def tf_annotations_to_web_annotations(
         for from_ia_id, to_ia_id in ref_links
     ]
     web_annotations.extend(ref_annotations)
+
     # ic(target_links)
     logger.info("target_annotations")
     target_annotations = [
@@ -894,3 +905,126 @@ def dummy_version(text_files):
         file_num = get_file_num(text_file)
         textrepo_file_version[file_num] = f"placeholder-{file_num}"
     return textrepo_file_version
+
+
+def generate_letter_body_annotations(web_annotations: list[dict[str, any]]) -> list[dict[str, any]]:
+    file_annotations = [wa for wa in web_annotations if wa['body']['type'] == 'tf:File']
+    # ic(len(file_annotations))
+    # ic(file_annotations[42])
+
+    relevant_div_annotations = [
+        wa for wa in web_annotations
+        if wa['body']['type'] == 'tei:Div' and wa['body']['metadata']['type'] != 'notes'
+    ]
+    # ic(len(relevant_div_annotations))
+    # ic(relevant_div_annotations[42])
+    iforest = defaultdict(lambda: IntervalTree())
+    for da in relevant_div_annotations:
+        physical_source, start, end = physical_range(da)
+        iforest[physical_source][start:end] = da
+
+    letter_body_annotations = []
+
+    for fa in file_annotations:
+        physical_source, start, end = physical_range(fa)
+        physical_base = physical_source.replace('/contents', '')
+        enveloped_annos = [a.data for a in sorted(iforest[physical_source].envelop(start, end))]
+
+        min_physical_start = sys.maxsize
+        max_physical_end = 0
+        min_logical_start = sys.maxsize
+        max_logical_end = 0
+        l_begin_char_offset = sys.maxsize
+        l_end_char_offset = 0
+        for da in enveloped_annos:
+            p_selector = da["target"][0]["selector"]
+            p_start = p_selector["start"]
+            p_end = p_selector["end"]
+            l_selector = da["target"][2]["selector"]
+            l_start = l_selector["start"]
+            l_end = l_selector["end"]
+            l_char_start = l_selector["beginCharOffset"]
+            l_char_end = l_selector["endCharOffset"]
+
+            if p_start < min_physical_start:
+                min_physical_start = p_start
+                min_logical_start = l_start
+                l_begin_char_offset = l_char_start
+
+            if p_end > max_physical_end:
+                max_physical_end = p_end
+                max_logical_end = l_end
+                l_end_char_offset = l_char_end
+
+        letter_body_annotation = copy.deepcopy(fa)
+        letter_body_annotation["id"] = letter_body_annotation["id"] + ":letter_body"
+        body = letter_body_annotation['body']
+        body.pop('tf:textfabric_node')
+        body["id"] = body["id"].replace('file', 'letter_body')
+        body["type"] = "LetterBody"
+        metadata = body["metadata"]
+        metadata["type"] = "LetterBodyMetadata"
+        if "prevFile" in metadata:
+            metadata['prevLetterBody'] = metadata['prevFile'].replace('file', 'letter_body')
+            metadata.pop('prevFile')
+        if "nextFile" in metadata:
+            metadata['nextLetterBody'] = metadata['nextFile'].replace('file', 'letter_body')
+            metadata.pop('nextFile')
+
+        canvas_target = letter_body_annotation["target"][4]
+
+        logical_source, _, _ = logical_range(fa)
+        logical_base = logical_source.replace('/contents', '')
+        new_targets = []
+        new_targets.extend(
+            text_targets("Text", physical_base, min_physical_start, max_physical_end))
+        new_targets.extend(
+            text_targets("LogicalText", logical_base, min_logical_start, max_logical_end, l_begin_char_offset,
+                         l_end_char_offset))
+        new_targets.append(canvas_target)
+        letter_body_annotation['target'] = new_targets
+        ic(letter_body_annotation)
+        letter_body_annotations.append(letter_body_annotation)
+
+    return letter_body_annotations
+
+
+def physical_range(wa):
+    source = wa["target"][0]["source"]
+    selector = wa["target"][0]["selector"]
+    start = selector["start"]
+    end = selector["end"]
+    return source, start, end
+
+
+def logical_range(wa):
+    source = wa["target"][2]["source"]
+    selector = wa["target"][2]["selector"]
+    start = selector["start"]
+    end = selector["end"]
+    return source, start, end
+
+
+def text_targets(target_type, base, start_anchor, end_anchor, char_start=None, char_end=None):
+    selector = {
+        "type": "tt:TextAnchorSelector",
+        "start": start_anchor,
+        "end": end_anchor
+    }
+    if char_start:
+        selector['beginCharOffset'] = char_start
+        selector['endCharOffset'] = char_end
+        segments_source = f"{base.replace('rest', 'view')}/segments/index/{start_anchor}/{char_start}/{end_anchor}/{char_end}"
+    else:
+        segments_source = f"{base.replace('rest', 'view')}/segments/index/{start_anchor}/{end_anchor}"
+    return [
+        {
+            "source": f"{base}/contents",
+            "type": target_type,
+            "selector": selector
+        },
+        {
+            "source": segments_source,
+            "type": target_type
+        }
+    ]
