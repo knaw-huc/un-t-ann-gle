@@ -983,7 +983,7 @@ def generate_letter_body_annotations(web_annotations: list[dict[str, any]]) -> l
                          l_end_char_offset))
         new_targets.append(canvas_target)
         letter_body_annotation['target'] = new_targets
-        ic(letter_body_annotation)
+        # ic(letter_body_annotation)
         letter_body_annotations.append(letter_body_annotation)
 
     return letter_body_annotations
