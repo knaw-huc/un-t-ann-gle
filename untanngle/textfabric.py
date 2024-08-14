@@ -311,7 +311,7 @@ def read_token_substitutions(path: str):
         logger.info(f"<= {path}")
         with open(path, encoding='utf8') as f:
             for record in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE):
-                token_subst[record['token1']] = record['str'] + " "
+                token_subst[record['token1']] = record['str']
                 token1_num = int(record['token1'])
                 break_token = f"{token1_num + 1}"
                 token_subst[break_token] = ""
