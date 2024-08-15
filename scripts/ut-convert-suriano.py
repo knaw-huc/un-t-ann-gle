@@ -12,7 +12,7 @@ project_name = 'suriano'
 def main(version: str):
     config = tf.TFUntangleConfig(
         project_name=project_name,
-        data_path=f'data/{project_name}/{version}',
+        data_path=f'data/{project_name}/{version}/prod',
         export_path=f'out',
         textrepo_base_uri=f'https://{project_name}.tt.di.huc.knaw.nl/textrepo',
         excluded_types=["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk", "tf:Entity"],
