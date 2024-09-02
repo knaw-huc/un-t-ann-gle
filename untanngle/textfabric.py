@@ -144,7 +144,11 @@ class AnnotationTransformer:
                     "source": f"{self.textrepo_url}/view/versions/{textrepo_physical_version}/segments/index/"
                               f"{ia.begin_anchor}/{ia.end_anchor}",
                     "type": "Text"
-                },
+                }
+            ]
+        }
+        if logical_text_coords.end_char_offset > -1:
+            anno["target"].extend([
                 {
                     "source": f"{self.textrepo_url}/rest/versions/{textrepo_logical_version}/contents",
                     "type": "LogicalText",
@@ -162,8 +166,27 @@ class AnnotationTransformer:
                               f"{logical_text_coords.end_anchor}/{logical_text_coords.end_char_offset}",
                     "type": "LogicalText"
                 }
-            ]
-        }
+
+            ])
+        else:
+            anno["target"].extend([
+                {
+                    "source": f"{self.textrepo_url}/rest/versions/{textrepo_logical_version}/contents",
+                    "type": "LogicalText",
+                    "selector": {
+                        "type": "tt:TextAnchorSelector",
+                        "start": logical_text_coords.begin_anchor,
+                        "end": logical_text_coords.end_anchor
+                    }
+                },
+                {
+                    "source": f"{self.textrepo_url}/view/versions/{textrepo_logical_version}/segments/index/"
+                              f"{logical_text_coords.begin_anchor}/{logical_text_coords.end_anchor}",
+                    "type": "LogicalText"
+                }
+
+            ])
+
         if self.text_in_body:
             anno["body"]["text"] = ia.text
         if ia.metadata:
