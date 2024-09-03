@@ -47,14 +47,14 @@ mondriaan-upload-annotations: scripts/ut-upload-web-annotations.py out/mondriaan
 # suriano
 .PHONY: suriano-untangle
 suriano-untangle:
-#	(cd data/suriano && git pull)
-#	(cd data/suriano && scp -r tt-docker-vm:/data/deploy/suriano/watm/$(SURIANO_VERSION) .)
 	(cd data/suriano && rsync -cav tt-docker-vm:/data/deploy/suriano/watm/$(SURIANO_VERSION) .)
 	poetry run ./scripts/ut-convert-suriano.py $(SURIANO_VERSION)
 
 .PHONY: suriano-upload-annotations
 suriano-upload-annotations: scripts/ut-upload-web-annotations.py out/suriano/web-annotations.json
-	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano-$(SURIANO_VERSION) -l "Correspondence of Christofforo Suriano (watm $(SURIANO_VERSION))" -k $(SURIANO_API_KEY) out/suriano/web-annotations.json
+#	poetry run scripts/ut-upload-web-annotations.py -a http://localhost:8080 -c suriano-$(SURIANO_VERSION) -l "Correspondence of Christofforo Suriano (watm $(SURIANO_VERSION))" -k $(SURIANO_API_KEY) out/suriano/web-annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://annorepo.suriano.huygens.knaw.nl -c suriano-$(SURIANO_VERSION) -l "Correspondence of Christofforo Suriano (watm $(SURIANO_VERSION))" -k $(SURIANO_API_KEY) out/suriano/web-annotations.json
+#	poetry run scripts/ut-upload-web-annotations.py -a https://suriano.annorepo.dev.clariah.nl -c suriano-$(SURIANO_VERSION) -l "Correspondence of Christofforo Suriano (watm $(SURIANO_VERSION))" -k $(SURIANO_API_KEY) out/suriano/web-annotations.json
 
 # vangogh
 .PHONY: vangogh-untangle
