@@ -31,8 +31,12 @@ republic-1796:
 #translatin
 .PHONY: translatin-untangle
 translatin-untangle:
-	(cd data/translatin && git pull)
+	(cd data/translatin && rsync -cav tt-docker-vm:/data/deploy/translatin/watm/$(TRANSLATIN_VERSION) .)
 	poetry run ./scripts/ut-convert-translatin.py $(TRANSLATIN_VERSION)
+
+.PHONY: translatin-upload-annotations
+translatin-upload-annotations: scripts/ut-upload-web-annotations.py out/translatin/web-annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://annorepo.translatin.huygens.knaw.nl -c translatin-$(TRANSLATIN_VERSION) -l "Translatin (watm $(TRANSLATIN_VERSION))" -k $(TRANSLATIN_API_KEY) out/translatin/web-annotations.json
 
 # mondriaan
 .PHONY: mondriaan-untangle
@@ -80,7 +84,8 @@ help:
 	@echo "  suriano-untangle             - to untangle the textfabric export for suriano ($(SURIANO_VERSION))"
 	@echo "  suriano-upload-annotations   - to upload the web annotations for suriano ($(SURIANO_VERSION))"
 	@echo
-	@echo "  translatin-untangle          - to untangle the textfabric export for translatin ($(TRANSLATIN_VERSION))"
+	@echo "  translatin-untangle           - to untangle the textfabric export for translatin ($(TRANSLATIN_VERSION))"
+	@echo "  translatin-upload-annotations - to upload the web annotations for translatin ($(TRANSLATIN_VERSION))"
 	@echo
 	@echo "  mondriaan-untangle           - to untangle the textfabric export for mondriaan ($(MONDRIAAN_VERSION))"
 	@echo "  mondriaan-upload-annotations - to upload the web annotations for mondriaan ($(MONDRIAAN_VERSION))"

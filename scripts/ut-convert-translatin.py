@@ -17,20 +17,20 @@ project_name = 'translatin'
 
 
 @logger.catch()
-def main0(version: str):
+def main(version: str):
     config = tf.TFUntangleConfig(
         project_name=project_name,
-        data_path=f'data/{project_name}/{version}',
+        data_path=f'data/{project_name}/{version}/prod',
         export_path=f'out',
         textrepo_base_uri=f'https://{project_name}.tt.di.huc.knaw.nl/textrepo',
         excluded_types=["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk", "tf:Entity"],
-        tier0_type='tf:Doc'
+        tier0_type='tei:Work'
     )
     tf.untangle_tf_export(config)
 
 
 @logger.catch()
-def main(version: str):
+def main0(version: str):
     basedir = f'data/{project_name}/{version}'
     textrepo_url = f"https://{project_name}.tt.di.huc.knaw.nl/textrepo"
     export_path = f"out/{project_name}/web_annotations.json"
@@ -60,16 +60,6 @@ def main(version: str):
         logger.info(f"=> {export_path}")
         with open(export_path, 'w') as f:
             json.dump(translatin_web_annotations, fp=f, indent=4, ensure_ascii=False)
-
-
-def upload_segmented_text(external_id: str, text_file_path: str, client: TextRepoClient) -> str:
-    with open(text_file_path) as f:
-        content = f.read()
-    version_id = client.import_version(external_id=external_id,
-                                       type_name='segmented_text',
-                                       contents=content,
-                                       as_latest_version=True)
-    return version_id.version_id
 
 
 def with_image_targets(annotation: Dict[str, any], iiif_url: str = None) -> (Dict[str, any], str):
@@ -107,40 +97,6 @@ def add_image_targets(web_annotations: List[Dict[str, any]]) -> List[Dict[str, a
     for a in web_annotations:
         new_annotation, iiif_url = with_image_targets(a, iiif_url=iiif_url)
         new_annotations.append(new_annotation)
-    return new_annotations
-
-
-# def load_manifestation_metadata(manifestations_table_path: str) -> Dict[str, Dict[str, any]]:
-#     idx = {}
-#     with open(manifestations_table_path) as f:
-#         for row in csv.DictReader(f, delimiter='\t'):
-#             key = row.pop('origin')
-#             idx[key] = row
-#     return idx
-
-
-def update_manifestation_annotations(
-        web_annotations: List[Dict[str, any]]
-) -> List[Dict[str, any]]:
-    new_annotations = []
-    for a in web_annotations:
-        new_annotation = dict(a)
-        if a['body']['type'] == 'tf:Doc':
-            new_annotation['body']['type'] = 'tl:Manifestation'
-            metadata = dict(a['body']['metadata'])
-            metadata.pop('type')
-            new_annotation['body']['@context'] = {'tl': 'https://ns.tt.di.huc.knaw.nl/translatin'},
-            new_annotation['body']['metadata'] = {
-                'type': 'tl:ManifestationMetadata',
-                'manifest': "https://images.diginfra.net/api/pim/imageset/67533019-4ca0-4b08-b87e-fd5590e7a077/manifest"
-            }
-            for k, v in metadata.items():
-                if v == '':
-                    v = 'unspecified'
-                new_key = f'tl:{k}'
-                new_annotation['body']['metadata'][new_key] = v
-
-        new_annotations.append(cc.keys_to_camel_case(new_annotation))
     return new_annotations
 
 
