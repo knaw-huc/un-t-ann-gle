@@ -3,6 +3,7 @@ import csv
 import json
 from dataclasses import dataclass
 
+from icecream import ic
 from loguru import logger
 
 
@@ -23,7 +24,7 @@ def main():
         images_sets = json.load(f)
 
     data = []
-    for y in range(1700, 1800):
+    for y in range(1500, 1800):
         sets_for_year = [i for i in images_sets if
                          str(y) in i["longName"] and i["uri"].startswith("/data/statengeneraal/")]
         data.extend([as_image_set_data(s) for s in sets_for_year])
@@ -41,6 +42,7 @@ def export_to_csv(data):
 
 
 def as_image_set_data(s):
+    ic(s)
     inventory_num = int(s["longName"][:4])
     inventory_id = s["uri"].strip('/').replace('data/statengeneraal/', '').replace('/', '_')
     long_name = s["longName"]
