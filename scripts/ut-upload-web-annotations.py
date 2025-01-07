@@ -33,10 +33,20 @@ def upload(annorepo_base_url: str,
     if not ca.exists():
         print(f"container {container_url} not found, creating...")
         ca.create(label=container_label)
-        ca.create_index(field='body.id', index_type='hashed')
-        # ca.create_index(field='body.type', index_type='hashed')
-        ca.create_index(field='body.type', index_type='ascending')
-        ca.create_index(field='target.source', index_type='ascending')
+        # ca.create_index(field='body.id', index_type='hashed')
+        # # ca.create_index(field='body.type', index_type='hashed')
+        # ca.create_index(field='body.type', index_type='ascending')
+        # ca.create_index(field='target.source', index_type='ascending')
+        # ca.create_compound_index(
+        #     index_definition={
+        #         'target.type':'ascending',
+        #         'target.source': 'ascending',
+        #         'target.selector.type': 'ascending',
+        #         'target.selector.start': 'ascending',
+        #         'target.selector.end': 'ascending',
+        #         'body.type': 'ascending'
+        #     }
+        # )
         # for f in tier_metadata_fields:
         #     ca.create_index(field=f'body.metadata.{f}', index_type='hashed')
     ca.set_anonymous_user_read_access(has_read_access=True)
@@ -72,7 +82,7 @@ def upload(annorepo_base_url: str,
 
             print(f"  {number_of_annotations} annotations found.")
 
-            chunk_size = 5_000
+            chunk_size = 500
             chunked_annotations = chunk_list(annotation_list, chunk_size)
             number_of_chunks = len(chunked_annotations)
             print(
@@ -85,7 +95,8 @@ def upload(annorepo_base_url: str,
                 annotation_ids.extend(ar.add_annotations(container_id, chunk))
             print()
             out_path = "/".join(inputfile.split("/")[:-1])
-            outfile = f"{out_path}/annotation_ids.json"
+            input_file_name_base = inputfile.split("/")[-1].replace(".json", "")
+            outfile = f"{out_path}/{input_file_name_base}-annotation_ids.json"
             annotation_id_mapping = {a["id"]: f"{annorepo_base_url}/w3c/{b['containerName']}/{b['annotationName']}"
                                      for a, b in zip(annotation_list, annotation_ids)}
             print(f"=> {outfile}")
