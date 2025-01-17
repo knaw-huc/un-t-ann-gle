@@ -51,6 +51,7 @@ class TFUntangleConfig:
     excluded_types: list[str]
     textrepo_base_uri: Union[str, None] = None
     text_in_body: bool = False
+    with_facsimiles: bool = True
 
 
 @dataclass
@@ -315,7 +316,7 @@ def untangle_tf_export(config: TFUntangleConfig):
         entity_metadata
     )
 
-    sanity_check1(web_annotations, config.tier0_type)
+    sanity_check1(web_annotations, config.tier0_type, config.with_facsimiles)
     filtered_web_annotations = [
         a for a in web_annotations if
         ('type' in a['body'] and a['body']['type'] not in config.excluded_types)
@@ -905,14 +906,15 @@ def get_file_num(tf_text_file: str) -> str:
             return match.group(1)
 
 
-def sanity_check1(web_annotations: list, tier0_type: str):
+def sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool):
     tier0_annotations = [a for a in web_annotations if "type" in a['body'] and a['body']['type'] == tier0_type]
     if not tier0_annotations:
         logger.error(f"no tier0 annotations found, tier0 = '{tier0_type}'")
     else:
-        for a in tier0_annotations:
-            if 'manifest' not in a['body']['metadata']:
-                logger.error(f"missing required body.metadata.manifest field for {a}")
+        if expect_manifest:
+            for a in tier0_annotations:
+                if 'manifest' not in a['body']['metadata']:
+                    logger.error(f"missing required body.metadata.manifest field for {a}")
 
 
 def store_segmented_text(segments: list[str], store_path: str):
