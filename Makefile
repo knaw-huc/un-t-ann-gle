@@ -66,9 +66,14 @@ vangogh-untangle:
 	(cd data/vangogh && git pull)
 	poetry run ./scripts/ut-convert-vangogh.py $(VANGOGH_VERSION)
 
-.PHONY:  vangogh-upload-annotations
+.PHONY: vangogh-upload-annotations
 vangogh-upload-annotations: scripts/ut-upload-web-annotations.py out/vangogh/web-annotations.json
 	poetry run scripts/ut-upload-web-annotations.py -a https://vangogh.annorepo.dev.clariah.nl -c vangogh-$(VANGOGH_VERSION) -l "Correspondence of Vincent van Gogh (watm $(VANGOGH_VERSION))" -k $(VANGOGH_API_KEY) out/vangogh/web-annotations.json
+
+.PHONY: editem-docker-image
+editem-docker-image:
+	docker build --tag $(EDITEM_TAG) -f docker/editem/Dockerfile .
+	#docker push $(EDITEM_TAG)
 
 .PHONY: help
 help:
@@ -93,5 +98,7 @@ help:
 	@echo "  vangogh-untangle             - to untangle the textfabric export for vangogh ($(VANGOGH_VERSION))"
 	@echo "  vangogh-upload-annotations   - to upload the web annotations for vangogh ($(VANGOGH_VERSION))"
 	@echo
+	@echo "  editem-docker-image          - to build a docker image for the conversion of editem TextFabric WATM output"
+	@echo "                                 to records in TextRepo and AnnoRepo and push it to registry.diginfra.net"
 	@echo "NB: set version in .local/.env"
 
