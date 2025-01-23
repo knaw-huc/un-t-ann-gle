@@ -2,4 +2,5 @@ icecream==2.1.4
 intervaltree==3.1.0
 loguru==0.7.3
 progressbar2==4.5.0
+pyyaml==6.0.2
 textrepo-client==0.5.2
