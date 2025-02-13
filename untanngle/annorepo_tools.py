@@ -66,8 +66,23 @@ def upload(annorepo_base_url: str,
             process_web_annotations_file(annorepo_base_url, ar, body_type_counter, container_id, input_file)
 
     print_report(body_type_counter, container_url)
+    add_indexes(ca)
     preload_distinct_body_type_cache(ca)
     print("done!")
+
+
+def add_indexes(ca):
+    ca.create_compound_index(
+        {
+            "target.type": "ascending",
+            "target.source": "ascending",
+            "target.selector.type": "ascending",
+            "target.selector.start": "ascending",
+            "target.selector.end": "ascending"
+        }
+    )
+    ca.create_compound_index({"body.id": "hashed"})
+    ca.create_compound_index({"body.type": "hashed"})
 
 
 def process_web_annotations_file(annorepo_base_url, ar, body_type_counter, container_id, inputfile):
