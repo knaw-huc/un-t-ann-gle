@@ -73,7 +73,7 @@ vangogh-upload-annotations: scripts/ut-upload-web-annotations.py out/vangogh/web
 .PHONY: editem-docker-image
 editem-docker-image:
 	docker build --tag $(EDITEM_TAG) -f docker/editem/Dockerfile .
-	#docker push $(EDITEM_TAG)
+	docker push $(EDITEM_TAG)
 
 .PHONY: help
 help:
