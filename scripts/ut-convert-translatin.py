@@ -14,7 +14,7 @@ def main(version: str):
         project_name=project_name,
         data_path=f'data/{project_name}/{version}/prod',
         export_path=f'out',
-        textrepo_base_uri=f'https://{project_name}.tt.di.huc.knaw.nl/textrepo',
+        textrepo_base_uri=f'https://textrepo.translatin.huygens.knaw.nl/api',
         excluded_types=[],
         tier0_type='tei:Work',
         with_facsimiles=False
