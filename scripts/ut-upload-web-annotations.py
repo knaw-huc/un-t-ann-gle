@@ -40,16 +40,21 @@ def main():
                         help="The api-key to get access to the annorepo api",
                         type=str,
                         metavar="api_key")
+    parser.add_argument("-o",
+                        "--overwrite-existing-container",
+                        help="Add this argument to clear the container with the given container-id if one exists already.",
+                        action='store_true')
     args = parser.parse_args()
     annorepo_base_url = trim_trailing_slash(args.annorepo_base_url)
     if args.container_label:
         ar.upload(
             annorepo_base_url, args.container_id, args.input, args.container_label, api_key=args.api_key,
-            show_progress=True
+            overwrite_container=args.overwrite_existing_container, show_progress=True
         )
     else:
         ar.upload(
-            annorepo_base_url, args.container_id, args.input, api_key=args.api_key, show_progress=True
+            annorepo_base_url, args.container_id, args.input, api_key=args.api_key, overwrite_container=overwrite,
+            show_progress=True
         )
 
 

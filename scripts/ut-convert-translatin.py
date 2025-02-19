@@ -7,7 +7,6 @@ import untanngle.textfabric as tf
 
 project_name = 'translatin'
 
-
 @logger.catch()
 def main(version: str):
     config = tf.TFUntangleConfig(
@@ -16,7 +15,7 @@ def main(version: str):
         export_path=f'out',
         textrepo_base_uri=f'https://textrepo.translatin.huygens.knaw.nl/api',
         excluded_types=[],
-        tier0_type='tei:Work',
+        tier0_type='tei:Drama',
         with_facsimiles=False
     )
     tf.untangle_tf_export(config)

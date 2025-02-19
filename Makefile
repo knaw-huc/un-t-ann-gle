@@ -36,7 +36,7 @@ translatin-untangle:
 
 .PHONY: translatin-upload-annotations
 translatin-upload-annotations: scripts/ut-upload-web-annotations.py out/translatin/web-annotations.json
-	poetry run scripts/ut-upload-web-annotations.py -a https://annorepo.translatin.huygens.knaw.nl -c translatin-$(TRANSLATIN_VERSION) -l "Translatin (watm $(TRANSLATIN_VERSION))" -k $(TRANSLATIN_API_KEY) out/translatin/web-annotations.json
+	poetry run scripts/ut-upload-web-annotations.py -a https://annorepo.translatin.huygens.knaw.nl -c translatin-$(TRANSLATIN_VERSION) --overwrite-existing-container -l "Translatin (watm $(TRANSLATIN_VERSION))" -k $(TRANSLATIN_API_KEY) out/translatin/web-annotations.json
 
 # mondriaan
 .PHONY: mondriaan-untangle
