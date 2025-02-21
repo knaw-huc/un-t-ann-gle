@@ -5,9 +5,10 @@ from itertools import zip_longest
 from typing import List, Dict, Any
 
 import progressbar
-import untanngle.textfabric as tf
 from loguru import logger
 from textrepo.client import TextRepoClient
+
+import untanngle.textfabric as tf
 
 
 def default_progress_bar(max_value):
@@ -57,7 +58,8 @@ def upload_to_tr(textrepo_base_uri: str, project_name: str, tf_text_files: list[
         with open(tf_text_file) as f:
             content = f.read()
         if not trc_has_document_with_external_id(trc, external_id):
-            trc.create_document(external_id)
+            document_identifier = trc.create_document(external_id)
+            trc.set_document_metadata(document_identifier.id, "project", project_name)
         if "logical" in tf_text_file:
             type = "logical"
             tr_type = "logical_segmented_text"
