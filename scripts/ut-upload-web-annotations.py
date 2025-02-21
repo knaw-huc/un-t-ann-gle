@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+from argparse import Namespace
 
 from loguru import logger
 
@@ -48,12 +49,21 @@ def main():
     annorepo_base_url = trim_trailing_slash(args.annorepo_base_url)
     if args.container_label:
         ar.upload(
-            annorepo_base_url, args.container_id, args.input, args.container_label, api_key=args.api_key,
-            overwrite_container=args.overwrite_existing_container, show_progress=True
+            annorepo_base_url,
+            args.container_id,
+            args.input,
+            args.container_label,
+            api_key=args.api_key,
+            overwrite_container=args.overwrite_existing_container,
+            show_progress=True
         )
     else:
         ar.upload(
-            annorepo_base_url, args.container_id, args.input, api_key=args.api_key, overwrite_container=overwrite,
+            annorepo_base_url,
+            args.container_id,
+            args.input,
+            api_key=args.api_key,
+            overwrite_container=args.overwrite_existing_container,
             show_progress=True
         )
 
