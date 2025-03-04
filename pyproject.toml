@@ -8,23 +8,24 @@ packages = [{ include = "untanngle" }]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
+
+alive-progress = "^3.1.4"
 dataclasses-json = "^0.5.14"
+elasticsearch7 = "^7.17.9"
 icecream = "^2.1.3"
+intervaltree = "^3.1.0"
 loguru = "^0.7.0"
+progressbar2 = "^4.2.0"
+pygithub = "^2.2.0"
+pyyaml = "^6.0"
 rdflib = "^7.0.0"
 requests = "^2.31.0"
 rfc3987 = "^1.3.8"
+setuptools = "^75.8.2"
+stam = "^0.10.1"
 textrepo-client = "^0.5.1"
 #uri = "^3.0.0"
 uri = { git = "https://github.com/marrow/uri.git", rev = "5b58db87451ca4680004a8993a56bfc4dafff4d4" }
-setuptools = "^75.8.2"
-pygithub = "^2.2.0"
-pyyaml = "^6.0"
-elasticsearch7 = "^7.17.9"
-stam = "^0.10.1"
-alive-progress = "^3.1.4"
-progressbar2 = "^4.2.0"
-intervaltree = "^3.1.0"
 
 [tool.poetry.group.dev.dependencies]
 annorepo-client = { path = "/Users/bram/workspaces/annorepo/annorepo-client", develop = true }
