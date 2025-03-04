@@ -7,7 +7,7 @@ import untanngle.textfabric as tf
 
 settings_path = '/editem/settings.yml'
 export_path = '/out'
-
+# not used beyond as an example for the step class in editem
 
 def main():
     settings = read_settings()
