@@ -16,15 +16,17 @@ def get_etag(ca: ContainerAdapter) -> str:
     return response.headers['etag']
 
 
-def upload(annorepo_base_url: str,
-           container_id: str,
-           input_paths: list[str],
-           container_label: str = 'A Container for Web Annotations',
-           api_key: str = None,
-           overwrite_container: bool = False,
-           show_progress: bool = False
-           ):
+def upload(
+        annorepo_base_url: str,
+        container_id: str,
+        input_paths: list[str],
+        container_label: str = 'A Container for Web Annotations',
+        api_key: str = None,
+        overwrite_container: bool = False,
+        show_progress: bool = False
+):
     ar = AnnoRepoClient(annorepo_base_url, verbose=False, api_key=api_key)
+
     # ar_about = ar.get_about()
     # print(f"AnnoRepo server at {annorepo_base_url}:\n"
     #       f"- version {ar_about['version']}\n"
@@ -59,11 +61,11 @@ def upload(annorepo_base_url: str,
         ]
         with progressbar.ProgressBar(widgets=widgets, max_value=len(input_files), redirect_stdout=True) as bar:
             for i, input_file in enumerate(input_files):
-                process_web_annotations_file(annorepo_base_url, ar, body_type_counter, container_id, input_file)
+                process_web_annotations_file(annorepo_base_url, ar, body_type_counter, container_id, input_file, True)
                 bar.update(i)
     else:
         for input_file in input_files:
-            process_web_annotations_file(annorepo_base_url, ar, body_type_counter, container_id, input_file)
+            process_web_annotations_file(annorepo_base_url, ar, body_type_counter, container_id, input_file, False)
 
     print_report(body_type_counter, container_url)
     add_indexes(ca)
@@ -85,9 +87,16 @@ def add_indexes(ca):
     ca.create_compound_index({"body.type": "hashed"})
 
 
-def process_web_annotations_file(annorepo_base_url, ar, body_type_counter, container_id, inputfile):
-    print(f"reading {inputfile}...")
-    with open(inputfile) as f:
+def process_web_annotations_file(
+        annorepo_base_url: str,
+        ar: AnnoRepoClient,
+        body_type_counter: Counter,
+        container_id: str,
+        input_file: str,
+        show_progress: bool
+):
+    print(f"reading {input_file}...")
+    with open(input_file) as f:
         annotation_list = json.load(f)
     for a in [a for a in annotation_list if 'body' in a and 'type' in a['body']]:
         body_type = a['body']['type']
@@ -105,12 +114,13 @@ def process_web_annotations_file(annorepo_base_url, ar, body_type_counter, conta
         f" in {number_of_chunks} chunks of at most {chunk_size} annotations ...")
     annotation_ids = []
     for p, chunk in enumerate(chunked_annotations):
-        print(f"    chunk ({p + 1}/{number_of_chunks})", end='\r')
+        if show_progress:
+            print(f"    chunk ({p + 1}/{number_of_chunks})", end='\r')
         # ic(chunk)
         annotation_ids.extend(ar.add_annotations(container_id, chunk))
     print()
-    out_path = "/".join(inputfile.split("/")[:-1])
-    input_file_name_base = inputfile.split("/")[-1].replace(".json", "")
+    out_path = "/".join(input_file.split("/")[:-1])
+    input_file_name_base = input_file.split("/")[-1].replace(".json", "")
     outfile = f"{out_path}/{input_file_name_base}-annotation_ids.json"
     annotation_id_mapping = {a["id"]: f"{annorepo_base_url}/w3c/{b['containerName']}/{b['annotationName']}"
                              for a, b in zip(annotation_list, annotation_ids)}
