@@ -23,7 +23,7 @@ requests = "^2.31.0"
 rfc3987 = "^1.3.8"
 setuptools = "^75.8.2"
 stam = "^0.10.1"
-textrepo-client = "^0.5.1"
+textrepo-client = "^0.6.0"
 #uri = "^3.0.0"
 uri = { git = "https://github.com/marrow/uri.git", rev = "5b58db87451ca4680004a8993a56bfc4dafff4d4" }
 
