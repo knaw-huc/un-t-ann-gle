@@ -52,7 +52,8 @@ class TFUntangleConfig:
     textrepo_base_uri: Union[str, None] = None
     text_in_body: bool = False
     with_facsimiles: bool = True,
-    show_progress: bool = False
+    show_progress: bool = False,
+    log_file_path: str = None
 
 
 @dataclass
@@ -268,9 +269,14 @@ def untangle_tf_export(config: TFUntangleConfig):
     pos_to_node_path = f"{config.data_path}/pos2node.tsv"
     export_dir = f"{config.export_path}/{config.project_name}"
     os.makedirs(name=export_dir, exist_ok=True)
+
     if not config.show_progress:
         logger.remove()
         logger.add(sys.stdout, level="WARNING")
+
+    if config.log_file_path:
+        logger.remove()
+        logger.add(config.log_file_path)
 
     entity_metadata = load_entity_metadata(entity_meta_path)
     node_for_pos = load_node_for_pos(pos_to_node_path)
