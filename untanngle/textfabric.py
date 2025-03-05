@@ -714,8 +714,9 @@ def determine_paragraphs(tf_annos: list[IAnnotation], tokens_per_text: dict[str,
             if ia.begin_anchor > expected_begin_anchor:
                 paragraph_ranges[current_text_num].append((expected_begin_anchor, ia.begin_anchor - 1))
             if ia.begin_anchor < expected_begin_anchor:
-                if ia.type != "note":
-                    logger.warning(f"nested element {ia.type} ignored for paragraph sectioning")
+                pass
+                # if ia.type != "note":
+                #     logger.warning(f"nested element {ia.type} ignored for paragraph sectioning")
             else:
                 paragraph_ranges[current_text_num].append((ia.begin_anchor, ia.end_anchor))
                 expected_begin_anchor = ia.end_anchor + 1
