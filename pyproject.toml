@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{ include = "untanngle" }]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.13"
+python = ">=3.9,<3.14"
 
 alive-progress = "^3.1.4"
 dataclasses-json = "^0.6.7"
