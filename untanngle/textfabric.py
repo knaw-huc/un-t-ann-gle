@@ -276,6 +276,8 @@ def untangle_tf_export(config: TFUntangleConfig):
 
     if config.log_file_path:
         logger.remove()
+        if os.path.exists(config.log_file_path):
+            os.remove(config.log_file_path)
         logger.add(config.log_file_path)
 
     entity_metadata = load_entity_metadata(entity_meta_path)
