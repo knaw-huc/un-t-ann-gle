@@ -268,6 +268,9 @@ def untangle_tf_export(config: TFUntangleConfig):
     pos_to_node_path = f"{config.data_path}/pos2node.tsv"
     export_dir = f"{config.export_path}/{config.project_name}"
     os.makedirs(name=export_dir, exist_ok=True)
+    if not config.show_progress:
+        logger.remove()
+        logger.add(sys.stdout, level="WARNING")
 
     entity_metadata = load_entity_metadata(entity_meta_path)
     node_for_pos = load_node_for_pos(pos_to_node_path)
@@ -376,34 +379,6 @@ def as_class_name(string: str) -> str:
     return string[0].capitalize() + string[1:]
 
 
-# TODO: remove
-# def convert(
-#         project: str,
-#         anno_files: list[str],
-#         text_files: list[str],
-#         anno2node_path: str,
-#         textrepo_url: str,
-#         textrepo_file_versions: dict[str, str],
-#         export_dir: str,
-#         text_in_body: bool = False
-# ) -> list[dict[str, any]]:
-#     tf_tokens = read_tf_tokens(text_files)
-#     tf_annotations = []
-#     for anno_file in anno_files:
-#         tf_annotations.extend(read_tf_annotations(anno_file))
-#
-#     return build_web_annotations(
-#         project=project,
-#         tf_annotations=tf_annotations,
-#         tokens_per_text=tf_tokens,
-#         textrepo_url=textrepo_url,
-#         textrepo_file_versions=textrepo_file_versions,
-#         text_in_body=text_in_body,
-#         anno2node_path=anno2node_path,
-#         export_dir=export_dir
-#     )
-
-
 def read_tf_tokens(text_files) -> dict[str, list[str]]:
     tokens_per_text = {}
     for text_file in text_files:
@@ -423,18 +398,6 @@ def read_tf_tokens_from_json(text_files):
         tokens_per_text[text_num] = contents["_ordered_segments"]
     return tokens_per_text
 
-
-# def read_tf_annotations_from_json(anno_file):
-#     tf_annotations = []
-#     logger.info(f"<= {anno_file}")
-#     with open(anno_file) as f:
-#         content = json.load(f)
-#         for _id, properties in content.items():
-#             tf_annotations.append(
-#                 TFAnnotation(id=_id, type=properties[0], namespace=properties[1],
-#                              body=properties[2], target=properties[3])
-#             )
-#     return tf_annotations
 
 def read_raw_tf_annotations(anno_file) -> list[TFAnnotation]:
     return [
@@ -564,26 +527,6 @@ def modify_note_annotations(ia: list[IAnnotation], node_parents: dict[str, str])
             a.metadata['lang'] = parent_lang
             # logger.info(f"enriched note: {a}")
     return ia
-
-
-# def build_web_annotations(
-#         project: str,
-#         tf_annotations: list[TFAnnotation],
-#         tokens_per_text: dict[str, list[str]],
-#         textrepo_url: str,
-#         textrepo_file_versions: dict[str, str],
-#         text_in_body: bool,
-#         anno2node_path: str,
-#         export_dir: str
-# ) -> list[dict]:
-#     ref_links, target_links, tf_annos = merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir,
-#                                                                  tokens_per_text)
-#     paragraph_ranges = determine_paragraphs(tf_annos, tokens_per_text, paragraph_types)
-#     # debug_paragraphs(paragraph_ranges, tokens_per_text)
-#     store_logical_text_files(export_dir, paragraph_ranges, tokens_per_text)
-#
-#     return tf_annotations_to_web_annotations(tf_annos, project, ref_links, target_links, text_in_body,
-#                                              textrepo_file_versions, textrepo_url)
 
 
 def merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_per_text, show_progress: bool):
