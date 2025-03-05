@@ -16,7 +16,8 @@ def main(version: str):
         export_path=f'out',
         textrepo_base_uri=f'https://{project_name}.tt.di.huc.knaw.nl/textrepo',
         excluded_types=["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk"],
-        tier0_type='tf:File'
+        tier0_type='tf:File',
+        show_progress=True
     )
     tf.untangle_tf_export(config)
 

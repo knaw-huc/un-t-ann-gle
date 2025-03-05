@@ -51,7 +51,8 @@ class TFUntangleConfig:
     excluded_types: list[str]
     textrepo_base_uri: Union[str, None] = None
     text_in_body: bool = False
-    with_facsimiles: bool = True
+    with_facsimiles: bool = True,
+    show_progress: bool = False
 
 
 @dataclass
@@ -288,7 +289,7 @@ def untangle_tf_export(config: TFUntangleConfig):
         raw_tf_annotations.extend(read_raw_tf_annotations(anno_file))
 
     ref_links, target_links, tf_annos = merge_raw_tf_annotations(raw_tf_annotations, anno2node_path, export_dir,
-                                                                 tokens_per_file)
+                                                                 tokens_per_file, config.show_progress)
 
     paragraph_ranges = determine_paragraphs(tf_annos, tokens_per_file)
     # debug_paragraphs(paragraph_ranges, tokens_per_text)
@@ -585,16 +586,18 @@ def modify_note_annotations(ia: list[IAnnotation], node_parents: dict[str, str])
 #                                              textrepo_file_versions, textrepo_url)
 
 
-def merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_per_text):
+def merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_per_text, show_progress: bool):
     tf_node_for_annotation_id = {row['annotation']: row['node'] for row in read_tsv_records(anno2node_path)}
     tf_annotation_idx = {}
     note_target = {}
     node_parents = {}
     ref_links = []
     target_links = []
-    bar = ut.default_progress_bar(len(tf_annotations))
+    if show_progress:
+        bar = ut.default_progress_bar(len(tf_annotations))
     for i, tf_annotation in enumerate(tf_annotations):
-        bar.update(i)
+        if show_progress:
+            bar.update(i)
         match tf_annotation.type:
             case 'element':
                 handle_element(tf_annotation, tf_annotation_idx, tokens_per_text)

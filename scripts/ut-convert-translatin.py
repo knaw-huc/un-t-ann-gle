@@ -16,7 +16,8 @@ def main(version: str):
         textrepo_base_uri=f'https://textrepo.translatin.huygens.knaw.nl/api',
         excluded_types=[],
         tier0_type='tei:Drama',
-        with_facsimiles=False
+        with_facsimiles=False,
+        show_progress=True
     )
     tf.untangle_tf_export(config)
 

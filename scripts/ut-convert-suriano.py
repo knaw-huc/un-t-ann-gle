@@ -17,7 +17,8 @@ def main(version: str):
         textrepo_base_uri=f'https://textrepo.suriano.huygens.knaw.nl/api',
         excluded_types=["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk", "tf:Entity"],
         # tier0_type='tf:File'
-        tier0_type='tf:Folder'
+        tier0_type='tf:Folder',
+        show_progress=True
     )
     tf.untangle_tf_export(config)
 
