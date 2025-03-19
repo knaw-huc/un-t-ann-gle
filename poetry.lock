@@ -375,13 +375,13 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dataclasses-json"
-version = "0.5.14"
+version = "0.6.7"
 description = "Easily serialize dataclasses to and from JSON."
 optional = false
-python-versions = ">=3.7,<3.13"
+python-versions = "<4.0,>=3.7"
 files = [
-    {file = "dataclasses_json-0.5.14-py3-none-any.whl", hash = "sha256:5ec6fed642adb1dbdb4182badb01e0861badfd8fda82e3b67f44b2d1e9d10d21"},
-    {file = "dataclasses_json-0.5.14.tar.gz", hash = "sha256:d82896a94c992ffaf689cd1fafc180164e2abdd415b8f94a7f78586af5886236"},
+    {file = "dataclasses_json-0.6.7-py3-none-any.whl", hash = "sha256:0dbf33f26c8d5305befd61b39d2b3414e8a407bedc2834dea9b8d642666fb40a"},
+    {file = "dataclasses_json-0.6.7.tar.gz", hash = "sha256:b6b3e528266ea45b9535223bc53ca645f5208833c29229e847b3f26a1cc55fc0"},
 ]
 
 [package.dependencies]
@@ -490,7 +490,10 @@ files = [
 [package.dependencies]
 google-auth = ">=2.14.1,<3.0.dev0"
 googleapis-common-protos = ">=1.56.2,<2.0.dev0"
-proto-plus = ">=1.22.3,<2.0.0dev"
+proto-plus = [
+    {version = ">=1.25.0,<2.0.0dev", markers = "python_version >= \"3.13\""},
+    {version = ">=1.22.3,<2.0.0dev", markers = "python_version < \"3.13\""},
+]
 protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<6.0.0.dev0"
 requests = ">=2.18.0,<3.0.0.dev0"
 
@@ -1538,17 +1541,17 @@ widechars = ["wcwidth"]
 
 [[package]]
 name = "textrepo-client"
-version = "0.5.2"
+version = "0.6.0"
 description = "A Python client to access a textrepo server"
 optional = false
-python-versions = ">=3.7,<4.0"
+python-versions = "<4.0,>=3.7"
 files = [
-    {file = "textrepo_client-0.5.2-py3-none-any.whl", hash = "sha256:92866bd22ef8d603817490d4acf2d31aee13a5d6d949e9e8b2ad1955ffe85ea9"},
-    {file = "textrepo_client-0.5.2.tar.gz", hash = "sha256:8bb639573bfefbb3fde23089e66589eba04cf29ecf783b99e78a5fc99aa13ea7"},
+    {file = "textrepo_client-0.6.0-py3-none-any.whl", hash = "sha256:ad6d0b3634b3dd57896e154159e53b8004925902946c64b975bb4f1df4418e03"},
+    {file = "textrepo_client-0.6.0.tar.gz", hash = "sha256:4ba8e487d198700249bc6117ef6ec564e286490fe2cdc7c306054919f6a1698e"},
 ]
 
 [package.dependencies]
-dataclasses-json = ">=0.5.7,<0.6.0"
+dataclasses-json = ">=0.6.7,<0.7.0"
 marshmallow = ">=3.15.0,<4.0.0"
 python-dateutil = ">=2.8.1,<3.0.0"
 requests = ">=2.27.1,<3.0.0"
@@ -1789,5 +1792,5 @@ type = ["pytest-mypy"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.9,<3.13"
-content-hash = "932776b4570396e2010ab0973ca44096750c2b31b52c5072a85804afe79398a0"
+python-versions = ">=3.9,<3.14"
+content-hash = "da024bbaa00350ab6eadcbc72d809d547fd4babcacdb9a5d884e368839ce9498"
