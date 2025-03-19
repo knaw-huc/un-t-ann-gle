@@ -1129,6 +1129,7 @@ def simple_image_target(iiif_url: str = "https://example.org/missing-iiif-url",
 def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
                  image_coords_list: List[ImageCoords] = None,
                  coords_list: List[List[List[int]]] = None,
+                 xywh: str = None,
                  scan_id: str = None) -> dict:
     target = {
         "source": iiif_url,
@@ -1145,6 +1146,12 @@ def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
                 "conformsTo": "http://www.w3.org/TR/media-frags/",
                 "value": f"xywh={xywh}"
             })
+    if xywh:
+        selectors.append({
+            "type": "FragmentSelector",
+            "conformsTo": "http://www.w3.org/TR/media-frags/",
+            "value": f"xywh={xywh}"
+        })
     if coords_list:
         selectors.append(svg_selector(coords_list))
     if len(selectors) > 0:

@@ -18,6 +18,7 @@ from loguru import logger
 
 from untanngle import camel_casing as cc
 from untanngle import utils as ut
+from untanngle.annotations import simple_image_target, image_target
 
 single_target_pattern = re.compile(r"(\d+):(\d+)")
 range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
@@ -54,6 +55,7 @@ class TFUntangleConfig:
     with_facsimiles: bool = True,
     show_progress: bool = False,
     log_file_path: str = None
+    editem_project: bool = False
 
 
 @dataclass
@@ -97,8 +99,15 @@ class AnnotationTransformer:
 
     def _calculate_logical_text_coords(self, ia: IAnnotation) -> TextCoords:
         logical_start_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.begin_anchor]
-        last_key = len(self.logical_coords_for_physical_anchor_per_text[ia.text_num].keys())
-        logical_end_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.end_anchor]
+        # last_key = len(self.logical_coords_for_physical_anchor_per_text[ia.text_num].keys())
+        if ia.end_anchor in self.logical_coords_for_physical_anchor_per_text[ia.text_num]:
+            logical_end_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.end_anchor]
+        else:
+            # TODO: this should never happen!!!
+            mydict = self.logical_coords_for_physical_anchor_per_text[ia.text_num]
+            last_key = sorted([k for k in mydict.keys()])[-1]
+            logical_end_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][last_key]
+
         return TextCoords(
             begin_anchor=logical_start_coords.begin_anchor,
             begin_char_offset=logical_start_coords.begin_char_offset,
@@ -325,7 +334,7 @@ def untangle_tf_export(config: TFUntangleConfig):
         tf_annos, ref_links, target_links, config.project_name,
         config.text_in_body, config.textrepo_base_uri,
         textrepo_file_versions, logical_coords_for_physical_anchor_per_text,
-        entity_metadata
+        entity_metadata, project_is_editem_project=config.editem_project, tier0_type=config.tier0_type
     )
 
     sanity_check1(web_annotations, config.tier0_type, config.with_facsimiles)
@@ -597,7 +606,9 @@ def tf_annotations_to_web_annotations(
         project: str, text_in_body: bool, textrepo_url: str,
         textrepo_file_versions: dict[str, dict[str, str]],
         logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]],
-        entity_metadata: dict[str, dict[str, str]]
+        entity_metadata: dict[str, dict[str, str]],
+        project_is_editem_project: bool = False,
+        tier0_type: str = None
 ):
     at = AnnotationTransformer(
         project=project,
@@ -615,8 +626,12 @@ def tf_annotations_to_web_annotations(
     tf_id_to_body_id = {tf_node_to_ia_id[wa["body"]["tf:textfabric_node"]]: wa["body"]["id"] for wa in web_annotations}
 
     if project == 'suriano':
-        letter_body_annotations = generate_letter_body_annotations(web_annotations)
+        letter_body_annotations = generate_suriano_letter_body_annotations(web_annotations)
         web_annotations.extend(letter_body_annotations)
+
+    if project_is_editem_project:
+        letter_body_annotations = generate_editem_letter_body_annotations(web_annotations, tier0_type)
+        web_annotations = letter_body_annotations + web_annotations
 
     # ic(ref_links)
     logger.info("ref_annotations")
@@ -694,8 +709,10 @@ def store_logical_text_files(
     return file_paths, logical_coords_for_physical_anchor_per_text
 
 
-def determine_paragraphs(tf_annos: list[IAnnotation], tokens_per_text: dict[str, list[str]]) -> dict[
-    str, list[tuple[int, int]]]:
+def determine_paragraphs(
+        tf_annos: list[IAnnotation],
+        tokens_per_text: dict[str, list[str]]
+) -> dict[str, list[tuple[int, int]]]:
     paragraph_ranges = {}
     current_text_num = -1
     expected_begin_anchor = 0
@@ -883,11 +900,14 @@ def dummy_version(text_files):
     textrepo_file_version = {}
     for text_file in text_files:
         file_num = get_file_num(text_file)
-        textrepo_file_version[file_num] = f"placeholder-{file_num}"
+        textrepo_file_version[file_num] = {
+            'logical': f"placeholder-{file_num}-logical",
+            "physical": f"placeholder-{file_num}-physical"
+        }
     return textrepo_file_version
 
 
-def generate_letter_body_annotations(web_annotations: list[dict[str, any]]) -> list[dict[str, any]]:
+def generate_suriano_letter_body_annotations(web_annotations: list[dict[str, any]]) -> list[dict[str, any]]:
     file_annotations = [wa for wa in web_annotations if wa['body']['type'] == 'tf:File']
     # ic(len(file_annotations))
     # ic(file_annotations[42])
@@ -969,6 +989,107 @@ def generate_letter_body_annotations(web_annotations: list[dict[str, any]]) -> l
     return letter_body_annotations
 
 
+def generate_editem_letter_body_annotations(
+        web_annotations: list[dict[str, any]],
+        tier0_type: str
+) -> list[dict[str, any]]:
+    # the annotations to copy metadata from
+    tier0_annotations = [wa for wa in web_annotations if wa['body']['type'] == tier0_type]
+
+    # the annotations to copy targets from
+    text_annotations = [wa for wa in web_annotations if wa['body']['type'] == 'tei:Text']
+    iforest = defaultdict(lambda: IntervalTree())
+    for da in text_annotations:
+        physical_source, start, end = physical_range(da)
+        iforest[physical_source][start:end] = da
+
+    # the annotations to get pageUrl, xywh from
+    page_annotations = [wa for wa in web_annotations if wa['body']['type'] == 'tf:Page']
+    page_forest = defaultdict(lambda: IntervalTree())
+    for pa in page_annotations:
+        physical_source, start, end = physical_range(pa)
+        if start == end:
+            logger.warning(f'tf:Page without text: {pa}')
+            end = start + 1
+        page_forest[physical_source][start:end] = pa
+
+    letter_body_annotations = []
+
+    for t1_annotation in tier0_annotations:
+        physical_source, start, end = physical_range(t1_annotation)
+        physical_base = physical_source.replace('/contents', '')
+        enveloped_text_annos = [a.data for a in sorted(iforest[physical_source].envelop(start, end))]
+        text_anno = enveloped_text_annos[0]
+
+        enveloped_page_annos = [a.data for a in sorted(page_forest[physical_source].envelop(start, end))]
+
+        min_physical_start = sys.maxsize
+        max_physical_end = 0
+        min_logical_start = sys.maxsize
+        max_logical_end = 0
+        l_begin_char_offset = sys.maxsize
+        l_end_char_offset = 0
+        for da in enveloped_text_annos:
+            p_selector = da["target"][0]["selector"]
+            p_start = p_selector["start"]
+            p_end = p_selector["end"]
+            l_selector = da["target"][2]["selector"]
+            l_start = l_selector["start"]
+            l_end = l_selector["end"]
+            l_char_start = l_selector["beginCharOffset"]
+            l_char_end = l_selector["endCharOffset"]
+
+            if p_start < min_physical_start:
+                min_physical_start = p_start
+                min_logical_start = l_start
+                l_begin_char_offset = l_char_start
+
+            if p_end > max_physical_end:
+                max_physical_end = p_end
+                max_logical_end = l_end
+                l_end_char_offset = l_char_end
+
+        letter_body_annotation = copy.deepcopy(text_anno)
+        letter_body_annotation["id"] = text_anno["id"] + ":letter_body"
+        body = letter_body_annotation['body']
+        body.pop('tf:textfabric_node')
+        body["id"] = t1_annotation["body"]["id"].replace('letter', 'letter_body')
+        body["type"] = "tt:LetterBody"
+        metadata = copy.deepcopy(t1_annotation["body"]["metadata"])
+        body["metadata"] = metadata
+        metadata["type"] = "tt:LetterBodyMetadata"
+        if "prevLetter" in metadata:
+            metadata['prevLetterBody'] = metadata['prevLetter'].replace('letter', 'letter_body')
+            metadata.pop('prevLetter')
+        if "nextLetter" in metadata:
+            metadata['nextLetterBody'] = metadata['nextLetter'].replace('letter', 'letter_body')
+            metadata.pop('nextLetter')
+
+        logical_source, _, _ = logical_range(text_anno)
+        logical_base = logical_source.replace('/contents', '')
+        new_targets = []
+        new_targets.extend(
+            text_targets("Text", physical_base, min_physical_start, max_physical_end))
+        new_targets.extend(
+            text_targets("LogicalText", logical_base, min_logical_start, max_logical_end, l_begin_char_offset,
+                         l_end_char_offset))
+        for pa in enveloped_page_annos:
+            canvas_target = [t for t in pa["target"] if t['type'] == 'Canvas']
+            if canvas_target:
+                new_targets.append(canvas_target[0])
+
+            pa_metadata = pa["body"]["metadata"]
+            page_url = pa_metadata["pageUrl"]
+            xywh = pa_metadata["xywh"]
+            new_targets.extend(image_targets(page_url, xywh))
+
+        letter_body_annotation['target'] = new_targets
+        # ic(letter_body_annotation)
+        letter_body_annotations.append(letter_body_annotation)
+
+    return letter_body_annotations
+
+
 def physical_range(wa):
     source = wa["target"][0]["source"]
     selector = wa["target"][0]["selector"]
@@ -1008,3 +1129,8 @@ def text_targets(target_type, base, start_anchor, end_anchor, char_start=None, c
             "type": target_type
         }
     ]
+
+
+def image_targets(iiif_url: str, xywh: str) -> list[dict[str, any]]:
+    iiif_base_url = re.sub(r"jpg/full/.*", 'jpg', iiif_url)
+    return [simple_image_target(iiif_base_url, xywh), image_target(iiif_url=iiif_url, xywh=xywh)]

@@ -16,7 +16,6 @@ def main(version: str):
         export_path=f'out',
         textrepo_base_uri=f'https://textrepo.suriano.huygens.knaw.nl/api',
         excluded_types=["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk", "tf:Entity"],
-        # tier0_type='tf:File'
         tier0_type='tf:Folder',
         show_progress=True
     )
