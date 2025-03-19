@@ -82,10 +82,6 @@ help:
 	@echo "Please use \`make <target>', where <target> is one of:"
 	@echo "  install                      - to install the necessary requirements"
 	@echo
-	@echo "  republic-annotations         - to generate the republic web-annotations"
-	@echo "  republic-1706                - to run the republic untangle pipeline for 1706"
-	@echo "  republic-1796                - to run the republic untangle pipeline for 1796"
-	@echo
 	@echo "  suriano-untangle             - to untangle the textfabric export for suriano ($(SURIANO_VERSION))"
 	@echo "  suriano-upload-annotations   - to upload the web annotations for suriano ($(SURIANO_VERSION))"
 	@echo
@@ -98,7 +94,10 @@ help:
 	@echo "  vangogh-untangle             - to untangle the textfabric export for vangogh ($(VANGOGH_VERSION))"
 	@echo "  vangogh-upload-annotations   - to upload the web annotations for vangogh ($(VANGOGH_VERSION))"
 	@echo
-	@echo "  editem-docker-image          - to build a docker image for the conversion of editem TextFabric WATM output"
-	@echo "                                 to records in TextRepo and AnnoRepo and push it to registry.diginfra.net"
+	@echo "  israels-untangle             - to untangle the textfabric export for israels ($(ISRAELS_VERSION))"
+	@echo "  israels-upload-annotations   - to upload the web annotations for israels ($(ISRAELS_VERSION))"
+	@echo
+#	@echo "  editem-docker-image          - to build a docker image for the conversion of editem TextFabric WATM output"
+#	@echo "                                 to records in TextRepo and AnnoRepo and push it to registry.diginfra.net"
 	@echo "NB: set version in .local/.env"
 
