@@ -50,7 +50,8 @@ class TFUntangleConfig:
     export_path: str
     tier0_type: str
     excluded_types: list[str]
-    textrepo_base_uri: Union[str, None] = None
+    textrepo_base_uri_internal: Union[str, None] = None
+    textrepo_base_uri_external: Union[str, None] = None
     text_in_body: bool = False
     with_facsimiles: bool = True,
     show_progress: bool = False,
@@ -323,18 +324,26 @@ def untangle_tf_export(config: TFUntangleConfig):
     )
     out_files.extend(logical_file_paths)
 
-    if config.textrepo_base_uri:
-        textrepo_file_versions = ut.upload_to_tr(textrepo_base_uri=config.textrepo_base_uri,
+    if config.textrepo_base_uri_internal:
+        textrepo_file_versions = ut.upload_to_tr(textrepo_base_uri=config.textrepo_base_uri_internal,
                                                  project_name=config.project_name,
                                                  tf_text_files=out_files)
     else:
         textrepo_file_versions = dummy_version(text_files)
 
+    textrepo_external_url = config.textrepo_base_uri_external if config.textrepo_base_uri_external else config.textrepo_base_uri_internal
     web_annotations = tf_annotations_to_web_annotations(
-        tf_annos, ref_links, target_links, config.project_name,
-        config.text_in_body, config.textrepo_base_uri,
-        textrepo_file_versions, logical_coords_for_physical_anchor_per_text,
-        entity_metadata, project_is_editem_project=config.editem_project, tier0_type=config.tier0_type
+        tf_annos=tf_annos,
+        ref_links=ref_links,
+        target_links=target_links,
+        project=config.project_name,
+        text_in_body=config.text_in_body,
+        textrepo_url=textrepo_external_url,
+        textrepo_file_versions=textrepo_file_versions,
+        logical_coords_for_physical_anchor_per_text=logical_coords_for_physical_anchor_per_text,
+        entity_metadata=entity_metadata,
+        project_is_editem_project=config.editem_project,
+        tier0_type=config.tier0_type
     )
 
     sanity_check1(web_annotations, config.tier0_type, config.with_facsimiles)

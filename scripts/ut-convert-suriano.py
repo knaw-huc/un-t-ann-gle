@@ -14,7 +14,8 @@ def main(version: str):
         project_name=project_name,
         data_path=f'data/{project_name}/{version}/prod',
         export_path=f'out',
-        textrepo_base_uri=f'https://textrepo.suriano.huygens.knaw.nl/api',
+        textrepo_base_uri_internal=f'https://textrepo.suriano.huygens.knaw.nl/api',
+        textrepo_base_uri_external=f'https://textrepo.suriano.huygens.knaw.nl/api',
         excluded_types=["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk", "tf:Entity"],
         tier0_type='tf:Folder',
         show_progress=True

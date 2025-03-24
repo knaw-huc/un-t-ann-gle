@@ -7,13 +7,15 @@ import untanngle.textfabric as tf
 
 project_name = 'translatin'
 
+
 @logger.catch()
 def main(version: str):
     config = tf.TFUntangleConfig(
         project_name=project_name,
         data_path=f'data/{project_name}/{version}/prod',
         export_path=f'out',
-        textrepo_base_uri=f'https://textrepo.translatin.huygens.knaw.nl/api',
+        textrepo_base_uri_internal=f'https://textrepo.translatin.huygens.knaw.nl/api',
+        textrepo_base_uri_external=f'https://textrepo.translatin.huygens.knaw.nl/api',
         excluded_types=[],
         tier0_type='tei:Drama',
         with_facsimiles=False,

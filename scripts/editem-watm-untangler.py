@@ -15,7 +15,8 @@ def main():
         project_name=settings['project'],
         data_path='/watm',
         export_path=export_path,
-        textrepo_base_uri=settings['textrepo'],
+        textrepo_base_uri_internal=settings['textrepo'],
+        textrepo_base_uri_external=settings['textrepo'],
         excluded_types=[],
         tier0_type=settings['tier0'],
         with_facsimiles=settings['with_facsimiles']
