@@ -240,6 +240,12 @@ class AnnotationTransformer:
                     "source": ia.metadata['canvasUrl'],
                     "type": "Canvas"
                 }
+                if 'xywh' in ia.metadata:
+                    canvas_target["selector"] = {
+                        "@context": "http://iiif.io/api/annex/openannotation/context.json",
+                        "type": "iiif:ImageApiSelector",
+                        "region": ia.metadata['xywh']
+                    }
                 anno['body']['metadata'].pop('canvasUrl')
                 anno["target"].append(canvas_target)
         return anno
@@ -611,8 +617,12 @@ def merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_
 
 
 def tf_annotations_to_web_annotations(
-        tf_annos, ref_links, target_links,
-        project: str, text_in_body: bool, textrepo_url: str,
+        tf_annos,
+        ref_links,
+        target_links,
+        project: str,
+        text_in_body: bool,
+        textrepo_url: str,
         textrepo_file_versions: dict[str, dict[str, str]],
         logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]],
         entity_metadata: dict[str, dict[str, str]],
@@ -1084,13 +1094,15 @@ def generate_editem_letter_body_annotations(
                          l_end_char_offset))
         for pa in enveloped_page_annos:
             canvas_target = [t for t in pa["target"] if t['type'] == 'Canvas']
-            if canvas_target:
+            if canvas_target and canvas_target[0] not in new_targets:
                 new_targets.append(canvas_target[0])
 
             pa_metadata = pa["body"]["metadata"]
             page_url = pa_metadata["pageUrl"]
             xywh = pa_metadata["xywh"]
-            new_targets.extend(image_targets(page_url, xywh))
+            for it in image_targets(page_url, xywh):
+                if it not in new_targets:  # avoid duplicate image targets
+                    new_targets.append(it)
 
         letter_body_annotation['target'] = new_targets
         # ic(letter_body_annotation)
