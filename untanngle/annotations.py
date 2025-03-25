@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, List, Union, Dict, Set, Optional
 
-import requests
 from dataclasses_json import dataclass_json, Undefined, config
 from loguru import logger
 from rfc3987 import parse
@@ -1182,17 +1181,6 @@ def recursively_get_fields(d: dict) -> Set[str]:
     return fields
 
 
-def get_custom_fields(body, target, custom) -> Set[str]:
-    fields = set()
-    for part in [body, target, custom]:
-        if isinstance(part, dict):
-            fields = fields.union(recursively_get_fields(part))
-        if isinstance(part, list):
-            for d in part:
-                fields = fields.union(recursively_get_fields(d))
-    return fields.difference(anno_context_fields)
-
-
 custom_context_prefix = "http://example.org/customwebannotationfield#"
 
 
@@ -1321,14 +1309,6 @@ def as_urn(id: str) -> str:
     return f"urn:republic:{id}"
 
 
-def get_anno_context_fields():
-    anno_context = requests.get('http://www.w3.org/ns/anno.jsonld').json()
-    return set(anno_context['@context'].keys())
-
-
-anno_context_fields = get_anno_context_fields()
-
-
 def is_iri(value: str) -> bool:
     try:
         parse(value, rule='IRI')
@@ -1383,3 +1363,21 @@ def to_image_coords(coords: List[List[int]]) -> ImageCoords:
     width = right - left
     height = bottom - top
     return ImageCoords(left=left, right=right, top=top, bottom=bottom, width=width, height=height)
+
+# def get_anno_context_fields():
+#     anno_context = requests.get('http://www.w3.org/ns/anno.jsonld').json()
+#     return set(anno_context['@context'].keys())
+#
+#
+# anno_context_fields = get_anno_context_fields()
+#
+#
+# def get_custom_fields(body, target, custom) -> Set[str]:
+#     fields = set()
+#     for part in [body, target, custom]:
+#         if isinstance(part, dict):
+#             fields = fields.union(recursively_get_fields(part))
+#         if isinstance(part, list):
+#             for d in part:
+#                 fields = fields.union(recursively_get_fields(d))
+#     return fields.difference(anno_context_fields)
