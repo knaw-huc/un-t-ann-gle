@@ -241,11 +241,11 @@ class AnnotationTransformer:
                     "type": "Canvas"
                 }
                 if 'xywh' in ia.metadata:
-                    canvas_target["selector"] = {
+                    canvas_target["selector"] = [{
                         "@context": "http://iiif.io/api/annex/openannotation/context.json",
                         "type": "iiif:ImageApiSelector",
                         "region": ia.metadata['xywh']
-                    }
+                    }]
                 anno['body']['metadata'].pop('canvasUrl')
                 anno["target"].append(canvas_target)
         return anno
@@ -1034,8 +1034,8 @@ def generate_editem_letter_body_annotations(
 
     letter_body_annotations = []
 
-    for t1_annotation in tier0_annotations:
-        physical_source, start, end = physical_range(t1_annotation)
+    for t0_annotation in tier0_annotations:
+        physical_source, start, end = physical_range(t0_annotation)
         physical_base = physical_source.replace('/contents', '')
         enveloped_text_annos = [a.data for a in sorted(iforest[physical_source].envelop(start, end))]
         text_anno = enveloped_text_annos[0]
@@ -1072,9 +1072,9 @@ def generate_editem_letter_body_annotations(
         letter_body_annotation["id"] = text_anno["id"] + ":letter_body"
         body = letter_body_annotation['body']
         body.pop('tf:textfabric_node')
-        body["id"] = t1_annotation["body"]["id"].replace('letter', 'letter_body')
+        body["id"] = t0_annotation["body"]["id"].replace('letter', 'letter_body')
         body["type"] = "tt:LetterBody"
-        metadata = copy.deepcopy(t1_annotation["body"]["metadata"])
+        metadata = copy.deepcopy(t0_annotation["body"]["metadata"])
         body["metadata"] = metadata
         metadata["type"] = "tt:LetterBodyMetadata"
         if "prevLetter" in metadata:
@@ -1093,9 +1093,12 @@ def generate_editem_letter_body_annotations(
             text_targets("LogicalText", logical_base, min_logical_start, max_logical_end, l_begin_char_offset,
                          l_end_char_offset))
         for pa in enveloped_page_annos:
-            canvas_target = [t for t in pa["target"] if t['type'] == 'Canvas']
-            if canvas_target and canvas_target[0] not in new_targets:
-                new_targets.append(canvas_target[0])
+            canvas_targets = [t for t in pa["target"] if t['type'] == 'Canvas']
+            if len(canvas_targets) > 1:
+                raise Exception("unexpected situation: multiple canvas targets")
+            canvas_target = canvas_targets[0]
+            if canvas_target not in new_targets:
+                new_targets.append(canvas_target)
 
             pa_metadata = pa["body"]["metadata"]
             page_url = pa_metadata["pageUrl"]
@@ -1103,6 +1106,28 @@ def generate_editem_letter_body_annotations(
             for it in image_targets(page_url, xywh):
                 if it not in new_targets:  # avoid duplicate image targets
                     new_targets.append(it)
+        # canvas_target_for_source = {}
+        # for pa in enveloped_page_annos:
+        #     canvas_targets = [t for t in pa["target"] if t['type'] == 'Canvas']
+        #     if len(canvas_targets) > 1:
+        #         raise Exception("unexpected situation: multiple canvas targets")
+        #     canvas_target = canvas_targets[0]
+        #     source = canvas_target["source"]
+        #     if source in canvas_target_for_source:
+        #         selectors = canvas_target["selector"]
+        #         for selector in selectors:
+        #             if selector not in canvas_target_for_source[source]["selector"]:
+        #                 canvas_target_for_source[source]["selector"].append(selector)
+        #     else:
+        #         canvas_target_for_source[source] = canvas_target
+        #
+        #     pa_metadata = pa["body"]["metadata"]
+        #     page_url = pa_metadata["pageUrl"]
+        #     xywh = pa_metadata["xywh"]
+        #     for it in image_targets(page_url, xywh):
+        #         if it not in new_targets:  # avoid duplicate image targets
+        #             new_targets.append(it)
+        # new_targets.extend(canvas_target_for_source.values())
 
         letter_body_annotation['target'] = new_targets
         # ic(letter_body_annotation)
