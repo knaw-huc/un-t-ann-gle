@@ -1178,5 +1178,5 @@ def text_targets(target_type, base, start_anchor, end_anchor, char_start=None, c
 
 
 def image_targets(iiif_url: str, xywh: str) -> list[dict[str, any]]:
-    iiif_base_url = re.sub(r"jpg/full/.*", 'jpg', iiif_url)
+    iiif_base_url = re.sub(r"/full/.*", '', iiif_url)
     return [simple_image_target(iiif_base_url, xywh), image_target(iiif_url=iiif_url, xywh=xywh)]
