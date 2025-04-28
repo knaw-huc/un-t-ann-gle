@@ -25,7 +25,6 @@ range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
 range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
 
 paragraph_types = {
-    "p",
     "author",
     "biblScope",
     "collection",
@@ -37,9 +36,11 @@ paragraph_types = {
     "name",
     "note",
     "num",
+    "p",
+    "person",
     "resp",
     "settlement",
-    "title"
+    "title",
 }
 
 
@@ -99,6 +100,9 @@ class AnnotationTransformer:
     entity_metadata: dict[str, dict[str, str]]
 
     def _calculate_logical_text_coords(self, ia: IAnnotation) -> TextCoords:
+        if ia.begin_anchor not in self.logical_coords_for_physical_anchor_per_text[ia.text_num]:
+            ic(self.logical_coords_for_physical_anchor_per_text[ia.text_num])
+            ic(ia)
         logical_start_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.begin_anchor]
         # last_key = len(self.logical_coords_for_physical_anchor_per_text[ia.text_num].keys())
         if ia.end_anchor in self.logical_coords_for_physical_anchor_per_text[ia.text_num]:
@@ -203,12 +207,12 @@ class AnnotationTransformer:
         if self.text_in_body:
             anno["body"]["text"] = ia.text
         if ia.metadata:
-            metadata = {}
-            if "type" not in ia.metadata:
-                metadata["type"] = f"tt:{as_class_name(ia.type)}Metadata"
+            metadata = {
+                "type": f"tt:{as_class_name(ia.type)}Metadata"
+            }
 
             metadata.update({
-                f"{k.replace('@', '_').replace('manifestUrl', 'manifest')}": v
+                f"{k.replace('@', '_').replace('manifestUrl', 'manifest').replace('type', 'tei:type')}": v
                 for k, v in ia.metadata.items()
             })
 
@@ -648,9 +652,9 @@ def tf_annotations_to_web_annotations(
         letter_body_annotations = generate_suriano_letter_body_annotations(web_annotations)
         web_annotations.extend(letter_body_annotations)
 
-    if project_is_editem_project:
-        letter_body_annotations = generate_editem_letter_body_annotations(web_annotations, tier0_type)
-        web_annotations = letter_body_annotations + web_annotations
+    # if project_is_editem_project:
+    #     letter_body_annotations = generate_editem_letter_body_annotations(web_annotations, tier0_type)
+    #     web_annotations = letter_body_annotations + web_annotations
 
     # ic(ref_links)
     logger.info("ref_annotations")
@@ -848,7 +852,8 @@ def handle_element(a, tf_annotation_idx, tokens_per_text):
 
     elif match0:
         text_num = match0.group(1)
-        begin_anchor = end_anchor = int(match0.group(2))
+        begin_anchor = int(match0.group(2))
+        end_anchor = begin_anchor + 1 # milestone annotation: increase end_anchor
         text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
         tf_annos = IAnnotation(id=a.id,
                                namespace=a.namespace,

@@ -70,6 +70,11 @@ vangogh-untangle:
 vangogh-upload-annotations: scripts/ut-upload-web-annotations.py out/vangogh/web-annotations.json
 	poetry run scripts/ut-upload-web-annotations.py -a https://vangogh.annorepo.dev.clariah.nl -c vangogh-$(VANGOGH_VERSION) -l "Correspondence of Vincent van Gogh (watm $(VANGOGH_VERSION))" -k $(VANGOGH_API_KEY) out/vangogh/web-annotations.json
 
+# israels
+.PHONY: israels-untangle
+israels-untangle:
+	poetry run ./scripts/ut-convert-israels.py $(ISRAELS_VERSION)
+
 .PHONY: editem-docker-image
 editem-docker-image:
 	docker build --tag $(EDITEM_TAG) -f docker/editem/Dockerfile .
