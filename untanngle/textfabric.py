@@ -307,8 +307,10 @@ def untangle_tf_export(config: TFUntangleConfig):
     # ic(token_subst)
 
     out_files = []
+    text_nums = []
     for tsv in text_files:
         text_num = get_file_num(tsv)
+        text_nums += text_num
         json_path = f"{export_dir}/textfile-physical-{text_num}.json"
         segments = read_tokens(tsv)
         store_segmented_text(segments=segments, store_path=json_path)
@@ -652,9 +654,8 @@ def tf_annotations_to_web_annotations(
         letter_body_annotations = generate_suriano_letter_body_annotations(web_annotations)
         web_annotations.extend(letter_body_annotations)
 
-    # if project_is_editem_project:
-    #     letter_body_annotations = generate_editem_letter_body_annotations(web_annotations, tier0_type)
-    #     web_annotations = letter_body_annotations + web_annotations
+    if project_is_editem_project:
+        extend_tier0_annotations(web_annotations, tier0_type)
 
     # ic(ref_links)
     logger.info("ref_annotations")
@@ -814,9 +815,6 @@ def handle_attribute(tf_annotation, tf_annotation_idx):
         if k in tf_annotation_idx[element_anno_id].metadata:
             logger.warning(f"extra assignment to {k} for {element_anno_id}")
         tf_annotation_idx[element_anno_id].metadata[k] = v
-        # else:
-    #     logger.warning(f"attribute target ({element_anno_id}) not in tf_annotation_idx index")
-    #     ic(a)
 
 
 def handle_mark(tf_annotation, note_target, tf_annotation_idx):
@@ -853,7 +851,7 @@ def handle_element(a, tf_annotation_idx, tokens_per_text):
     elif match0:
         text_num = match0.group(1)
         begin_anchor = int(match0.group(2))
-        end_anchor = begin_anchor + 1 # milestone annotation: increase end_anchor
+        end_anchor = begin_anchor + 1  # milestone annotation: increase end_anchor
         text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
         tf_annos = IAnnotation(id=a.id,
                                namespace=a.namespace,
@@ -900,6 +898,8 @@ def get_file_num(tf_text_file: str) -> str:
         match = file_num_pattern_from_json.match(tf_text_file)
         if match:
             return match.group(1)
+        else:
+            return ""
 
 
 def sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool):
@@ -1013,11 +1013,10 @@ def generate_suriano_letter_body_annotations(web_annotations: list[dict[str, any
     return letter_body_annotations
 
 
-def generate_editem_letter_body_annotations(
+def extend_tier0_annotations(
         web_annotations: list[dict[str, any]],
-        tier0_type: str
-) -> list[dict[str, any]]:
-    # the annotations to copy metadata from
+        tier0_type: str):
+    # the annotations to extend from
     tier0_annotations = [wa for wa in web_annotations if wa['body']['type'] == tier0_type]
 
     # the annotations to copy targets from
@@ -1036,8 +1035,6 @@ def generate_editem_letter_body_annotations(
             logger.warning(f'tf:Page without text: {pa}')
             end = start + 1
         page_forest[physical_source][start:end] = pa
-
-    letter_body_annotations = []
 
     for t0_annotation in tier0_annotations:
         physical_source, start, end = physical_range(t0_annotation)
@@ -1073,22 +1070,6 @@ def generate_editem_letter_body_annotations(
                 max_logical_end = l_end
                 l_end_char_offset = l_char_end
 
-        letter_body_annotation = copy.deepcopy(text_anno)
-        letter_body_annotation["id"] = text_anno["id"] + ":letter_body"
-        body = letter_body_annotation['body']
-        body.pop('tf:textfabric_node')
-        body["id"] = t0_annotation["body"]["id"].replace('letter', 'letter_body')
-        body["type"] = "tt:LetterBody"
-        metadata = copy.deepcopy(t0_annotation["body"]["metadata"])
-        body["metadata"] = metadata
-        metadata["type"] = "tt:LetterBodyMetadata"
-        if "prevLetter" in metadata:
-            metadata['prevLetterBody'] = metadata['prevLetter'].replace('letter', 'letter_body')
-            metadata.pop('prevLetter')
-        if "nextLetter" in metadata:
-            metadata['nextLetterBody'] = metadata['nextLetter'].replace('letter', 'letter_body')
-            metadata.pop('nextLetter')
-
         logical_source, _, _ = logical_range(text_anno)
         logical_base = logical_source.replace('/contents', '')
         new_targets = []
@@ -1111,34 +1092,8 @@ def generate_editem_letter_body_annotations(
             for it in image_targets(page_url, xywh):
                 if it not in new_targets:  # avoid duplicate image targets
                     new_targets.append(it)
-        # canvas_target_for_source = {}
-        # for pa in enveloped_page_annos:
-        #     canvas_targets = [t for t in pa["target"] if t['type'] == 'Canvas']
-        #     if len(canvas_targets) > 1:
-        #         raise Exception("unexpected situation: multiple canvas targets")
-        #     canvas_target = canvas_targets[0]
-        #     source = canvas_target["source"]
-        #     if source in canvas_target_for_source:
-        #         selectors = canvas_target["selector"]
-        #         for selector in selectors:
-        #             if selector not in canvas_target_for_source[source]["selector"]:
-        #                 canvas_target_for_source[source]["selector"].append(selector)
-        #     else:
-        #         canvas_target_for_source[source] = canvas_target
-        #
-        #     pa_metadata = pa["body"]["metadata"]
-        #     page_url = pa_metadata["pageUrl"]
-        #     xywh = pa_metadata["xywh"]
-        #     for it in image_targets(page_url, xywh):
-        #         if it not in new_targets:  # avoid duplicate image targets
-        #             new_targets.append(it)
-        # new_targets.extend(canvas_target_for_source.values())
 
-        letter_body_annotation['target'] = new_targets
-        # ic(letter_body_annotation)
-        letter_body_annotations.append(letter_body_annotation)
-
-    return letter_body_annotations
+        t0_annotation['target'] += [nt for nt in new_targets if nt["type"] in ["Canvas", "Image"]]
 
 
 def physical_range(wa):

@@ -1101,7 +1101,7 @@ def selection_view_target(
 def canvas_target(canvas_url: str, xywh_list: List[str] = None, coords_list: List[List[List[int]]] = None) -> dict:
     selectors = []
     if xywh_list:
-        for xywh in xywh_list:
+        for xywh in [x for x in xywh_list if x != "full"]:
             selectors.append({
                 "@context": "http://iiif.io/api/annex/openannotation/context.json",
                 "type": "iiif:ImageApiSelector",
@@ -1109,12 +1109,14 @@ def canvas_target(canvas_url: str, xywh_list: List[str] = None, coords_list: Lis
             })
     if coords_list:
         selectors.append(svg_selector(coords_list))
-    return {
+    target = {
         '@context': REPUBLIC_CONTEXT,
         'source': canvas_url,
         'type': "Canvas",
-        'selector': selectors
     }
+    if selectors:
+        target["selector"] = selectors
+    return target
 
 
 def simple_image_target(iiif_url: str = "https://example.org/missing-iiif-url",
@@ -1145,7 +1147,7 @@ def image_target(iiif_url: str = "https://example.org/missing-iiif-url",
                 "conformsTo": "http://www.w3.org/TR/media-frags/",
                 "value": f"xywh={xywh}"
             })
-    if xywh:
+    if xywh and xywh != "full":
         selectors.append({
             "type": "FragmentSelector",
             "conformsTo": "http://www.w3.org/TR/media-frags/",
