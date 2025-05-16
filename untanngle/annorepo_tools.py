@@ -40,6 +40,7 @@ def upload(
     if not ca.exists():
         print(f"container {container_url} not found, creating...")
         ca.create(label=container_label)
+        ca.set_anonymous_user_read_access(True)
     ca.set_anonymous_user_read_access(has_read_access=True)
 
     input_files = []
