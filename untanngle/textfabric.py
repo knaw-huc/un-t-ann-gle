@@ -54,8 +54,8 @@ class TFUntangleConfig:
     textrepo_base_uri_internal: Union[str, None] = None
     textrepo_base_uri_external: Union[str, None] = None
     text_in_body: bool = False
-    with_facsimiles: bool = True,
-    show_progress: bool = False,
+    with_facsimiles: bool = True
+    show_progress: bool = False
     log_file_path: str = None
     editem_project: bool = False
 
@@ -79,7 +79,7 @@ class IAnnotation:
     begin_anchor: int = 0
     end_anchor: int = 0
     text_num: str = ""
-    metadata: dict[str, any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -212,7 +212,7 @@ class AnnotationTransformer:
             }
 
             metadata.update({
-                f"{k.replace('@', '_').replace('manifestUrl', 'manifest').replace('type', 'tei:type')}": v
+                self._normalized_metadata_field_name(k): self._normalized_metadata_value(v)
                 for k, v in ia.metadata.items()
             })
 
@@ -254,13 +254,13 @@ class AnnotationTransformer:
                 anno["target"].append(canvas_target)
         return anno
 
-    def create_entity_annotations(self) -> list[dict[str, any]]:
+    def create_entity_annotations(self) -> list[dict[str, Any]]:
         return [
             self._entity_metadata_annotation(k, v)
             for k, v in self.entity_metadata.items()
         ]
 
-    def _entity_metadata_annotation(self, key: str, value: dict[str, str]) -> dict[str, any]:
+    def _entity_metadata_annotation(self, key: str, value: dict[str, str]) -> dict[str, Any]:
         body_id = f"urn:{self.project}:entity_metadata:{key}"
         entity_id = f"urn:{self.project}:entity:{key}"
         return {
@@ -277,6 +277,19 @@ class AnnotationTransformer:
             },
             "target": entity_id
         }
+
+    @staticmethod
+    def _normalized_metadata_field_name(field_name: str) -> str:
+        return field_name.replace('@', '_').replace('manifestUrl', 'manifest').replace('type', 'tei:type')
+
+    def _normalized_metadata_value(self, value: str) -> list[str] | str:
+        if ".xml#" in value:
+            if " " in value:
+                return [self._normalized_metadata_value(v)[0] for v in value.split(" ")]
+            else:
+                return [f"{self.static_file_prefix}/{value.replace('.xml#', '/')}.json"]
+        else:
+            return value
 
 
 def untangle_tf_export(config: TFUntangleConfig):
@@ -366,6 +379,9 @@ def untangle_tf_export(config: TFUntangleConfig):
     ]
     logger.info(f"{len(filtered_web_annotations)} annotations")
     ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=f"{export_dir}/web-annotations.json")
+
+    store_entity_references(filtered_web_annotations)
+
     end = time.perf_counter()
 
     print_report(config, text_files, web_annotations, filtered_web_annotations, start, end)
@@ -450,7 +466,7 @@ def read_raw_tf_annotations(anno_file) -> list[TFAnnotation]:
     ]
 
 
-def read_tsv_records(path: str) -> list[dict[str, any]]:
+def read_tsv_records(path: str) -> list[dict[str, Any]]:
     # csv.field_size_limit(sys.maxsize)
     logger.info(f"<= {path}")
     with open(path, encoding='utf8') as f:
@@ -1014,7 +1030,7 @@ def generate_suriano_letter_body_annotations(web_annotations: list[dict[str, any
 
 
 def extend_tier0_annotations(
-        web_annotations: list[dict[str, any]],
+        web_annotations: list[dict[str, Any]],
         tier0_type: str):
     # the annotations to extend from
     tier0_annotations = [wa for wa in web_annotations if wa['body']['type'] == tier0_type]
@@ -1137,6 +1153,23 @@ def text_targets(target_type, base, start_anchor, end_anchor, char_start=None, c
     ]
 
 
-def image_targets(iiif_url: str, xywh: str) -> list[dict[str, any]]:
+def image_targets(iiif_url: str, xywh: str) -> list[dict[str, Any]]:
     iiif_base_url = re.sub(r"/full/.*", '', iiif_url)
     return [simple_image_target(iiif_base_url, xywh), image_target(iiif_url=iiif_url, xywh=xywh)]
+
+
+def store_entity_references(web_annotations: list[dict[str, Any]]):
+    entity_references = defaultdict(lambda: defaultdict(list[str]))
+    web_annotations_with_metadata = [wa for wa in web_annotations if "metadata" in wa["body"]]
+    for wa in web_annotations_with_metadata:
+        body_id = wa["body"]["id"]
+        metadata = wa["body"]["metadata"]
+        for metadata_list_value in [v for v in metadata.values() if isinstance(v, list)]:
+            for metadata_value in metadata_list_value:
+                ic(metadata_value)
+                if metadata_value.endswith(".json"):
+                    parts = metadata_value.split("/")
+                    entity_category = parts[-2]
+                    entity_name = parts[-1].replace(".json", "")
+                    entity_references[entity_category][entity_name].append(body_id)
+    ic(entity_references)
