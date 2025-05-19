@@ -2,7 +2,8 @@ import itertools
 import json
 from collections import defaultdict
 from itertools import zip_longest
-from typing import List, Dict, Any
+from typing import Any, Callable, Tuple, Union
+from typing import List, Dict
 
 import progressbar
 from loguru import logger
@@ -118,7 +119,28 @@ def read_json(path: str) -> Any:
         data = json.load(f)
     return data
 
+
 # def write_json(output_path: str):
 #     logger.info(f"=> {version_id_idx_path}")
 #     with open(version_id_idx_path, "w") as f:
 #         json.dump(output_path, fp=f, ensure_ascii=False)
+
+
+def transform_dict_entries(
+        data: Union[dict, list],
+        entry_filter: Callable[[str, Any], bool],
+        entry_transformer: Callable[[str, Any], Tuple[str, Any]]
+) -> Any:
+    if isinstance(data, dict):
+        new_dict = {}
+        for key, value in data.items():
+            if entry_filter(key, value):
+                new_key, new_value = entry_transformer(key, value)
+            else:
+                new_key, new_value = key, value
+            new_dict[new_key] = transform_dict_entries(new_value, entry_filter, entry_transformer)
+        return new_dict
+    elif isinstance(data, list):
+        return [transform_dict_entries(item, entry_filter, entry_transformer) for item in data]
+    else:
+        return data
