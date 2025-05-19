@@ -58,6 +58,7 @@ class TFUntangleConfig:
     show_progress: bool = False
     log_file_path: str = None
     editem_project: bool = False
+    apparatus_data_directory: str = None
 
 
 @dataclass
@@ -98,27 +99,9 @@ class AnnotationTransformer:
     text_in_body: bool
     logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]]
     entity_metadata: dict[str, dict[str, str]]
+    entity_for_ref: dict[str, dict[str, Any]] = field(default_factory=dict)
 
-    def _calculate_logical_text_coords(self, ia: IAnnotation) -> TextCoords:
-        if ia.begin_anchor not in self.logical_coords_for_physical_anchor_per_text[ia.text_num]:
-            ic(self.logical_coords_for_physical_anchor_per_text[ia.text_num])
-            ic(ia)
-        logical_start_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.begin_anchor]
-        # last_key = len(self.logical_coords_for_physical_anchor_per_text[ia.text_num].keys())
-        if ia.end_anchor in self.logical_coords_for_physical_anchor_per_text[ia.text_num]:
-            logical_end_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.end_anchor]
-        else:
-            # TODO: this should never happen!!!
-            mydict = self.logical_coords_for_physical_anchor_per_text[ia.text_num]
-            last_key = sorted([k for k in mydict.keys()])[-1]
-            logical_end_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][last_key]
-
-        return TextCoords(
-            begin_anchor=logical_start_coords.begin_anchor,
-            begin_char_offset=logical_start_coords.begin_char_offset,
-            end_anchor=logical_end_coords.end_anchor,
-            end_char_offset=logical_end_coords.end_char_offset
-        )
+    errors = set()
 
     def as_web_annotation(self, ia: IAnnotation) -> dict[str, Any]:
         body_type = f"{ia.namespace}:{as_class_name(ia.type)}"
@@ -260,6 +243,27 @@ class AnnotationTransformer:
             for k, v in self.entity_metadata.items()
         ]
 
+    def _calculate_logical_text_coords(self, ia: IAnnotation) -> TextCoords:
+        if ia.begin_anchor not in self.logical_coords_for_physical_anchor_per_text[ia.text_num]:
+            ic(self.logical_coords_for_physical_anchor_per_text[ia.text_num])
+            ic(ia)
+        logical_start_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.begin_anchor]
+        # last_key = len(self.logical_coords_for_physical_anchor_per_text[ia.text_num].keys())
+        if ia.end_anchor in self.logical_coords_for_physical_anchor_per_text[ia.text_num]:
+            logical_end_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][ia.end_anchor]
+        else:
+            # TODO: this should never happen!!!
+            mydict = self.logical_coords_for_physical_anchor_per_text[ia.text_num]
+            last_key = sorted([k for k in mydict.keys()])[-1]
+            logical_end_coords = self.logical_coords_for_physical_anchor_per_text[ia.text_num][last_key]
+
+        return TextCoords(
+            begin_anchor=logical_start_coords.begin_anchor,
+            begin_char_offset=logical_start_coords.begin_char_offset,
+            end_anchor=logical_end_coords.end_anchor,
+            end_char_offset=logical_end_coords.end_char_offset
+        )
+
     def _entity_metadata_annotation(self, key: str, value: dict[str, str]) -> dict[str, Any]:
         body_id = f"urn:{self.project}:entity_metadata:{key}"
         entity_id = f"urn:{self.project}:entity:{key}"
@@ -282,14 +286,36 @@ class AnnotationTransformer:
     def _normalized_metadata_field_name(field_name: str) -> str:
         return field_name.replace('@', '_').replace('manifestUrl', 'manifest').replace('type', 'tei:type')
 
-    def _normalized_metadata_value(self, value: str) -> list[str] | str:
+    def _normalized_metadata_value(self, value: str) -> list[dict] | str:
         if ".xml#" in value:
-            if " " in value:
-                return [self._normalized_metadata_value(v)[0] for v in value.split(" ")]
-            else:
-                return [f"{self.static_file_prefix}/{value.replace('.xml#', '/')}.json"]
+            return [self._ref_to_entity(v) for v in value.split(" ")]
         else:
             return value
+
+    def _ref_to_entity(self, ref: str) -> dict[str, Any]:
+        key = ref.replace('.xml#', '/')
+        if key in self.entity_for_ref:
+            return self.entity_for_ref[key]
+        else:
+            self.errors.add(f"no entity found for reference {ref}")
+            return ref
+
+
+def _load_entities(path: str) -> dict[str, dict[str, Any]]:
+    entity_index = {}
+    for data_path in glob.glob(f"{path}/*-entity-dict.json"):
+        logger.info(f"<= {data_path}")
+        with open(data_path, "r", encoding="utf-8") as f:
+            entity_index.update(json.load(f))
+    for k, v in entity_index.items():
+        if "relation" in v and "ref" in v["relation"]:
+            original_ref = v["relation"]["ref"]
+            ref_key = original_ref.replace(".xml#", "/")
+            if ref_key in entity_index:
+                entity_index[k]["relation"]["ref"] = entity_index[ref_key]
+            else:
+                logger.error(f"{k.replace('/', '.xml#')}: no entity found for ref=\"{original_ref}\"")
+    return entity_index
 
 
 def untangle_tf_export(config: TFUntangleConfig):
@@ -302,6 +328,7 @@ def untangle_tf_export(config: TFUntangleConfig):
     pos_to_node_path = f"{config.data_path}/pos2node.tsv"
     export_dir = f"{config.export_path}/{config.project_name}"
     os.makedirs(name=export_dir, exist_ok=True)
+    entity_for_ref = _load_entities(f"{config.apparatus_data_directory}")
 
     if not config.show_progress:
         logger.remove()
@@ -368,7 +395,8 @@ def untangle_tf_export(config: TFUntangleConfig):
         logical_coords_for_physical_anchor_per_text=logical_coords_for_physical_anchor_per_text,
         entity_metadata=entity_metadata,
         project_is_editem_project=config.editem_project,
-        tier0_type=config.tier0_type
+        tier0_type=config.tier0_type,
+        entity_for_ref=entity_for_ref
     )
 
     sanity_check1(web_annotations, config.tier0_type, config.with_facsimiles)
@@ -380,7 +408,7 @@ def untangle_tf_export(config: TFUntangleConfig):
     logger.info(f"{len(filtered_web_annotations)} annotations")
     ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=f"{export_dir}/web-annotations.json")
 
-    store_entity_references(filtered_web_annotations)
+    # store_entity_references(filtered_web_annotations)
 
     end = time.perf_counter()
 
@@ -649,7 +677,8 @@ def tf_annotations_to_web_annotations(
         logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]],
         entity_metadata: dict[str, dict[str, str]],
         project_is_editem_project: bool = False,
-        tier0_type: str = None
+        tier0_type: str = None,
+        entity_for_ref: dict[str, Any] = None,
 ):
     at = AnnotationTransformer(
         project=project,
@@ -657,7 +686,8 @@ def tf_annotations_to_web_annotations(
         textrepo_versions=textrepo_file_versions,
         text_in_body=text_in_body,
         logical_coords_for_physical_anchor_per_text=logical_coords_for_physical_anchor_per_text,
-        entity_metadata=entity_metadata
+        entity_metadata=entity_metadata,
+        entity_for_ref=entity_for_ref
     )
     logger.info("as_web_annotation")
 
@@ -693,6 +723,10 @@ def tf_annotations_to_web_annotations(
         entity_annotations = at.create_entity_annotations()
         web_annotations.extend(entity_annotations)
 
+    if at.errors:
+        logger.error("there were conversion errors:")
+        for e in sorted(at.errors):
+            logger.error(e)
     logger.info("keys_to_camel_case")
     return [cc.keys_to_camel_case(a) for a in web_annotations]
 
@@ -947,7 +981,7 @@ def dummy_version(text_files):
     return textrepo_file_version
 
 
-def generate_suriano_letter_body_annotations(web_annotations: list[dict[str, any]]) -> list[dict[str, any]]:
+def generate_suriano_letter_body_annotations(web_annotations: list[dict[str, Any]]) -> list[dict[str, Any]]:
     file_annotations = [wa for wa in web_annotations if wa['body']['type'] == 'tf:File']
     # ic(len(file_annotations))
     # ic(file_annotations[42])
@@ -1166,7 +1200,7 @@ def store_entity_references(web_annotations: list[dict[str, Any]]):
         metadata = wa["body"]["metadata"]
         for metadata_list_value in [v for v in metadata.values() if isinstance(v, list)]:
             for metadata_value in metadata_list_value:
-                ic(metadata_value)
+                # ic(metadata_value)
                 if metadata_value.endswith(".json"):
                     parts = metadata_value.split("/")
                     entity_category = parts[-2]

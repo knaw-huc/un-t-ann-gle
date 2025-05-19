@@ -76,8 +76,8 @@ def upload_to_tr(textrepo_base_uri: str, project_name: str, tf_text_files: list[
 
 def store_web_annotations(web_annotations, export_path: str):
     logger.info(f"=> {export_path}")
-    with open(export_path, "w") as f:
-        json.dump(obj=web_annotations, fp=f, indent=2)
+    with open(export_path, "w", encoding="utf-8") as f:
+        json.dump(obj=web_annotations, fp=f, indent=2, ensure_ascii=False)
 
 
 def show_annotation_counts(web_annotations: List[Dict[str, Any]], excluded_types):

@@ -19,7 +19,8 @@ def main(version: str):
         excluded_types=["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk", "nlp:Sentence"],
         tier0_type='tf:Letter',
         show_progress=True,
-        editem_project=True
+        editem_project=True,
+        apparatus_data_directory=f"/Users/bram/workspaces/editem/editem-apparatus/out/israels",
     )
     tf.untangle_tf_export(config)
 
