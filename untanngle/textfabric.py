@@ -315,7 +315,21 @@ def _load_entities(path: str) -> dict[str, dict[str, Any]]:
                 entity_index[k]["relation"]["ref"] = entity_index[ref_key]
             else:
                 logger.error(f"{k.replace('/', '.xml#')}: no entity found for ref=\"{original_ref}\"")
+        entity_index[k] = _rename_type_fields(v)
     return entity_index
+
+
+def _rename_type_fields(d):
+    if isinstance(d, dict):
+        new_dict = {}
+        for key, value in d.items():
+            new_key = "tei:type" if key == "type" else key
+            new_dict[new_key] = _rename_type_fields(value)
+        return new_dict
+    elif isinstance(d, list):
+        return [_rename_type_fields(item) for item in d]
+    else:
+        return d
 
 
 def untangle_tf_export(config: TFUntangleConfig):
