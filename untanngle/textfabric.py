@@ -915,7 +915,7 @@ def handle_element(a, tf_annotation_idx, tokens_per_text):
     elif match0:
         text_num = match0.group(1)
         begin_anchor = int(match0.group(2))
-        end_anchor = begin_anchor + 1  # milestone annotation: increase end_anchor
+        end_anchor = begin_anchor
         text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
         tf_annos = IAnnotation(id=a.id,
                                namespace=a.namespace,
