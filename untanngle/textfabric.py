@@ -342,7 +342,6 @@ def untangle_tf_export(config: TFUntangleConfig):
     pos_to_node_path = f"{config.data_path}/pos2node.tsv"
     export_dir = f"{config.export_path}/{config.project_name}"
     os.makedirs(name=export_dir, exist_ok=True)
-    entity_for_ref = _load_entities(f"{config.apparatus_data_directory}")
 
     if not config.show_progress:
         logger.remove()
@@ -355,6 +354,7 @@ def untangle_tf_export(config: TFUntangleConfig):
         logger.add(config.log_file_path)
 
     entity_metadata = load_entity_metadata(entity_meta_path)
+    entity_for_ref = _load_entities(f"{config.apparatus_data_directory}")
     node_for_pos = load_node_for_pos(pos_to_node_path)
     # ic(node_for_pos)
     token_subst = read_token_substitutions(logical_pairs_path)
