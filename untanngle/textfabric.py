@@ -10,7 +10,7 @@ import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Union
+from typing import Any, Union, List
 
 from icecream import ic
 from intervaltree import IntervalTree
@@ -1185,23 +1185,130 @@ def _image_targets(iiif_url: str, xywh: str) -> list[dict[str, Any]]:
     return [simple_image_target(iiif_base_url, xywh), image_target(iiif_url=iiif_url, xywh=xywh)]
 
 
+@dataclass
+class Offset:
+    start: int
+    end: int
+
+
+@dataclass
+class IntroTextMetadata:
+    source: str
+    intro_nl: Offset
+    intro_nl_annotations: list[dict[str, Any]]
+    intro_en: Offset
+    intro_en_annotations: list[dict[str, Any]]
+    notes_nl: Union[Offset, None] = None
+    notes_nl_annotations: list[dict[str, Any]] = field(default_factory=list)
+    notes_en: Union[Offset, None] = None
+    notes_en_annotations: list[dict[str, Any]] = field(default_factory=list)
+
+
 def _merge_intro_texts(web_annotations: list[dict[str, Any]], intro_files: list[str]) -> list[dict[str, Any]]:
     intro_file_annotations = [_file_annotation(web_annotations, intro_file) for intro_file in intro_files]
     ic(intro_file_annotations)
     tr_targets = [
-        (ifa["target"][0]["source"], ifa["target"][0]["selector"]["start"], ifa["target"][0]["selector"]["end"]) for ifa
-        in intro_file_annotations]
+        (ifa["target"][0]["source"], ifa["target"][0]["selector"]["start"], ifa["target"][0]["selector"]["end"])
+        for ifa in intro_file_annotations
+    ]
     ic(tr_targets)
     target_sources = [ta[0] for ta in tr_targets]
-    web_annotations_with_intro_targets = [wa for wa in web_annotations if _target_source_in(wa, target_sources)]
+
+    # assumption: every intro text has:
+    # 1 <div xml:lang="nl">
+    # 1 <div xml:lang="en">
+    # 0 or 1 <listAnnotation type="notes" xml:lang="nl">
+    # 0 or 1 <listAnnotation type="notes" xml:lang="en">
+    intro_text_metadata_list: List[IntroTextMetadata] = []
+    for ifa in intro_file_annotations:
+        source = ifa["target"][0]["source"]
+        annotations_with_target_source = [
+            a for a in web_annotations
+            if _has_target_source_in(a, [source])
+        ]
+        intro_nl_offset = _offset(annotations_with_target_source, "tei:Div", source, "nl")
+        intro_nl_annotations = _annotations_within_range(annotations_with_target_source, source, intro_nl_offset)
+
+        intro_en_offset = _offset(annotations_with_target_source, "tei:Div", source, "en")
+        intro_en_annotations = _annotations_within_range(annotations_with_target_source, source, intro_en_offset)
+
+        notes_nl_offset = _offset(annotations_with_target_source, "tei:ListAnnotation", source, "nl")
+        notes_nl_annotations = _annotations_within_range(annotations_with_target_source, source, notes_nl_offset)
+
+        notes_en_offset = _offset(annotations_with_target_source, "tei:ListAnnotation", source, "en")
+        notes_en_annotations = _annotations_within_range(annotations_with_target_source, source, notes_en_offset)
+
+        intro_text_metadata_list.append(
+            IntroTextMetadata(
+                source=source,
+                intro_nl=intro_nl_offset,
+                intro_nl_annotations=intro_nl_annotations,
+                intro_en=intro_en_offset,
+                intro_en_annotations=intro_en_annotations,
+                notes_nl=notes_nl_offset,
+                notes_nl_annotations=notes_nl_annotations,
+                notes_en=notes_en_offset,
+                notes_en_annotations=notes_en_annotations,
+            )
+        )
+
+    ic(intro_text_metadata_list)
+
+
+
+    web_annotations_with_intro_targets = [wa for wa in web_annotations if _has_target_source_in(wa, target_sources)]
     ic(len(web_annotations_with_intro_targets))
     return [a for a in web_annotations if a not in web_annotations_with_intro_targets]
 
 
+def _offset(web_annotations, body_type: str, source: str, lang: str) -> Union[Offset, None]:
+    relevant_annotations = [
+        a for a in web_annotations if
+        _has_nested_field_with_value(a, "body.type", body_type)
+        and _has_nested_field_with_value(a, "body.metadata.lang", lang)
+        and _has_target_source_in(a, [source])
+    ]
+
+    i = len(relevant_annotations)
+    if i > 1:
+        raise Exception(f"expected one <{body_type} xml:lang=\"{lang}\"/>>, found {i}")
+    elif i == 0:
+        return None
+
+    target = [
+        t for t in (relevant_annotations[0]["target"])
+        if _has_nested_field_with_value(t, "source", source)
+    ][0]
+    selector = target["selector"]
+    return Offset(selector["start"], selector["end"])
+
+
+def _annotations_within_range(
+        web_annotations: list[dict[str, Any]],
+        source: str,
+        offset: Offset
+) -> list[dict[str, Any]]:
+    if offset:
+        return [a for a in web_annotations if _has_target_in_range(a, source, offset)]
+    else:
+        return []
+
+
+def _has_target_in_range(wa: dict[str, Any], source: str, offset: Offset) -> bool:
+    target = [
+        t for t in (wa["target"])
+        if _has_nested_field_with_value(t, "source", source)
+    ][0]
+    selector = target["selector"]
+    start = selector["start"]
+    end = selector["end"]
+    return offset.start <= start <= offset.end and offset.start <= end <= offset.end
+
+
 def _file_annotation(web_annotations: list[dict[str, Any]], intro_file: str) -> dict[str, Any]:
     file_annotations = [a for a in web_annotations if
-                        _nested_field_has_value(a, "body.type", "tf:File") and
-                        _nested_field_has_value(a, "body.metadata.file", intro_file)
+                        _has_nested_field_with_value(a, "body.type", "tf:File") and
+                        _has_nested_field_with_value(a, "body.metadata.file", intro_file)
                         ]
     if len(file_annotations) != 1:
         raise Exception("unexpected situation: multiple file annotations, or none")
@@ -1209,19 +1316,20 @@ def _file_annotation(web_annotations: list[dict[str, Any]], intro_file: str) -> 
         return file_annotations[0]
 
 
-def _nested_field_has_value(d: dict[str, Any], nested_field: str, value: Any) -> bool:
+def _has_nested_field_with_value(d: dict[str, Any], nested_field: str, value: Any) -> bool:
     def loop(d: dict[str, Any], field_path: list[str], expected_value: Any) -> bool:
+        field_name = field_path[0]
         if len(field_path) == 1:
-            return d[field_path[0]] == expected_value
-        elif field_path[0] in d and isinstance(d[field_path[0]], dict):
-            return loop(d[field_path[0]], field_path[1:], expected_value)
+            return field_name in d and d[field_name] == expected_value
+        elif field_name in d and isinstance(d[field_name], dict):
+            return loop(d[field_name], field_path[1:], expected_value)
         else:
             return False
 
     return loop(d, nested_field.split("."), value)
 
 
-def _target_source_in(wa: dict[str, Any], target_sources: list[str]) -> bool:
+def _has_target_source_in(wa: dict[str, Any], target_sources: list[str]) -> bool:
     targets = wa["target"]
     if isinstance(targets, list):
         sources = [t["source"] for t in targets]
@@ -1234,7 +1342,7 @@ def _target_source_in(wa: dict[str, Any], target_sources: list[str]) -> bool:
 
 
 def _sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool):
-    tier0_annotations = [a for a in web_annotations if "type" in a['body'] and a['body']['type'] == tier0_type]
+    tier0_annotations = [a for a in web_annotations if _has_nested_field_with_value(a, "body.type", tier0_type)]
     if not tier0_annotations:
         logger.error(f"no tier0 annotations found, tier0 = '{tier0_type}'")
     else:
