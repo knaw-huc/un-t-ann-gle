@@ -53,7 +53,7 @@ def upload_to_tr(textrepo_base_uri: str, project_name: str, tf_text_files: list[
     add_logical_segmented_text_type_if_missing(trc)
     versions = defaultdict(lambda: {})
     for tf_text_file in tf_text_files:
-        file_num = tf.get_file_num(tf_text_file)
+        file_num = tf._get_file_num(tf_text_file)
         external_id = f"{project_name}-{file_num}"
         logger.info(f"<= {tf_text_file}")
         with open(tf_text_file) as f:

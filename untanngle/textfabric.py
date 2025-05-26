@@ -20,9 +20,11 @@ from untanngle import camel_casing as cc
 from untanngle import utils as ut
 from untanngle.annotations import simple_image_target, image_target
 
-single_target_pattern = re.compile(r"(\d+):(\d+)")
+file_num_pattern = re.compile(r".*-(\d+).tsv")
+file_num_pattern_from_json = re.compile(r".*-(\d+).json")
 range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
 range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
+single_target_pattern = re.compile(r"(\d+):(\d+)")
 
 paragraph_types = {
     "author",
@@ -59,6 +61,7 @@ class TFUntangleConfig:
     log_file_path: str = None
     editem_project: bool = False
     apparatus_data_directory: str = None
+    intro_files: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -104,7 +107,7 @@ class AnnotationTransformer:
     errors = set()
 
     def as_web_annotation(self, ia: IAnnotation) -> dict[str, Any]:
-        body_type = f"{ia.namespace}:{as_class_name(ia.type)}"
+        body_type = f"{ia.namespace}:{_as_class_name(ia.type)}"
         text_num = ia.text_num
         textrepo_physical_version = self.textrepo_versions[text_num]['physical']
         textrepo_logical_version = self.textrepo_versions[text_num]['logical']
@@ -191,7 +194,7 @@ class AnnotationTransformer:
             anno["body"]["text"] = ia.text
         if ia.metadata:
             metadata = {
-                "type": f"tt:{as_class_name(ia.type)}Metadata"
+                "type": f"tt:{_as_class_name(ia.type)}Metadata"
             }
 
             metadata.update({
@@ -301,6 +304,104 @@ class AnnotationTransformer:
             return ref
 
 
+def untangle_tf_export(config: TFUntangleConfig):
+    start = time.perf_counter()
+    text_files = sorted(glob.glob(f'{config.data_path}/text-*.tsv'))
+    anno_files = sorted(glob.glob(f"{config.data_path}/anno-*.tsv"))
+    anno2node_path = f"{config.data_path}/anno2node.tsv"
+    entity_meta_path = f"{config.data_path}/entitymeta.json"
+    logical_pairs_path = f"{config.data_path}/logicalpairs.tsv"
+    pos_to_node_path = f"{config.data_path}/pos2node.tsv"
+    export_dir = f"{config.export_path}/{config.project_name}"
+    os.makedirs(name=export_dir, exist_ok=True)
+
+    if not config.show_progress:
+        logger.remove()
+        logger.add(sys.stdout, level="WARNING")
+
+    if config.log_file_path:
+        logger.remove()
+        if os.path.exists(config.log_file_path):
+            os.remove(config.log_file_path)
+        logger.add(config.log_file_path)
+
+    entity_metadata = _load_entity_metadata(entity_meta_path)
+    entity_for_ref = _load_entities(f"{config.apparatus_data_directory}")
+    node_for_pos = _load_node_for_pos(pos_to_node_path)
+    # ic(node_for_pos)
+    token_subst = _read_token_substitutions(logical_pairs_path)
+    # ic(token_subst)
+
+    out_files = []
+    text_nums = []
+    for tsv in text_files:
+        text_num = _get_file_num(tsv)
+        text_nums += text_num
+        json_path = f"{export_dir}/textfile-physical-{text_num}.json"
+        segments = _read_tokens(tsv)
+        _store_segmented_text(segments=segments, store_path=json_path)
+        out_files.append(json_path)
+
+    tokens_per_file = _read_tf_tokens(text_files)
+    raw_tf_annotations = []
+    for anno_file in anno_files:
+        raw_tf_annotations.extend(_read_raw_tf_annotations(anno_file))
+
+    ref_links, target_links, tf_annos = _merge_raw_tf_annotations(raw_tf_annotations, anno2node_path, export_dir,
+                                                                  tokens_per_file, config.show_progress)
+
+    paragraph_ranges = _determine_paragraphs(tf_annos, tokens_per_file)
+    # debug_paragraphs(paragraph_ranges, tokens_per_text)
+
+    logical_file_paths, logical_coords_for_physical_anchor_per_text = _store_logical_text_files(
+        export_dir,
+        paragraph_ranges,
+        tokens_per_file,
+        node_for_pos,
+        token_subst
+    )
+    out_files.extend(logical_file_paths)
+
+    if config.textrepo_base_uri_internal:
+        textrepo_file_versions = ut.upload_to_tr(textrepo_base_uri=config.textrepo_base_uri_internal,
+                                                 project_name=config.project_name,
+                                                 tf_text_files=out_files)
+    else:
+        textrepo_file_versions = _dummy_version(text_files)
+
+    textrepo_external_url = config.textrepo_base_uri_external if config.textrepo_base_uri_external else config.textrepo_base_uri_internal
+    web_annotations = _tf_annotations_to_web_annotations(
+        tf_annos=tf_annos,
+        ref_links=ref_links,
+        target_links=target_links,
+        project=config.project_name,
+        text_in_body=config.text_in_body,
+        textrepo_url=textrepo_external_url,
+        textrepo_file_versions=textrepo_file_versions,
+        logical_coords_for_physical_anchor_per_text=logical_coords_for_physical_anchor_per_text,
+        entity_metadata=entity_metadata,
+        project_is_editem_project=config.editem_project,
+        tier0_type=config.tier0_type,
+        entity_for_ref=entity_for_ref
+    )
+
+    merged_web_annotations = _merge_intro_texts(web_annotations, config.intro_files)
+    _sanity_check1(merged_web_annotations, config.tier0_type, config.with_facsimiles)
+    filtered_web_annotations = [
+        a for a in merged_web_annotations if
+        ('type' in a['body'] and a['body']['type'] not in config.excluded_types)
+        or 'type' not in a['body']
+    ]
+    logger.info(f"{len(filtered_web_annotations)} annotations")
+    ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=f"{export_dir}/web-annotations.json")
+
+    # store_entity_references(filtered_web_annotations)
+
+    end = time.perf_counter()
+
+    _print_report(config, text_files, web_annotations, filtered_web_annotations, start, end)
+
+
 def _load_entities(path: str) -> dict[str, dict[str, Any]]:
     entity_index = {}
     for data_path in glob.glob(f"{path}/*-entity-dict.json"):
@@ -332,104 +433,7 @@ def _rename_type_fields(d):
         return d
 
 
-def untangle_tf_export(config: TFUntangleConfig):
-    start = time.perf_counter()
-    text_files = sorted(glob.glob(f'{config.data_path}/text-*.tsv'))
-    anno_files = sorted(glob.glob(f"{config.data_path}/anno-*.tsv"))
-    anno2node_path = f"{config.data_path}/anno2node.tsv"
-    entity_meta_path = f"{config.data_path}/entitymeta.json"
-    logical_pairs_path = f"{config.data_path}/logicalpairs.tsv"
-    pos_to_node_path = f"{config.data_path}/pos2node.tsv"
-    export_dir = f"{config.export_path}/{config.project_name}"
-    os.makedirs(name=export_dir, exist_ok=True)
-
-    if not config.show_progress:
-        logger.remove()
-        logger.add(sys.stdout, level="WARNING")
-
-    if config.log_file_path:
-        logger.remove()
-        if os.path.exists(config.log_file_path):
-            os.remove(config.log_file_path)
-        logger.add(config.log_file_path)
-
-    entity_metadata = load_entity_metadata(entity_meta_path)
-    entity_for_ref = _load_entities(f"{config.apparatus_data_directory}")
-    node_for_pos = load_node_for_pos(pos_to_node_path)
-    # ic(node_for_pos)
-    token_subst = read_token_substitutions(logical_pairs_path)
-    # ic(token_subst)
-
-    out_files = []
-    text_nums = []
-    for tsv in text_files:
-        text_num = get_file_num(tsv)
-        text_nums += text_num
-        json_path = f"{export_dir}/textfile-physical-{text_num}.json"
-        segments = read_tokens(tsv)
-        store_segmented_text(segments=segments, store_path=json_path)
-        out_files.append(json_path)
-
-    tokens_per_file = read_tf_tokens(text_files)
-    raw_tf_annotations = []
-    for anno_file in anno_files:
-        raw_tf_annotations.extend(read_raw_tf_annotations(anno_file))
-
-    ref_links, target_links, tf_annos = merge_raw_tf_annotations(raw_tf_annotations, anno2node_path, export_dir,
-                                                                 tokens_per_file, config.show_progress)
-
-    paragraph_ranges = determine_paragraphs(tf_annos, tokens_per_file)
-    # debug_paragraphs(paragraph_ranges, tokens_per_text)
-
-    logical_file_paths, logical_coords_for_physical_anchor_per_text = store_logical_text_files(
-        export_dir,
-        paragraph_ranges,
-        tokens_per_file,
-        node_for_pos,
-        token_subst
-    )
-    out_files.extend(logical_file_paths)
-
-    if config.textrepo_base_uri_internal:
-        textrepo_file_versions = ut.upload_to_tr(textrepo_base_uri=config.textrepo_base_uri_internal,
-                                                 project_name=config.project_name,
-                                                 tf_text_files=out_files)
-    else:
-        textrepo_file_versions = dummy_version(text_files)
-
-    textrepo_external_url = config.textrepo_base_uri_external if config.textrepo_base_uri_external else config.textrepo_base_uri_internal
-    web_annotations = tf_annotations_to_web_annotations(
-        tf_annos=tf_annos,
-        ref_links=ref_links,
-        target_links=target_links,
-        project=config.project_name,
-        text_in_body=config.text_in_body,
-        textrepo_url=textrepo_external_url,
-        textrepo_file_versions=textrepo_file_versions,
-        logical_coords_for_physical_anchor_per_text=logical_coords_for_physical_anchor_per_text,
-        entity_metadata=entity_metadata,
-        project_is_editem_project=config.editem_project,
-        tier0_type=config.tier0_type,
-        entity_for_ref=entity_for_ref
-    )
-
-    sanity_check1(web_annotations, config.tier0_type, config.with_facsimiles)
-    filtered_web_annotations = [
-        a for a in web_annotations if
-        ('type' in a['body'] and a['body']['type'] not in config.excluded_types)
-        or 'type' not in a['body']
-    ]
-    logger.info(f"{len(filtered_web_annotations)} annotations")
-    ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=f"{export_dir}/web-annotations.json")
-
-    # store_entity_references(filtered_web_annotations)
-
-    end = time.perf_counter()
-
-    print_report(config, text_files, web_annotations, filtered_web_annotations, start, end)
-
-
-def read_token_substitutions(path: str):
+def _read_token_substitutions(path: str):
     token_subst = {}
     if os.path.exists(path):
         logger.info(f"<= {path}")
@@ -443,7 +447,7 @@ def read_token_substitutions(path: str):
     return token_subst
 
 
-def load_node_for_pos(path: str):
+def _load_node_for_pos(path: str):
     node_for_pos = {}
     if os.path.exists(path):
         logger.info(f"<= {path}")
@@ -453,7 +457,7 @@ def load_node_for_pos(path: str):
     return node_for_pos
 
 
-def load_entity_metadata(entity_meta_path):
+def _load_entity_metadata(entity_meta_path):
     if os.path.exists(entity_meta_path):
         logger.info(f"<= {entity_meta_path}")
         with open(entity_meta_path) as f:
@@ -463,7 +467,7 @@ def load_entity_metadata(entity_meta_path):
     return entity_metadata
 
 
-def print_report(config, text_files, web_annotations, filtered_web_annotations, start, end):
+def _print_report(config, text_files, web_annotations, filtered_web_annotations, start, end):
     print(f"untangling {config.project_name} took {end - start:0.4f} seconds")
     print(f"text files: {len(text_files)}")
     print(f"annotations: {len(filtered_web_annotations)}")
@@ -471,23 +475,23 @@ def print_report(config, text_files, web_annotations, filtered_web_annotations, 
     ut.show_annotation_counts(web_annotations, config.excluded_types)
 
 
-def as_class_name(string: str) -> str:
+def _as_class_name(string: str) -> str:
     return string[0].capitalize() + string[1:]
 
 
-def read_tf_tokens(text_files) -> dict[str, list[str]]:
+def _read_tf_tokens(text_files) -> dict[str, list[str]]:
     tokens_per_text = {}
     for text_file in text_files:
-        text_num = get_file_num(text_file)
-        tokens = read_tokens(text_file)
+        text_num = _get_file_num(text_file)
+        tokens = _read_tokens(text_file)
         tokens_per_text[text_num] = tokens
     return tokens_per_text
 
 
-def read_tf_tokens_from_json(text_files):
+def _read_tf_tokens_from_json(text_files):
     tokens_per_text = {}
     for text_file in text_files:
-        text_num = get_file_num(text_file)
+        text_num = _get_file_num(text_file)
         logger.info(f"<= {text_file}")
         with open(text_file) as f:
             contents = json.load(f)
@@ -495,7 +499,7 @@ def read_tf_tokens_from_json(text_files):
     return tokens_per_text
 
 
-def read_raw_tf_annotations(anno_file) -> list[TFAnnotation]:
+def _read_raw_tf_annotations(anno_file) -> list[TFAnnotation]:
     return [
         TFAnnotation(
             id=row["annoid"],
@@ -504,11 +508,11 @@ def read_raw_tf_annotations(anno_file) -> list[TFAnnotation]:
             body=row["body"],
             target=row["target"]
         )
-        for row in read_tsv_records(anno_file)
+        for row in _read_tsv_records(anno_file)
     ]
 
 
-def read_tsv_records(path: str) -> list[dict[str, Any]]:
+def _read_tsv_records(path: str) -> list[dict[str, Any]]:
     # csv.field_size_limit(sys.maxsize)
     logger.info(f"<= {path}")
     with open(path, encoding='utf8') as f:
@@ -516,25 +520,25 @@ def read_tsv_records(path: str) -> list[dict[str, Any]]:
     return records  # type *is* correct!
 
 
-def read_tokens(path: str) -> list[str]:
+def _read_tokens(path: str) -> list[str]:
     logger.info(f"<= {path}")
     with open(path, encoding='utf8') as f:
-        tokens = [token(row) for row in csv.reader(f, delimiter='\t', quoting=csv.QUOTE_NONE)]
+        tokens = [_token(row) for row in csv.reader(f, delimiter='\t', quoting=csv.QUOTE_NONE)]
     return tokens[1:]  # type *is* correct!
 
 
-def token(row: list[str]) -> str:
+def _token(row: list[str]) -> str:
     if row:
         return row[0].replace('\\n', '\n').replace('\\t', '\t')
     else:
         return ""
 
 
-def modify_pb_annotations(ia: list[IAnnotation], tokens: list[str]) -> list[IAnnotation]:
+def _modify_pb_annotations(ia: list[IAnnotation], tokens: list[str]) -> list[IAnnotation]:
     pb_end_anchor = 0
     last_page_in_div = None
     for i, a in enumerate(ia):
-        if is_div_with_pb(a):
+        if _is_div_with_pb(a):
             pb_end_anchor = a.end_anchor
             last_page_in_div = None
         elif a.type == "pb":
@@ -547,23 +551,23 @@ def modify_pb_annotations(ia: list[IAnnotation], tokens: list[str]) -> list[IAnn
             else:
                 prev = ia[last_page_in_div]
                 prev.end_anchor = a.begin_anchor - 1
-                prev.text = text_of(prev, tokens)
+                prev.text = _text_of(prev, tokens)
             a.type = 'page'
-            a.text = text_of(a, tokens)
+            a.text = _text_of(a, tokens)
     return ia
 
 
-def text_of(a, tokens):
+def _text_of(a, tokens):
     return "".join(tokens[a.begin_anchor:a.end_anchor + 1])
 
 
-def is_div_with_pb(a):
+def _is_div_with_pb(a):
     return a.type == "div" \
         and "type" in a.metadata \
         and a.metadata["type"] in ("original", "translation", "postalData")
 
 
-def sanity_check(ia: list[IAnnotation]):
+def _sanity_check(ia: list[IAnnotation]):
     logger.info("check for annotations_with_invalid_anchor_range")
     annotations_with_invalid_anchor_range = [a for a in ia if a.begin_anchor > a.end_anchor]
     if annotations_with_invalid_anchor_range:
@@ -576,7 +580,7 @@ def sanity_check(ia: list[IAnnotation]):
         for j in range(i + 1, len(letter_annotations)):
             anno1 = letter_annotations[i]
             anno2 = letter_annotations[j]
-            if annotations_overlap(anno1, anno2):
+            if _annotations_overlap(anno1, anno2):
                 logger.error("Overlapping Letter annotations: ")
                 ic(anno1.id, anno1.metadata, anno1.begin_anchor, anno1.end_anchor)
                 ic(anno2.id, anno2.metadata, anno2.begin_anchor, anno2.end_anchor)
@@ -587,7 +591,7 @@ def sanity_check(ia: list[IAnnotation]):
         for j in range(i + 1, len(sentence_annotations)):
             anno1 = sentence_annotations[i]
             anno2 = sentence_annotations[j]
-            if annotations_overlap(anno1, anno2):
+            if _annotations_overlap(anno1, anno2):
                 logger.error("Overlapping Sentence annotations: ")
                 ic(anno1.id, anno1.metadata, anno1.begin_anchor, anno1.end_anchor)
                 ic(anno2.id, anno2.metadata, anno2.begin_anchor, anno2.end_anchor)
@@ -599,34 +603,34 @@ def sanity_check(ia: list[IAnnotation]):
         ic(note_annotations_without_lang)
 
 
-def annotations_overlap(anno1, anno2):
+def _annotations_overlap(anno1, anno2):
     return (anno1.text_num == anno2.text_num) and (anno1.end_anchor - 1) >= anno2.begin_anchor
 
 
-def get_parent_lang(a: IAnnotation, node_parents: dict[str, str], ia_idx: dict[str, IAnnotation]) -> str:
+def _get_parent_lang(a: IAnnotation, node_parents: dict[str, str], ia_idx: dict[str, IAnnotation]) -> str:
     if a.id in node_parents:
         parent = ia_idx[node_parents[a.id]]
         if 'lang' in parent.metadata:
             return parent.metadata['lang']
         else:
-            return get_parent_lang(parent, node_parents, ia_idx)
+            return _get_parent_lang(parent, node_parents, ia_idx)
     else:
         # logger.warning(f"node {a.id} has no parents, and no metadata.lang -> returning default 'en'")
         return 'en'
 
 
-def modify_note_annotations(ia: list[IAnnotation], node_parents: dict[str, str]) -> list[IAnnotation]:
+def _modify_note_annotations(ia: list[IAnnotation], node_parents: dict[str, str]) -> list[IAnnotation]:
     ia_idx = {a.id: a for a in ia}
     for a in ia:
         if a.type == 'note' and 'lang' not in a.metadata:
-            parent_lang = get_parent_lang(a, node_parents, ia_idx)
+            parent_lang = _get_parent_lang(a, node_parents, ia_idx)
             a.metadata['lang'] = parent_lang
             # logger.info(f"enriched note: {a}")
     return ia
 
 
-def merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_per_text, show_progress: bool):
-    tf_node_for_annotation_id = {row['annotation']: row['node'] for row in read_tsv_records(anno2node_path)}
+def _merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_per_text, show_progress: bool):
+    tf_node_for_annotation_id = {row['annotation']: row['node'] for row in _read_tsv_records(anno2node_path)}
     tf_annotation_idx = {}
     note_target = {}
     node_parents = {}
@@ -639,7 +643,7 @@ def merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_
             bar.update(i)
         match tf_annotation.type:
             case 'element':
-                handle_element(tf_annotation, tf_annotation_idx, tokens_per_text)
+                _handle_element(tf_annotation, tf_annotation_idx, tokens_per_text)
             # case 'node':
             #     anno_id = a.target
             #     if anno_id in tf_annotation_idx:
@@ -648,17 +652,17 @@ def merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_
             #     #     logger.warning(f"node target ({anno_id}) not in tf_annotation_idx index")
             #     #     ic(a)
             case 'mark':
-                handle_mark(tf_annotation, note_target, tf_annotation_idx)
+                _handle_mark(tf_annotation, note_target, tf_annotation_idx)
             case 'attribute':
-                handle_attribute(tf_annotation, tf_annotation_idx)
+                _handle_attribute(tf_annotation, tf_annotation_idx)
             case 'anno':
-                handle_anno(tf_annotation, tf_annotation_idx)
+                _handle_anno(tf_annotation, tf_annotation_idx)
             case 'format':
-                handle_format()
+                _handle_format()
             case 'pi':
-                handle_pi(tf_annotation)
+                _handle_pi(tf_annotation)
             case 'edge':
-                handle_edge(tf_annotation, node_parents, ref_links, target_links)
+                _handle_edge(tf_annotation, node_parents, ref_links, target_links)
 
             case _:
                 logger.warning(f"unhandled type: {tf_annotation.type}")
@@ -671,16 +675,16 @@ def merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens_
     # tf_annos = modify_pb_annotations(tf_annos, tokens)
     # ic(node_parents)
     logger.info("modify_note_annotations")
-    tf_annos = modify_note_annotations(tf_annos, node_parents)
+    tf_annos = _modify_note_annotations(tf_annos, node_parents)
     # TODO: convert ptr annotations to annotation linking the ptr target to the body.id of the m:Note with the corresponding id
     # TODO: convert rs annotations to annotation linking the rkd url in metadata.anno to the rd target
     # TODO: convert ref annotations
     logger.info("sanity_check")
-    sanity_check(tf_annos)
+    _sanity_check(tf_annos)
     return ref_links, target_links, tf_annos
 
 
-def tf_annotations_to_web_annotations(
+def _tf_annotations_to_web_annotations(
         tf_annos,
         ref_links,
         target_links,
@@ -711,16 +715,16 @@ def tf_annotations_to_web_annotations(
     tf_id_to_body_id = {tf_node_to_ia_id[wa["body"]["tf:textfabric_node"]]: wa["body"]["id"] for wa in web_annotations}
 
     if project == 'suriano':
-        letter_body_annotations = generate_suriano_letter_body_annotations(web_annotations)
+        letter_body_annotations = _generate_suriano_letter_body_annotations(web_annotations)
         web_annotations.extend(letter_body_annotations)
 
     if project_is_editem_project:
-        extend_tier0_annotations(web_annotations, tier0_type)
+        _extend_tier0_annotations(web_annotations, tier0_type)
 
     # ic(ref_links)
     logger.info("ref_annotations")
     ref_annotations = [
-        as_link_anno(from_ia_id, to_ia_id, "referencing", tf_id_to_body_id, project)
+        _as_link_anno(from_ia_id, to_ia_id, "referencing", tf_id_to_body_id, project)
         for from_ia_id, to_ia_id in ref_links
     ]
     web_annotations.extend(ref_annotations)
@@ -728,7 +732,7 @@ def tf_annotations_to_web_annotations(
     # ic(target_links)
     logger.info("target_annotations")
     target_annotations = [
-        as_link_anno(from_ia_id, to_ia_id, "targeting", tf_id_to_body_id, project)
+        _as_link_anno(from_ia_id, to_ia_id, "targeting", tf_id_to_body_id, project)
         for from_ia_id, to_ia_id in target_links
     ]
     web_annotations.extend(target_annotations)
@@ -745,7 +749,7 @@ def tf_annotations_to_web_annotations(
     return [cc.keys_to_camel_case(a) for a in web_annotations]
 
 
-def debug_paragraphs(paragraph_ranges, tokens_per_text):
+def _debug_paragraphs(paragraph_ranges, tokens_per_text):
     ic(paragraph_ranges['0'][0:100])
     for i, r in enumerate(paragraph_ranges['0'][0:100]):
         para_text = "".join(tokens_per_text['0'][r[0]:r[1] + 1])
@@ -754,7 +758,7 @@ def debug_paragraphs(paragraph_ranges, tokens_per_text):
         print()
 
 
-def store_logical_text_files(
+def _store_logical_text_files(
         export_dir: str,
         paragraph_ranges: dict[str, list[tuple[int, int]]],
         tokens_per_text: dict[str, list[str]],
@@ -793,11 +797,11 @@ def store_logical_text_files(
 
         json_path = f"{export_dir}/textfile-logical-{text_num}.json"
         file_paths.append(json_path)
-        store_segmented_text(segments=par_segments, store_path=json_path)
+        _store_segmented_text(segments=par_segments, store_path=json_path)
     return file_paths, logical_coords_for_physical_anchor_per_text
 
 
-def determine_paragraphs(
+def _determine_paragraphs(
         tf_annos: list[IAnnotation],
         tokens_per_text: dict[str, list[str]]
 ) -> dict[str, list[tuple[int, int]]]:
@@ -828,13 +832,13 @@ def determine_paragraphs(
     return paragraph_ranges
 
 
-def handle_format():
+def _handle_format():
     # logger.warning("format annotation skipped")
     # ic(a)
     pass
 
 
-def handle_edge(tf_annotation, node_parents, ref_links, target_links):
+def _handle_edge(tf_annotation, node_parents, ref_links, target_links):
     match tf_annotation.body:
         case 'parent':
             child_id, parent_id = tf_annotation.target.split('->')
@@ -855,13 +859,13 @@ def handle_edge(tf_annotation, node_parents, ref_links, target_links):
                 logger.warning(f"unhandled edge body: {tf_annotation.body}")
 
 
-def handle_pi(tf_annotation):
+def _handle_pi(tf_annotation):
     logger.warning("pi annotation skipped")
     ic(tf_annotation)
     pass
 
 
-def handle_anno(tf_annotation, tf_annotation_idx):
+def _handle_anno(tf_annotation, tf_annotation_idx):
     element_anno_id = tf_annotation.target
     if element_anno_id in tf_annotation_idx:
         tf_annotation_idx[element_anno_id].metadata["anno"] = tf_annotation.body
@@ -870,7 +874,7 @@ def handle_anno(tf_annotation, tf_annotation_idx):
         ic(tf_annotation)
 
 
-def handle_attribute(tf_annotation, tf_annotation_idx):
+def _handle_attribute(tf_annotation, tf_annotation_idx):
     element_anno_id = tf_annotation.target
     if element_anno_id in tf_annotation_idx:
         (k, v) = tf_annotation.body.split('=', 1)
@@ -881,7 +885,7 @@ def handle_attribute(tf_annotation, tf_annotation_idx):
         tf_annotation_idx[element_anno_id].metadata[k] = v
 
 
-def handle_mark(tf_annotation, note_target, tf_annotation_idx):
+def _handle_mark(tf_annotation, note_target, tf_annotation_idx):
     note_anno_id = tf_annotation.target
     if note_anno_id in tf_annotation_idx:
         element_anno_id = int(tf_annotation.body)
@@ -891,7 +895,7 @@ def handle_mark(tf_annotation, note_target, tf_annotation_idx):
         ic(tf_annotation)
 
 
-def handle_element(a, tf_annotation_idx, tokens_per_text):
+def _handle_element(a, tf_annotation_idx, tokens_per_text):
     match0 = single_target_pattern.fullmatch(a.target)
     match1 = range_target_pattern1.fullmatch(a.target)
     match2 = range_target_pattern2.fullmatch(a.target)
@@ -930,7 +934,7 @@ def handle_element(a, tf_annotation_idx, tokens_per_text):
         logger.warning(f"unknown element target pattern: {a}")
 
 
-def as_link_anno(
+def _as_link_anno(
         from_ia_id: str,
         to_ia_id: str,
         purpose: str,
@@ -950,11 +954,7 @@ def as_link_anno(
     }
 
 
-file_num_pattern_from_json = re.compile(r".*-(\d+).json")
-file_num_pattern = re.compile(r".*-(\d+).tsv")
-
-
-def get_file_num(tf_text_file: str) -> str:
+def _get_file_num(tf_text_file: str) -> str:
     match = file_num_pattern.match(tf_text_file)
     if match:
         return match.group(1)
@@ -966,7 +966,7 @@ def get_file_num(tf_text_file: str) -> str:
             return ""
 
 
-def sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool):
+def _sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool):
     tier0_annotations = [a for a in web_annotations if "type" in a['body'] and a['body']['type'] == tier0_type]
     if not tier0_annotations:
         logger.error(f"no tier0 annotations found, tier0 = '{tier0_type}'")
@@ -977,17 +977,17 @@ def sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool)
                     logger.error(f"missing required body.metadata.manifest field for {a}")
 
 
-def store_segmented_text(segments: list[str], store_path: str):
+def _store_segmented_text(segments: list[str], store_path: str):
     data = {"_ordered_segments": segments}
     logger.info(f"=> {store_path}")
     with open(store_path, 'w', encoding='UTF8') as filehandle:
         json.dump(data, filehandle, indent=4, ensure_ascii=False)
 
 
-def dummy_version(text_files):
+def _dummy_version(text_files):
     textrepo_file_version = {}
     for text_file in text_files:
-        file_num = get_file_num(text_file)
+        file_num = _get_file_num(text_file)
         textrepo_file_version[file_num] = {
             'logical': f"placeholder-{file_num}-logical",
             "physical": f"placeholder-{file_num}-physical"
@@ -995,7 +995,7 @@ def dummy_version(text_files):
     return textrepo_file_version
 
 
-def generate_suriano_letter_body_annotations(web_annotations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _generate_suriano_letter_body_annotations(web_annotations: list[dict[str, Any]]) -> list[dict[str, Any]]:
     file_annotations = [wa for wa in web_annotations if wa['body']['type'] == 'tf:File']
     # ic(len(file_annotations))
     # ic(file_annotations[42])
@@ -1008,13 +1008,13 @@ def generate_suriano_letter_body_annotations(web_annotations: list[dict[str, Any
     # ic(relevant_div_annotations[42])
     iforest = defaultdict(lambda: IntervalTree())
     for da in relevant_div_annotations:
-        physical_source, start, end = physical_range(da)
+        physical_source, start, end = _physical_range(da)
         iforest[physical_source][start:end] = da
 
     letter_body_annotations = []
 
     for fa in file_annotations:
-        physical_source, start, end = physical_range(fa)
+        physical_source, start, end = _physical_range(fa)
         physical_base = physical_source.replace('/contents', '')
         enveloped_annos = [a.data for a in sorted(iforest[physical_source].envelop(start, end))]
 
@@ -1061,14 +1061,14 @@ def generate_suriano_letter_body_annotations(web_annotations: list[dict[str, Any
 
         canvas_target = letter_body_annotation["target"][4]
 
-        logical_source, _, _ = logical_range(fa)
+        logical_source, _, _ = _logical_range(fa)
         logical_base = logical_source.replace('/contents', '')
         new_targets = []
         new_targets.extend(
-            text_targets("Text", physical_base, min_physical_start, max_physical_end))
+            _text_targets("Text", physical_base, min_physical_start, max_physical_end))
         new_targets.extend(
-            text_targets("LogicalText", logical_base, min_logical_start, max_logical_end, l_begin_char_offset,
-                         l_end_char_offset))
+            _text_targets("LogicalText", logical_base, min_logical_start, max_logical_end, l_begin_char_offset,
+                          l_end_char_offset))
         new_targets.append(canvas_target)
         letter_body_annotation['target'] = new_targets
         # ic(letter_body_annotation)
@@ -1077,7 +1077,7 @@ def generate_suriano_letter_body_annotations(web_annotations: list[dict[str, Any
     return letter_body_annotations
 
 
-def extend_tier0_annotations(
+def _extend_tier0_annotations(
         web_annotations: list[dict[str, Any]],
         tier0_type: str):
     # the annotations to extend from
@@ -1087,21 +1087,21 @@ def extend_tier0_annotations(
     text_annotations = [wa for wa in web_annotations if wa['body']['type'] == 'tei:Text']
     iforest = defaultdict(lambda: IntervalTree())
     for da in text_annotations:
-        physical_source, start, end = physical_range(da)
+        physical_source, start, end = _physical_range(da)
         iforest[physical_source][start:end] = da
 
     # the annotations to get pageUrl, xywh from
     page_annotations = [wa for wa in web_annotations if wa['body']['type'] == 'tf:Page']
     page_forest = defaultdict(lambda: IntervalTree())
     for pa in page_annotations:
-        physical_source, start, end = physical_range(pa)
+        physical_source, start, end = _physical_range(pa)
         if start == end:
             logger.warning(f'tf:Page without text: {pa}')
             end = start + 1
         page_forest[physical_source][start:end] = pa
 
     for t0_annotation in tier0_annotations:
-        physical_source, start, end = physical_range(t0_annotation)
+        physical_source, start, end = _physical_range(t0_annotation)
         physical_base = physical_source.replace('/contents', '')
         enveloped_text_annos = [a.data for a in sorted(iforest[physical_source].envelop(start, end))]
         text_anno = enveloped_text_annos[0]
@@ -1134,14 +1134,14 @@ def extend_tier0_annotations(
                 max_logical_end = l_end
                 l_end_char_offset = l_char_end
 
-        logical_source, _, _ = logical_range(text_anno)
+        logical_source, _, _ = _logical_range(text_anno)
         logical_base = logical_source.replace('/contents', '')
         new_targets = []
         new_targets.extend(
-            text_targets("Text", physical_base, min_physical_start, max_physical_end))
+            _text_targets("Text", physical_base, min_physical_start, max_physical_end))
         new_targets.extend(
-            text_targets("LogicalText", logical_base, min_logical_start, max_logical_end, l_begin_char_offset,
-                         l_end_char_offset))
+            _text_targets("LogicalText", logical_base, min_logical_start, max_logical_end, l_begin_char_offset,
+                          l_end_char_offset))
         for pa in enveloped_page_annos:
             canvas_targets = [t for t in pa["target"] if t['type'] == 'Canvas']
             if len(canvas_targets) > 1:
@@ -1153,14 +1153,14 @@ def extend_tier0_annotations(
             pa_metadata = pa["body"]["metadata"]
             page_url = pa_metadata["pageUrl"]
             xywh = pa_metadata["xywh"]
-            for it in image_targets(page_url, xywh):
+            for it in _image_targets(page_url, xywh):
                 if it not in new_targets:  # avoid duplicate image targets
                     new_targets.append(it)
 
         t0_annotation['target'] += [nt for nt in new_targets if nt["type"] in ["Canvas", "Image"]]
 
 
-def physical_range(wa):
+def _physical_range(wa):
     source = wa["target"][0]["source"]
     selector = wa["target"][0]["selector"]
     start = selector["start"]
@@ -1168,7 +1168,7 @@ def physical_range(wa):
     return source, start, end
 
 
-def logical_range(wa):
+def _logical_range(wa):
     source = wa["target"][2]["source"]
     selector = wa["target"][2]["selector"]
     start = selector["start"]
@@ -1176,7 +1176,7 @@ def logical_range(wa):
     return source, start, end
 
 
-def text_targets(target_type, base, start_anchor, end_anchor, char_start=None, char_end=None):
+def _text_targets(target_type, base, start_anchor, end_anchor, char_start=None, char_end=None):
     selector = {
         "type": "tt:TextAnchorSelector",
         "start": start_anchor,
@@ -1201,12 +1201,12 @@ def text_targets(target_type, base, start_anchor, end_anchor, char_start=None, c
     ]
 
 
-def image_targets(iiif_url: str, xywh: str) -> list[dict[str, Any]]:
+def _image_targets(iiif_url: str, xywh: str) -> list[dict[str, Any]]:
     iiif_base_url = re.sub(r"/full/.*", '', iiif_url)
     return [simple_image_target(iiif_base_url, xywh), image_target(iiif_url=iiif_url, xywh=xywh)]
 
 
-def store_entity_references(web_annotations: list[dict[str, Any]]):
+def _store_entity_references(web_annotations: list[dict[str, Any]]):
     entity_references = defaultdict(lambda: defaultdict(list[str]))
     web_annotations_with_metadata = [wa for wa in web_annotations if "metadata" in wa["body"]]
     for wa in web_annotations_with_metadata:
@@ -1221,3 +1221,35 @@ def store_entity_references(web_annotations: list[dict[str, Any]]):
                     entity_name = parts[-1].replace(".json", "")
                     entity_references[entity_category][entity_name].append(body_id)
     ic(entity_references)
+
+
+def _nested_field_has_value(d: dict[str, Any], nested_field: str, value: Any) -> bool:
+    def loop(d: dict[str, Any], field_path: list[str], expected_value: Any) -> bool:
+        if len(field_path) == 1:
+            return d[field_path[0]] == expected_value
+        elif field_path[0] in d and isinstance(d[field_path[0]], dict):
+            return loop(d[field_path[0]], field_path[1:], expected_value)
+        else:
+            return False
+
+    return loop(d, nested_field.split("."), value)
+
+
+def _file_annotation(web_annotations: list[dict[str, Any]], intro_file: str) -> dict[str, Any]:
+    file_annotations = [a for a in web_annotations if
+                        _nested_field_has_value(a, "body.type", "tf:File") and
+                        _nested_field_has_value(a, "body.metadata.file", intro_file)
+                        ]
+    if len(file_annotations) != 1:
+        raise Exception("unexpected situation: multiple file annotations, or none")
+    else:
+        return file_annotations[0]
+
+
+def _merge_intro_texts(web_annotations: list[dict[str, Any]], intro_files: list[str]) -> list[dict[str, Any]]:
+    intro_file_annotations = [_file_annotation(web_annotations, intro_file) for intro_file in intro_files]
+    ic(intro_file_annotations)
+    tr_targets = [ifa["target"][0]["source"] for ifa in intro_file_annotations]
+    ic(tr_targets)
+
+    return web_annotations
