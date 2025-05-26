@@ -395,11 +395,9 @@ def untangle_tf_export(config: TFUntangleConfig):
     logger.info(f"{len(filtered_web_annotations)} annotations")
     ut.store_web_annotations(web_annotations=filtered_web_annotations, export_path=f"{export_dir}/web-annotations.json")
 
-    # store_entity_references(filtered_web_annotations)
-
     end = time.perf_counter()
 
-    _print_report(config, text_files, web_annotations, filtered_web_annotations, start, end)
+    _print_report(config, text_files, filtered_web_annotations, start, end)
 
 
 def _load_entities(path: str) -> dict[str, dict[str, Any]]:
@@ -465,14 +463,6 @@ def _load_entity_metadata(entity_meta_path):
     else:
         entity_metadata = None
     return entity_metadata
-
-
-def _print_report(config, text_files, web_annotations, filtered_web_annotations, start, end):
-    print(f"untangling {config.project_name} took {end - start:0.4f} seconds")
-    print(f"text files: {len(text_files)}")
-    print(f"annotations: {len(filtered_web_annotations)}")
-    print(f"tier0 = {config.tier0_type}")
-    ut.show_annotation_counts(web_annotations, config.excluded_types)
 
 
 def _as_class_name(string: str) -> str:
@@ -966,17 +956,6 @@ def _get_file_num(tf_text_file: str) -> str:
             return ""
 
 
-def _sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool):
-    tier0_annotations = [a for a in web_annotations if "type" in a['body'] and a['body']['type'] == tier0_type]
-    if not tier0_annotations:
-        logger.error(f"no tier0 annotations found, tier0 = '{tier0_type}'")
-    else:
-        if expect_manifest:
-            for a in tier0_annotations:
-                if 'manifest' not in a['body']['metadata']:
-                    logger.error(f"missing required body.metadata.manifest field for {a}")
-
-
 def _store_segmented_text(segments: list[str], store_path: str):
     data = {"_ordered_segments": segments}
     logger.info(f"=> {store_path}")
@@ -1206,21 +1185,28 @@ def _image_targets(iiif_url: str, xywh: str) -> list[dict[str, Any]]:
     return [simple_image_target(iiif_base_url, xywh), image_target(iiif_url=iiif_url, xywh=xywh)]
 
 
-def _store_entity_references(web_annotations: list[dict[str, Any]]):
-    entity_references = defaultdict(lambda: defaultdict(list[str]))
-    web_annotations_with_metadata = [wa for wa in web_annotations if "metadata" in wa["body"]]
-    for wa in web_annotations_with_metadata:
-        body_id = wa["body"]["id"]
-        metadata = wa["body"]["metadata"]
-        for metadata_list_value in [v for v in metadata.values() if isinstance(v, list)]:
-            for metadata_value in metadata_list_value:
-                # ic(metadata_value)
-                if metadata_value.endswith(".json"):
-                    parts = metadata_value.split("/")
-                    entity_category = parts[-2]
-                    entity_name = parts[-1].replace(".json", "")
-                    entity_references[entity_category][entity_name].append(body_id)
-    ic(entity_references)
+def _merge_intro_texts(web_annotations: list[dict[str, Any]], intro_files: list[str]) -> list[dict[str, Any]]:
+    intro_file_annotations = [_file_annotation(web_annotations, intro_file) for intro_file in intro_files]
+    ic(intro_file_annotations)
+    tr_targets = [
+        (ifa["target"][0]["source"], ifa["target"][0]["selector"]["start"], ifa["target"][0]["selector"]["end"]) for ifa
+        in intro_file_annotations]
+    ic(tr_targets)
+    target_sources = [ta[0] for ta in tr_targets]
+    web_annotations_with_intro_targets = [wa for wa in web_annotations if _target_source_in(wa, target_sources)]
+    ic(len(web_annotations_with_intro_targets))
+    return [a for a in web_annotations if a not in web_annotations_with_intro_targets]
+
+
+def _file_annotation(web_annotations: list[dict[str, Any]], intro_file: str) -> dict[str, Any]:
+    file_annotations = [a for a in web_annotations if
+                        _nested_field_has_value(a, "body.type", "tf:File") and
+                        _nested_field_has_value(a, "body.metadata.file", intro_file)
+                        ]
+    if len(file_annotations) != 1:
+        raise Exception("unexpected situation: multiple file annotations, or none")
+    else:
+        return file_annotations[0]
 
 
 def _nested_field_has_value(d: dict[str, Any], nested_field: str, value: Any) -> bool:
@@ -1235,21 +1221,32 @@ def _nested_field_has_value(d: dict[str, Any], nested_field: str, value: Any) ->
     return loop(d, nested_field.split("."), value)
 
 
-def _file_annotation(web_annotations: list[dict[str, Any]], intro_file: str) -> dict[str, Any]:
-    file_annotations = [a for a in web_annotations if
-                        _nested_field_has_value(a, "body.type", "tf:File") and
-                        _nested_field_has_value(a, "body.metadata.file", intro_file)
-                        ]
-    if len(file_annotations) != 1:
-        raise Exception("unexpected situation: multiple file annotations, or none")
+def _target_source_in(wa: dict[str, Any], target_sources: list[str]) -> bool:
+    targets = wa["target"]
+    if isinstance(targets, list):
+        sources = [t["source"] for t in targets]
+        return bool(set(sources) & set(target_sources))
     else:
-        return file_annotations[0]
+        if "source" in targets:
+            return targets["source"] in target_sources
+        else:
+            return targets in target_sources
 
 
-def _merge_intro_texts(web_annotations: list[dict[str, Any]], intro_files: list[str]) -> list[dict[str, Any]]:
-    intro_file_annotations = [_file_annotation(web_annotations, intro_file) for intro_file in intro_files]
-    ic(intro_file_annotations)
-    tr_targets = [ifa["target"][0]["source"] for ifa in intro_file_annotations]
-    ic(tr_targets)
+def _sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool):
+    tier0_annotations = [a for a in web_annotations if "type" in a['body'] and a['body']['type'] == tier0_type]
+    if not tier0_annotations:
+        logger.error(f"no tier0 annotations found, tier0 = '{tier0_type}'")
+    else:
+        if expect_manifest:
+            for a in tier0_annotations:
+                if 'manifest' not in a['body']['metadata']:
+                    logger.error(f"missing required body.metadata.manifest field for {a}")
 
-    return web_annotations
+
+def _print_report(config, text_files, filtered_web_annotations, start, end):
+    print(f"untangling {config.project_name} took {end - start:0.4f} seconds")
+    print(f"text files: {len(text_files)}")
+    print(f"annotations: {len(filtered_web_annotations)}")
+    print(f"tier0 = {config.tier0_type}")
+    ut.show_annotation_counts(filtered_web_annotations, config.excluded_types)
