@@ -10,7 +10,7 @@ import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Union, List
+from typing import Any, Union, List, Optional
 
 from icecream import ic
 from intervaltree import IntervalTree
@@ -53,14 +53,14 @@ class TFUntangleConfig:
     export_path: str
     tier0_type: str
     excluded_types: list[str]
-    textrepo_base_uri_internal: Union[str, None] = None
-    textrepo_base_uri_external: Union[str, None] = None
+    textrepo_base_uri_internal: Optional[str] = None
+    textrepo_base_uri_external: Optional[str] = None
     text_in_body: bool = False
     with_facsimiles: bool = True
     show_progress: bool = False
-    log_file_path: str = None
+    log_file_path: Optional[str] = None
     editem_project: bool = False
-    apparatus_data_directory: str = None
+    apparatus_data_directory: Optional[str] = None
     intro_files: list[str] = field(default_factory=list)
 
 
@@ -193,14 +193,14 @@ class AnnotationTransformer:
         if self.text_in_body:
             anno["body"]["text"] = ia.text
         if ia.metadata:
-            metadata = {
+            metadata: dict[str, Any] = {
                 "type": f"tt:{_as_class_name(ia.type)}Metadata"
             }
 
-            metadata.update({
-                self._normalized_metadata_field_name(k): self._normalized_metadata_value(v)
+            metadata.update(
+                (self._normalized_metadata_field_name(k), self._normalized_metadata_value(v))
                 for k, v in ia.metadata.items()
-            })
+            )
 
             if "prev" in ia.metadata:
                 prevNode = ia.metadata["prev"]
@@ -289,7 +289,7 @@ class AnnotationTransformer:
     def _normalized_metadata_field_name(field_name: str) -> str:
         return field_name.replace('@', '_').replace('manifestUrl', 'manifest').replace('type', 'tei:type')
 
-    def _normalized_metadata_value(self, value: str) -> list[dict] | str:
+    def _normalized_metadata_value(self, value: str) -> list[dict[str,Any]] | str:
         if ".xml#" in value:
             return [self._ref_to_entity(v) for v in value.split(" ")]
         else:
@@ -301,7 +301,7 @@ class AnnotationTransformer:
             return self.entity_for_ref[key]
         else:
             self.errors.add(f"no entity found for reference {ref}")
-            return ref
+            return {ref:None}
 
 
 def untangle_tf_export(config: TFUntangleConfig):
@@ -370,6 +370,7 @@ def untangle_tf_export(config: TFUntangleConfig):
         textrepo_file_versions = _dummy_version(text_files)
 
     textrepo_external_url = config.textrepo_base_uri_external if config.textrepo_base_uri_external else config.textrepo_base_uri_internal
+    assert textrepo_external_url is not None
     web_annotations = _tf_annotations_to_web_annotations(
         tf_annos=tf_annos,
         ref_links=ref_links,
@@ -630,7 +631,7 @@ def _merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens
         bar = ut.default_progress_bar(len(tf_annotations))
     for i, tf_annotation in enumerate(tf_annotations):
         if show_progress:
-            bar.update(i)
+            bar.update(i) #pyright: ignore
         match tf_annotation.type:
             case 'element':
                 _handle_element(tf_annotation, tf_annotation_idx, tokens_per_text)
@@ -685,8 +686,8 @@ def _tf_annotations_to_web_annotations(
         logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]],
         entity_metadata: dict[str, dict[str, str]],
         project_is_editem_project: bool = False,
-        tier0_type: str = None,
-        entity_for_ref: dict[str, Any] = None,
+        tier0_type: Optional[str] = None,
+        entity_for_ref: dict[str, Any] = field(default_factory=dict),
 ):
     at = AnnotationTransformer(
         project=project,
@@ -708,7 +709,7 @@ def _tf_annotations_to_web_annotations(
         letter_body_annotations = _generate_suriano_letter_body_annotations(web_annotations)
         web_annotations.extend(letter_body_annotations)
 
-    if project_is_editem_project:
+    if project_is_editem_project and tier0_type:
         _extend_tier0_annotations(web_annotations, tier0_type)
 
     # ic(ref_links)
@@ -754,7 +755,7 @@ def _store_logical_text_files(
         tokens_per_text: dict[str, list[str]],
         node_for_pos: dict[str, str],
         node_subst: dict[str, str]
-) -> (list[str], dict[str, dict[str, TextCoords]]):
+) -> tuple[list[str], dict[str, dict[str, TextCoords]]]:
     file_paths = []
     logical_coords_for_physical_anchor_per_text = defaultdict(lambda: {})
     for text_num in paragraph_ranges.keys():
@@ -1198,9 +1199,9 @@ class IntroTextMetadata:
     intro_nl_annotations: list[dict[str, Any]]
     intro_en: Offset
     intro_en_annotations: list[dict[str, Any]]
-    notes_nl: Union[Offset, None] = None
+    notes_nl: Optional[Offset] = None
     notes_nl_annotations: list[dict[str, Any]] = field(default_factory=list)
-    notes_en: Union[Offset, None] = None
+    notes_en: Optional[Offset] = None
     notes_en_annotations: list[dict[str, Any]] = field(default_factory=list)
 
 
@@ -1237,20 +1238,21 @@ def _merge_intro_texts(web_annotations: list[dict[str, Any]], intro_files: list[
 
         notes_en_offset = _offset(annotations_with_target_source, "tei:ListAnnotation", source, "en")
         notes_en_annotations = _annotations_within_range(annotations_with_target_source, source, notes_en_offset)
-
-        intro_text_metadata_list.append(
-            IntroTextMetadata(
-                source=source,
-                intro_nl=intro_nl_offset,
-                intro_nl_annotations=intro_nl_annotations,
-                intro_en=intro_en_offset,
-                intro_en_annotations=intro_en_annotations,
-                notes_nl=notes_nl_offset,
-                notes_nl_annotations=notes_nl_annotations,
-                notes_en=notes_en_offset,
-                notes_en_annotations=notes_en_annotations,
+        
+        if isinstance(intro_nl_offset, Offset) and isinstance(intro_en_offset, Offset):
+            intro_text_metadata_list.append(
+                IntroTextMetadata(
+                    source=source,
+                    intro_nl=intro_nl_offset,
+                    intro_nl_annotations=intro_nl_annotations,
+                    intro_en=intro_en_offset,
+                    intro_en_annotations=intro_en_annotations,
+                    notes_nl=notes_nl_offset,
+                    notes_nl_annotations=notes_nl_annotations,
+                    notes_en=notes_en_offset,
+                    notes_en_annotations=notes_en_annotations,
+                )
             )
-        )
 
     ic(intro_text_metadata_list)
 
@@ -1286,7 +1288,7 @@ def _offset(web_annotations, body_type: str, source: str, lang: str) -> Union[Of
 def _annotations_within_range(
         web_annotations: list[dict[str, Any]],
         source: str,
-        offset: Offset
+        offset: Optional[Offset]
 ) -> list[dict[str, Any]]:
     if offset:
         return [a for a in web_annotations if _has_target_in_range(a, source, offset)]
