@@ -15,8 +15,8 @@ def main():
         project_name=settings['project'],
         data_path='/watm',
         export_path=export_path,
-        textrepo_base_uri_internal=settings['textrepo'],
-        textrepo_base_uri_external=settings['textrepo'],
+        textsurf_base_uri_internal=settings['textsurf'],
+        textsurf_base_uri_external=settings['textsurf'],
         excluded_types=[],
         tier0_type=settings['tier0'],
         with_facsimiles=settings['with_facsimiles']
@@ -25,7 +25,7 @@ def main():
     export_to_annorepo(settings['project'], settings['annorepo'])
 
 
-required_settings = ['project', 'textrepo', 'tier0', 'with_facsimiles', 'annorepo']
+required_settings = ['project', 'textsurf', 'tier0', 'with_facsimiles', 'annorepo']
 required_annorepo_settings = ['url', 'api_key', 'container']
 
 

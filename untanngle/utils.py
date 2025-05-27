@@ -1,10 +1,13 @@
 import itertools
 import json
+import os
+import shutil
 from collections import defaultdict
 from itertools import zip_longest
 from typing import Any, Callable, Tuple, Union
 from typing import List, Dict
 
+import requests
 import progressbar
 from loguru import logger
 from textrepo.client import TextRepoClient
@@ -73,6 +76,28 @@ def upload_to_tr(textrepo_base_uri: str, project_name: str, tf_text_files: list[
                                         as_latest_version=True)
         versions[file_num][type] = version_id.version_id
     return versions
+
+def upload_to_textsurf(textsurf_uri: str, tf_text_files: list[str]):
+    """Uploads to textsurf if a URI is given, if the URI is a local path the files will simply be copied"""
+    if textsurf_uri.startswith("http"):
+        for text_file in tf_text_files:
+            with open(text_file,'r',encoding='utf-8') as f:
+                r = requests.post(f"{textsurf_uri}{text_file}", data=f)
+                if r.status_code == 200:
+                    logger.info(f"<= {text_file}")
+                else:
+                    msg = f"Upload to textsurf failed with HTTP ({r.status_code}): {r.text}"
+                    logger.error(msg)
+                    raise Exception(msg)
+    else:
+        if textsurf_uri.startswith("file://"):
+          targetdir = textsurf_uri[7:]
+        else:
+          targetdir = textsurf_uri
+        os.makedirs(targetdir)
+        for text_file in tf_text_files:
+            logger.info(f"<= {text_file}")
+            shutil.copy(text_file, targetdir)
 
 
 def store_web_annotations(web_annotations, export_path: str):
