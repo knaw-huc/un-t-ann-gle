@@ -3,8 +3,8 @@
 import argparse
 import json
 
-from extractors import tei_extractor, json_extractor
-from textservice import segmentedtext
+from untanngle.extractors import tei_extractor, json_extractor
+from untanngle.textservice import segmentedtext
 
 TEI = 'tei'
 REPUBLIC = 'republic'

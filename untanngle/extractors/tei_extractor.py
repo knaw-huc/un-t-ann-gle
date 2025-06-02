@@ -2,7 +2,7 @@ import uuid
 
 from lxml import etree
 
-from textservice import segmentedtext
+from untanngle.textservice import segmentedtext
 
 _last_page_begin_index = 0
 _last_section_begin_index = -1

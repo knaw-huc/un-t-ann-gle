@@ -1,7 +1,7 @@
 import json
 import re
 
-from textservice import segmentedtext
+from untanngle.textservice import segmentedtext
 
 # read files
 

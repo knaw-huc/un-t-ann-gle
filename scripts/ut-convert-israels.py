@@ -12,17 +12,16 @@ project_name = "israels"
 def main(version: str):
     config = tf.TFUntangleConfig(
         project_name=project_name,
-        data_path=f'data/{project_name}/{version}',
+        data_path=f'{project_name}',
         export_path=f'out',
-        textsurf_base_uri_internal=None,
+        textsurf_base_uri_internal="/tmp/textsurf/",
         textsurf_base_uri_external=f"https://textsurf.di.huc.knaw.nl/{project_name}",
         excluded_types=["tei:Lb", "tei:Pb", "nlp:Token", "tf:Chunk", "nlp:Sentence"],
         tier0_type='tf:Letter',
         show_progress=True,
         editem_project=True,
-        apparatus_data_directory=f"/Users/bram/workspaces/editem/editem-apparatus/out/israels",
-        intro_files=["Inleiding_introduction", "Verantwoording_Notes_for_the_reader", "colofon",
-                     "woord-van-dank"]
+        #apparatus_data_directory=f"/Users/bram/workspaces/editem/editem-apparatus/out/israels",
+        #intro_files=["Inleiding_introduction", "Verantwoording_Notes_for_the_reader", "colofon", "woord-van-dank"]
 
     )
     tf.untangle_tf_export(config)
