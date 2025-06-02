@@ -10,7 +10,7 @@ import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Union, List, Optional
+from typing import Any, List, Optional
 
 from icecream import ic
 from intervaltree import IntervalTree
@@ -289,7 +289,7 @@ class AnnotationTransformer:
     def _normalized_metadata_field_name(field_name: str) -> str:
         return field_name.replace('@', '_').replace('manifestUrl', 'manifest').replace('type', 'tei:type')
 
-    def _normalized_metadata_value(self, value: str) -> list[dict[str,Any]] | str:
+    def _normalized_metadata_value(self, value: str) -> list[dict[str, Any]] | str:
         if ".xml#" in value:
             return [self._ref_to_entity(v) for v in value.split(" ")]
         else:
@@ -301,10 +301,11 @@ class AnnotationTransformer:
             return self.entity_for_ref[key]
         else:
             self.errors.add(f"no entity found for reference {ref}")
-            return {ref:None}
+            return {ref: None}
 
 
-def untangle_tf_export(config: TFUntangleConfig):
+def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
+    errors = []
     start = time.perf_counter()
     text_files = sorted(glob.glob(f'{config.data_path}/text-*.tsv'))
     anno_files = sorted(glob.glob(f"{config.data_path}/anno-*.tsv"))
@@ -326,7 +327,8 @@ def untangle_tf_export(config: TFUntangleConfig):
         logger.add(config.log_file_path)
 
     entity_metadata = _load_entity_metadata(entity_meta_path)
-    entity_for_ref = _load_entities(f"{config.apparatus_data_directory}")
+    entity_for_ref, load_entities_errors = _load_entities(f"{config.apparatus_data_directory}")
+    errors.extend(load_entities_errors)
     node_for_pos = _load_node_for_pos(pos_to_node_path)
     # ic(node_for_pos)
     token_subst = _read_token_substitutions(logical_pairs_path)
@@ -387,7 +389,9 @@ def untangle_tf_export(config: TFUntangleConfig):
     )
 
     merged_web_annotations = _merge_intro_texts(web_annotations, config.intro_files)
-    _sanity_check1(merged_web_annotations, config.tier0_type, config.with_facsimiles)
+    sanity_check_errors = _sanity_check1(merged_web_annotations, config.tier0_type, config.with_facsimiles)
+    errors.extend(sanity_check_errors)
+
     filtered_web_annotations = [
         a for a in merged_web_annotations if
         ('type' in a['body'] and a['body']['type'] not in config.excluded_types)
@@ -399,9 +403,11 @@ def untangle_tf_export(config: TFUntangleConfig):
     end = time.perf_counter()
 
     _print_report(config, text_files, filtered_web_annotations, start, end)
+    return errors
 
 
-def _load_entities(path: str) -> dict[str, dict[str, Any]]:
+def _load_entities(path: str) -> (dict[str, dict[str, Any]], list[str]):
+    errors = []
     entity_index = {}
     for data_path in glob.glob(f"{path}/*-entity-dict.json"):
         logger.info(f"<= {data_path}")
@@ -414,9 +420,11 @@ def _load_entities(path: str) -> dict[str, dict[str, Any]]:
             if ref_key in entity_index:
                 entity_index[k]["relation"]["ref"] = entity_index[ref_key]
             else:
-                logger.error(f"{k.replace('/', '.xml#')}: no entity found for ref=\"{original_ref}\"")
+                error = f"{k.replace('/', '.xml#')}: no entity found for ref=\"{original_ref}\""
+                logger.error(error)
+                errors.append(error)
         entity_index[k] = _rename_type_fields(v)
-    return entity_index
+    return entity_index, errors
 
 
 def _rename_type_fields(d):
@@ -631,7 +639,7 @@ def _merge_raw_tf_annotations(tf_annotations, anno2node_path, export_dir, tokens
         bar = ut.default_progress_bar(len(tf_annotations))
     for i, tf_annotation in enumerate(tf_annotations):
         if show_progress:
-            bar.update(i) #pyright: ignore
+            bar.update(i)  # pyright: ignore
         match tf_annotation.type:
             case 'element':
                 _handle_element(tf_annotation, tf_annotation_idx, tokens_per_text)
@@ -1238,7 +1246,7 @@ def _merge_intro_texts(web_annotations: list[dict[str, Any]], intro_files: list[
 
         notes_en_offset = _offset(annotations_with_target_source, "tei:ListAnnotation", source, "en")
         notes_en_annotations = _annotations_within_range(annotations_with_target_source, source, notes_en_offset)
-        
+
         if isinstance(intro_nl_offset, Offset) and isinstance(intro_en_offset, Offset):
             intro_text_metadata_list.append(
                 IntroTextMetadata(
@@ -1256,14 +1264,59 @@ def _merge_intro_texts(web_annotations: list[dict[str, Any]], intro_files: list[
 
     ic(intro_text_metadata_list)
 
+    deltas = {
+        "intro-nl": [],
+        "intro-en": [],
+        "notes-nl": [],
+        "notes-en": [],
+    }
+    offset = 0
+    for itm in intro_text_metadata_list:
+        o = itm.intro_nl
+        deltas["intro-nl"].append(offset - o.start)
+        offset = o.end - o.start
+    for itm in intro_text_metadata_list:
+        o = itm.intro_en
+        deltas["intro-en"].append(offset - o.start)
+        offset = o.end - o.start
+    for itm in intro_text_metadata_list:
+        o = itm.notes_nl
+        deltas["notes-nl"].append(offset - o.start)
+        offset = o.end - o.start
+    for itm in intro_text_metadata_list:
+        o = itm.notes_en
+        deltas["notes-en"].append(offset - o.start)
+        offset = o.end - o.start
+    ic(deltas)
 
+    intro_file_annotation = None
+    intro_nl_data = [
+        (itm.source, itm.intro_nl, itm.intro_nl_annotations)
+        for itm in intro_file_annotations
+    ]
+
+    # intro-nl : 0..intro_text_metadata_list[0].intro_nl.(end-start) + s1
+    # intro_nl_delta = [s0-intro_nl[0].start, s1-intro_nl[1].start, s2-...]
+    # intro-en
+    # notes-nl
+    # notes-en
+
+    intro_nl_annotations = _intro_div_annotations("intro-nl", intro_nl_data, deltas["intro-nl"])
+    intro_en_annotations = None
+    notes_nl_annotations = None
+    notes_en_annotations = None
+    web_annotations.extend(intro_file_annotation)
+    web_annotations.extend(intro_nl_annotations)
+    web_annotations.extend(intro_en_annotations)
+    web_annotations.extend(notes_nl_annotations)
+    web_annotations.extend(notes_en_annotations)
 
     web_annotations_with_intro_targets = [wa for wa in web_annotations if _has_target_source_in(wa, target_sources)]
     ic(len(web_annotations_with_intro_targets))
     return [a for a in web_annotations if a not in web_annotations_with_intro_targets]
 
 
-def _offset(web_annotations, body_type: str, source: str, lang: str) -> Union[Offset, None]:
+def _offset(web_annotations, body_type: str, source: str, lang: str) -> Optional[Offset]:
     relevant_annotations = [
         a for a in web_annotations if
         _has_nested_field_with_value(a, "body.type", body_type)
@@ -1343,15 +1396,30 @@ def _has_target_source_in(wa: dict[str, Any], target_sources: list[str]) -> bool
             return targets in target_sources
 
 
-def _sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool):
+def _intro_div_annotations(div_type: str, data: list, deltas: list[int]) -> list[dict[str, Any]]:
+    for t in data:
+        source = t[0]
+        offset = t[1]
+        annotations = t[2]
+
+    return []
+
+
+def _sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool) -> list[str]:
+    errors = []
     tier0_annotations = [a for a in web_annotations if _has_nested_field_with_value(a, "body.type", tier0_type)]
     if not tier0_annotations:
-        logger.error(f"no tier0 annotations found, tier0 = '{tier0_type}'")
+        error = f"no tier0 annotations found, tier0 = '{tier0_type}'"
+        logger.error(error)
+        errors.append(error)
     else:
         if expect_manifest:
             for a in tier0_annotations:
                 if 'manifest' not in a['body']['metadata']:
-                    logger.error(f"missing required body.metadata.manifest field for {a}")
+                    error = f"missing required body.metadata.manifest field for {a}"
+                    logger.error(error)
+                    errors.append(error)
+    return errors
 
 
 def _print_report(config, text_files, filtered_web_annotations, start, end):
