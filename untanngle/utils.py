@@ -94,7 +94,7 @@ def upload_to_textsurf(textsurf_uri: str, tf_text_files: list[str]):
           targetdir = textsurf_uri[7:]
         else:
           targetdir = textsurf_uri
-        os.makedirs(targetdir)
+        os.makedirs(targetdir, exist_ok=True)
         for text_file in tf_text_files:
             logger.info(f"<= {text_file}")
             shutil.copy(text_file, targetdir)
