@@ -99,7 +99,7 @@ class AnnotationTransformer:
     project: str
     textsurf_url: str
     text_in_body: bool
-    physical_to_logical: dict[int,int]
+    physical_to_logical: dict[str, dict[int,int]]
     entity_metadata: dict[str, dict[str, str]]
     entity_for_ref: dict[str, dict[str, Any]] = field(default_factory=dict)
 
@@ -109,7 +109,8 @@ class AnnotationTransformer:
         body_type = f"{ia.namespace}:{_as_class_name(ia.type)}"
         text_num = ia.text_num
         body_id = f"urn:{self.project}:{ia.type}:{ia.tf_node}"
-        ia.physical_to_logical(self.physical_to_logical)
+        #logger.debug(f"Physical->Logical: {ia.char_offset_phys}")
+        ia.physical_to_logical(self.physical_to_logical[text_num])
         anno = {
             "@context": [
                 "http://www.w3.org/ns/anno.jsonld",
@@ -296,6 +297,7 @@ def untangle_tf_export(config: TFUntangleConfig):
         segments_to_char_offsets = _segments_to_char_offsets(segments)
         segments_to_char_per_file[text_num] = segments_to_char_offsets
         out_files.append(text_path)
+
 
     tokens_per_file = _read_tf_tokens(text_files)
     raw_tf_annotations: list[TFAnnotation] = []
@@ -515,8 +517,8 @@ def _sanity_check(ia: list[IAnnotation]):
 
 def _annotations_overlap(anno1, anno2):
     return (anno1.text_num == anno2.text_num) and (\
-        ((anno1.physical.end_char_offset >= anno2.physical.begin_char_offset) and (anno1.physical.end_char_offset <= anno2.physical.end_char_offset)) or \
-        ((anno2.physical.end_char_offset >= anno1.physical.begin_char_offset) and (anno2.physical.end_char_offset <= anno1.physical.end_char_offset)))
+        ((anno1.char_offset_phys.end_char_offset >= anno2.char_offset_phys.begin_char_offset) and (anno1.char_offset_phys.end_char_offset <= anno2.char_offset_phys.end_char_offset)) or \
+        ((anno2.char_offset_phys.end_char_offset >= anno1.char_offset_phys.begin_char_offset) and (anno2.char_offset_phys.end_char_offset <= anno1.char_offset_phys.end_char_offset)))
 
 
 def _get_parent_lang(a: IAnnotation, node_parents: dict[str, str], ia_idx: dict[str, IAnnotation]) -> str:
@@ -580,7 +582,7 @@ def _merge_raw_tf_annotations(tf_annotations: list[TFAnnotation], anno2node_path
                 logger.warning(f"unhandled type: {tf_annotation.type}")
     print()
     tf_annos = sorted(tf_annotation_idx.values(),
-                      key=lambda anno: (int(anno.text_num),  anno.physical.begin_char_offset, anno.physical.end_char_offset, anno.tf_node) )
+                      key=lambda anno: (int(anno.text_num),  anno.char_offset_phys.start, anno.char_offset_phys.end, anno.tf_node) )
     for tfa in tf_annos:
         tfa.tf_node = tf_node_for_annotation_id[tfa.id]
     # tf_annos = modify_pb_annotations(tf_annos, tokens)
@@ -602,7 +604,7 @@ def _tf_annotations_to_web_annotations(
         project: str,
         text_in_body: bool,
         textsurf_url: str,
-        physical_to_logical: dict[int,int],
+        physical_to_logical: dict[str, dict[int,int]],
         entity_metadata: dict[str, dict[str, str]],
         project_is_editem_project: bool = False,
         tier0_type: Optional[str] = None,
@@ -671,22 +673,31 @@ def _store_logical_text_files(
         export_dir: str,
         paragraph_ranges: dict[str, list[Offset]], # int = tf_node_id
         texts: dict[str,str],
-) -> tuple[list[str], dict[int,int]]:
+) -> tuple[list[str], dict[str, dict[int,int]]]:
     file_paths = []
-    physical_to_logical: dict[int,int] = {} #maps a physical coordinate to a logical one
+    physical_to_logical: dict[str, dict[int,int]] = {} #maps a physical coordinate to a logical one, per text (str)
     for text_num in paragraph_ranges.keys():
         full_text_logical = ""
+        physical_to_logical[text_num] = {}
         previous_range: Optional[Offset] = None
         for par_range in paragraph_ranges[text_num]:
+            assert par_range.end > par_range.start
+
+            #if text_num == "0":
+            #    logger.debug(f"Computing logical text {text_num} for paragraph range {par_range}")
             if previous_range and par_range.start > previous_range.end:
                 #there's a gap in the text not covered by anything paragraph-like, add it
                 full_text_logical += texts[text_num][previous_range.end:par_range.start]
 
             para_text_physical = texts[text_num][par_range.start:par_range.end]
-            para_text_logical = para_text_physical.replace("\n", " ")
-            physical_to_logical[par_range.start] = len(full_text_logical)
-            full_text_logical += para_text_logical
-            physical_to_logical[par_range.end] = len(full_text_logical)
+            #this isn't the most efficient yet, as it maps every character:
+            for i, c in enumerate(para_text_physical):
+                physical_to_logical[text_num][par_range.start + i] = len(full_text_logical)
+                if c in ('\n',' '):
+                    full_text_logical += " "
+                else:
+                    full_text_logical += c
+            physical_to_logical[text_num][par_range.end] = len(full_text_logical)
 
             previous_range = par_range
 
@@ -707,13 +718,14 @@ def _determine_paragraphs(
     expected_begin_offset = 0
     for ia in tf_annos:
         if ia.type in paragraph_types:
-            # print(ia.text_num, ia.begin_anchor, ia.end_anchor)
             if ia.text_num != current_text_num:
                 if current_text_num in tokens_per_text:
+                    #new text
                     text_length = segments_to_char_per_text[current_text_num][-1]
                     if text_length > expected_begin_offset:
+                        #add last leftover from previous text
                         paragraph_ranges[current_text_num].append(
-                            Offset(ia.char_offset_phys.start,text_length)
+                            Offset(expected_begin_offset,text_length)
                         )
                 current_text_num = ia.text_num
                 paragraph_ranges[current_text_num] = []
@@ -726,7 +738,7 @@ def _determine_paragraphs(
                 pass
                 # if ia.type != "note":
                 #     logger.warning(f"nested element {ia.type} ignored for paragraph sectioning")
-            else:
+            elif ia.char_offset_phys.end > ia.char_offset_phys.start:
                 paragraph_ranges[current_text_num].append(
                     Offset(ia.char_offset_phys.start, ia.char_offset_phys.end)
                 )
@@ -811,6 +823,8 @@ def _handle_element(a, tf_annotation_idx, tokens_per_text: dict[str, list[str]],
         text = "".join(tokens_per_text[text_num][begin_anchor:end_anchor])
         begin_char_offset = segments_to_char_per_text[text_num][begin_anchor]
         end_char_offset = segments_to_char_per_text[text_num][end_anchor]
+        #if text_num == '0':
+        #    logger.debug(f"handle_element(1) {begin_char_offset}:{end_char_offset} -- {text}")
         tf_annos = IAnnotation(id=a.id,
                                namespace=a.namespace,
                                type=a.body,
@@ -819,13 +833,14 @@ def _handle_element(a, tf_annotation_idx, tokens_per_text: dict[str, list[str]],
                                char_offset_phys= Offset(begin_char_offset, end_char_offset),
                                )
         tf_annotation_idx[a.id] = tf_annos
-
     elif match0:
         text_num = match0.group(1)
         begin_anchor = int(match0.group(2))
         text = "".join(tokens_per_text[text_num][begin_anchor])
         begin_char_offset = segments_to_char_per_text[text_num][begin_anchor]
         end_char_offset = segments_to_char_per_text[text_num][begin_anchor+1]
+        #if text_num == '0':
+        #    logger.debug(f"handle_element(0) {begin_char_offset}:{end_char_offset} -- {text}")
         tf_annos = IAnnotation(id=a.id,
                                namespace=a.namespace,
                                type=a.body,
@@ -833,7 +848,6 @@ def _handle_element(a, tf_annotation_idx, tokens_per_text: dict[str, list[str]],
                                text_num=text_num,
                                char_offset_phys= Offset(begin_char_offset, end_char_offset))
         tf_annotation_idx[a.id] = tf_annos
-
     else:
         logger.warning(f"unknown element target pattern: {a}")
 
