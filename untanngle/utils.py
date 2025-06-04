@@ -127,7 +127,7 @@ def read_json(path: str) -> Any:
 
 
 def transform_dict_entries(
-        data: Union[dict, list],
+        data: Any,
         entry_filter: Callable[[str, Any], bool],
         entry_transformer: Callable[[str, Any], Tuple[str, Any]]
 ) -> Any:
