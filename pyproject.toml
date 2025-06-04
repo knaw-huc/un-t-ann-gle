@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "untanngle"
-version = "0.1.2"
+version = "0.1.3"
 description = ""
 authors = ["Bram Buitendijk <bram.buitendijk@di.huc.knaw.nl>","Hennie Brugman <hennie.brugman@di.huc.knaw.nl>"]
 readme = "README.md"
