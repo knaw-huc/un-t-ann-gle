@@ -25,7 +25,11 @@ def main(version: str):
                      "woord-van-dank"]
 
     )
-    tf.untangle_tf_export(config)
+    errors = tf.untangle_tf_export(config)
+    if errors:
+        print("errors:")
+        for error in errors:
+            print(f"- {error}")
 
 
 if __name__ == '__main__':
