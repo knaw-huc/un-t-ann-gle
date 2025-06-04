@@ -698,6 +698,7 @@ def _store_logical_text_files(
                 else:
                     full_text_logical += c
             physical_to_logical[text_num][par_range.end] = len(full_text_logical)
+            full_text_logical += "\n"
 
             previous_range = par_range
 
