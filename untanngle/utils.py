@@ -1,15 +1,14 @@
 import itertools
 import json
+import re
 from collections import defaultdict
 from itertools import zip_longest
-from typing import Any, Callable, Tuple, Union
+from typing import Any, Callable, Tuple
 from typing import List, Dict
 
 import progressbar
 from loguru import logger
 from textrepo.client import TextRepoClient
-
-import untanngle.textfabric as tf
 
 
 def default_progress_bar(max_value):
@@ -53,7 +52,7 @@ def upload_to_tr(textrepo_base_uri: str, project_name: str, tf_text_files: list[
     add_logical_segmented_text_type_if_missing(trc)
     versions = defaultdict(lambda: {})
     for tf_text_file in tf_text_files:
-        file_num = tf._get_file_num(tf_text_file)
+        file_num = get_file_num(tf_text_file)
         external_id = f"{project_name}-{file_num}"
         logger.info(f"<= {tf_text_file}")
         with open(tf_text_file) as f:
@@ -73,6 +72,22 @@ def upload_to_tr(textrepo_base_uri: str, project_name: str, tf_text_files: list[
                                         as_latest_version=True)
         versions[file_num][type] = version_id.version_id
     return versions
+
+
+file_num_pattern = re.compile(r".*-(\d+).tsv")
+file_num_pattern_from_json = re.compile(r".*-(\d+).json")
+
+
+def get_file_num(tf_text_file: str) -> str:
+    match = file_num_pattern.match(tf_text_file)
+    if match:
+        return match.group(1)
+    else:
+        match = file_num_pattern_from_json.match(tf_text_file)
+        if match:
+            return match.group(1)
+        else:
+            return ""
 
 
 def store_web_annotations(web_annotations, export_path: str):

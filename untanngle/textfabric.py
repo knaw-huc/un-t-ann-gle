@@ -20,8 +20,6 @@ from untanngle import camel_casing as cc
 from untanngle import utils as ut
 from untanngle.annotations import simple_image_target, image_target
 
-file_num_pattern = re.compile(r".*-(\d+).tsv")
-file_num_pattern_from_json = re.compile(r".*-(\d+).json")
 range_target_pattern1 = re.compile(r"(\d+):(\d+)-(\d+)")
 range_target_pattern2 = re.compile(r"(\d+):(\d+)-(\d+):(\d+)")
 single_target_pattern = re.compile(r"(\d+):(\d+)")
@@ -352,7 +350,7 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
     out_files = []
     text_nums = []
     for tsv in text_files:
-        text_num = _get_file_num(tsv)
+        text_num = ut.get_file_num(tsv)
         text_nums += text_num
         json_path = f"{export_dir}/textfile-physical-{text_num}.json"
         segments = _read_tokens(tsv)
@@ -495,7 +493,7 @@ def _as_class_name(string: str) -> str:
 def _read_tf_tokens(text_files) -> dict[str, list[str]]:
     tokens_per_text = {}
     for text_file in text_files:
-        text_num = _get_file_num(text_file)
+        text_num = ut.get_file_num(text_file)
         tokens = _read_tokens(text_file)
         tokens_per_text[text_num] = tokens
     return tokens_per_text
@@ -504,7 +502,7 @@ def _read_tf_tokens(text_files) -> dict[str, list[str]]:
 def _read_tf_tokens_from_json(text_files):
     tokens_per_text = {}
     for text_file in text_files:
-        text_num = _get_file_num(text_file)
+        text_num = ut.get_file_num(text_file)
         logger.info(f"<= {text_file}")
         with open(text_file) as f:
             contents = json.load(f)
@@ -972,18 +970,6 @@ def _as_link_anno(
     }
 
 
-def _get_file_num(tf_text_file: str) -> str:
-    match = file_num_pattern.match(tf_text_file)
-    if match:
-        return match.group(1)
-    else:
-        match = file_num_pattern_from_json.match(tf_text_file)
-        if match:
-            return match.group(1)
-        else:
-            return ""
-
-
 def _store_segmented_text(segments: list[str], store_path: str):
     data = {"_ordered_segments": segments}
     logger.info(f"=> {store_path}")
@@ -994,7 +980,7 @@ def _store_segmented_text(segments: list[str], store_path: str):
 def _dummy_version(text_files):
     textrepo_file_version = {}
     for text_file in text_files:
-        file_num = _get_file_num(text_file)
+        file_num = ut.get_file_num(text_file)
         textrepo_file_version[file_num] = {
             'logical': f"placeholder-{file_num}-logical",
             "physical": f"placeholder-{file_num}-physical"

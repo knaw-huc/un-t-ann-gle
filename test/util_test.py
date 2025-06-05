@@ -2,15 +2,14 @@ import unittest
 
 from textrepo.client import TextRepoClient
 
-import textfabric as tf
-from untanngle.utils import trc_has_document_with_external_id
+from untanngle.utils import trc_has_document_with_external_id, get_file_num
 
 
 class MyTestCase(unittest.TestCase):
     def test_get_file_num(self):
-        self.assertEqual(tf._get_file_num("data/text-1.json"), "1")  # add assertion here
-        self.assertEqual(tf._get_file_num("annot-10.json"), "10")  # add assertion here
-        self.assertEqual(tf._get_file_num("annotations.json"), None)  # add assertion here
+        self.assertEqual(get_file_num("data/text-1.json"), "1")  # add assertion here
+        self.assertEqual(get_file_num("annot-10.json"), "10")  # add assertion here
+        self.assertEqual(get_file_num("annotations.json"), None)  # add assertion here
 
     def test_trc_has_document_with_external_id(self):
         trc = TextRepoClient("https://suriano.tt.di.huc.knaw.nl/textrepo", verbose=True)
