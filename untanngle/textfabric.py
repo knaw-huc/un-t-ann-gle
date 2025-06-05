@@ -201,14 +201,14 @@ class AnnotationTransformer:
             )
 
             if "prev" in ia.metadata:
-                prevNode = ia.metadata["prev"]
+                prev_node = ia.metadata["prev"]
                 metadata.pop("prev")
-                metadata[f"prev{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{prevNode}"
+                metadata[f"prev{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{prev_node}"
 
             if "next" in ia.metadata:
-                nextNode = ia.metadata["next"]
+                next_node = ia.metadata["next"]
                 metadata.pop("next")
-                metadata[f"next{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{nextNode}"
+                metadata[f"next{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{next_node}"
 
             if "eid" in ia.metadata:
                 entity_id = f"{ia.metadata['eid']}-{ia.metadata['kind']}"
@@ -396,12 +396,11 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
         entity_for_ref=entity_for_ref
     )
 
-    merged_web_annotations = _merge_intro_texts(web_annotations, config.intro_files, intro_segments, export_dir)
-    sanity_check_errors = _sanity_check1(merged_web_annotations, config.tier0_type, config.with_facsimiles)
+    sanity_check_errors = _sanity_check1(web_annotations, config.tier0_type, config.with_facsimiles)
     errors.extend(sanity_check_errors)
 
     filtered_web_annotations = [
-        a for a in merged_web_annotations if
+        a for a in web_annotations if
         ('type' in a['body'] and a['body']['type'] not in config.excluded_types)
         or 'type' not in a['body']
     ]
@@ -652,6 +651,7 @@ def _merge_raw_tf_annotations(
     node_parents = {}
     ref_links = []
     target_links = []
+    bar = None
     if show_progress:
         bar = ut.default_progress_bar(len(tf_annotations))
     for i, tf_annotation in enumerate(tf_annotations):
@@ -854,7 +854,7 @@ def _handle_format():
     pass
 
 
-def _handle_edge(tf_annotation, node_parents, ref_links, target_links):
+def _handle_edge(tf_annotation: TFAnnotation, node_parents, ref_links, target_links):
     match tf_annotation.body:
         case 'parent':
             child_id, parent_id = tf_annotation.target.split('->')
@@ -1199,438 +1199,17 @@ def _image_targets(iiif_url: str, xywh: str) -> list[dict[str, Any]]:
     return [simple_image_target(iiif_base_url, xywh), image_target(iiif_url=iiif_url, xywh=xywh)]
 
 
-@dataclass
-class Offset:
-    start: int
-    end: int
-
-
-@dataclass
-class IntroTextMetadataSection:
-    physical_offset: Offset
-    logical_offset: Offset
-    annotations: list[dict[str, Any]]
-
-
-@dataclass
-class IntroTextMetadata:
-    physical_source: str
-    logical_source: str
-    sections: dict[str, IntroTextMetadataSection]
-
-
-def _merge_intro_texts(
-        web_annotations: list[dict[str, Any]],
-        intro_files: list[str],
-        segments: dict[str, list[str]],
-        export_dir: str
-) -> list[dict[str, Any]]:
-    intro_file_annotations = [_file_annotation(web_annotations, intro_file) for intro_file in intro_files]
-    # ic(intro_file_annotations)
-    tr_targets = [
-        (ifa["target"][0]["source"], ifa["target"][0]["selector"]["start"], ifa["target"][0]["selector"]["end"])
-        for ifa in intro_file_annotations
-    ]
-    # ic(tr_targets)
-    target_sources = [ta[0] for ta in tr_targets]
-
-    # assumption: every intro text has:
-    # 1 <div xml:lang="nl">
-    # 1 <div xml:lang="en">
-    # 0 or 1 <listAnnotation type="notes" xml:lang="nl">
-    # 0 or 1 <listAnnotation type="notes" xml:lang="en">
-    intro_nl_segments = []
-    intro_en_segments = []
-    notes_nl_segments = []
-    notes_en_segments = []
-    intro_text_metadata_list: list[IntroTextMetadata] = []
-    for i, ifa in enumerate(intro_file_annotations):
-        intro_xml = intro_files[i]
-        physical_source = ifa["target"][0]["source"]
-        logical_source = ifa["target"][2]["source"]
-        annotations_with_target_source = [
-            a for a in web_annotations
-            if _has_target_source_in(a, [physical_source])
-        ]
-
-        (intro_nl_physical_offset, intro_nl_logical_offset) = _offsets(
-            annotations_with_target_source,
-            "tei:Div",
-            physical_source,
-            logical_source,
-            "nl"
-        )
-        intro_nl_segments.extend(segments[intro_xml][intro_nl_physical_offset.start:intro_nl_physical_offset.end + 1])
-        intro_annotations = _annotations_within_range(
-            annotations_with_target_source,
-            physical_source,
-            intro_nl_physical_offset
-        )
-
-        (intro_en_physical_offset, intro_en_logical_offset) = _offsets(
-            annotations_with_target_source,
-            "tei:Div",
-            physical_source,
-            logical_source,
-            "en"
-        )
-        intro_en_segments.extend(segments[intro_xml][intro_en_physical_offset.start:intro_en_physical_offset.end + 1])
-        intro_en_annotations = _annotations_within_range(
-            annotations_with_target_source,
-            physical_source,
-            intro_en_physical_offset
-        )
-
-        (notes_nl_physical_offset, notes_nl_logical_offset) = _offsets(
-            annotations_with_target_source,
-            "tei:ListAnnotation",
-            physical_source,
-            logical_source,
-            "nl"
-        )
-        if notes_nl_physical_offset:
-            notes_nl_segments.extend(
-                segments[intro_xml][notes_nl_physical_offset.start:notes_nl_physical_offset.end + 1])
-        notes_nl_annotations = _annotations_within_range(
-            annotations_with_target_source,
-            physical_source,
-            notes_nl_physical_offset
-        )
-
-        (notes_en_physical_offset, notes_en_logical_offset) = _offsets(
-            annotations_with_target_source,
-            "tei:ListAnnotation",
-            physical_source,
-            logical_source,
-            "en"
-        )
-        if notes_en_physical_offset:
-            notes_en_segments.extend(
-                segments[intro_xml][notes_en_physical_offset.start:notes_en_physical_offset.end + 1])
-        notes_en_annotations = _annotations_within_range(
-            annotations_with_target_source,
-            physical_source,
-            notes_en_physical_offset
-        )
-
-        if isinstance(intro_nl_physical_offset, Offset) and isinstance(intro_en_physical_offset, Offset):
-            intro_text_metadata_list.append(
-                IntroTextMetadata(
-                    physical_source=physical_source,
-                    logical_source=physical_source,
-                    sections={
-                        "intro-nl": IntroTextMetadataSection(
-                            physical_offset=intro_nl_physical_offset,
-                            logical_offset=intro_nl_logical_offset,
-                            annotations=intro_annotations
-                        ),
-                        "intro-en": IntroTextMetadataSection(
-                            physical_offset=intro_en_physical_offset,
-                            logical_offset=intro_en_logical_offset,
-                            annotations=intro_en_annotations
-                        ),
-                        "notes-nl": IntroTextMetadataSection(
-                            physical_offset=notes_nl_physical_offset,
-                            logical_offset=notes_nl_logical_offset,
-                            annotations=notes_nl_annotations
-                        ),
-                        "notes-en": IntroTextMetadataSection(
-                            physical_offset=notes_en_physical_offset,
-                            logical_offset=notes_en_logical_offset,
-                            annotations=notes_en_annotations
-                        ),
-                    },
-                )
-            )
-
-    # ic(intro_text_metadata_list)
-    intro_segments = intro_nl_segments + intro_en_segments + notes_nl_segments + notes_en_segments
-    _store_segmented_text(intro_segments, f"{export_dir}/intro-physical.json")
-    path = f"{export_dir}/intro-physical.txt"
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("".join(intro_segments))
-
-    # the amount that needs to be added to the text target begin/end numbers
-    deltas = {
-        "intro-nl": {"physical": [], "logical": [], },
-        "intro-en": {"physical": [], "logical": [], },
-        "notes-nl": {"physical": [], "logical": [], },
-        "notes-en": {"physical": [], "logical": [], },
-    }
-    physical_offset = 0
-    logical_offset = 0
-    sections = ["intro-nl", "intro-en", "notes-nl", "notes-en"]
-    for section in sections:
-        for itm in intro_text_metadata_list:
-            po = itm.sections[section].physical_offset
-            if po:
-                deltas[section]["physical"].append(physical_offset - po.start)
-                physical_offset = (po.end - po.start)
-                lo = itm.sections[section].logical_offset
-                deltas[section]["logical"].append(logical_offset - lo.start)
-                logical_offset = (lo.end - lo.start)
-            else:
-                deltas[section]["physical"].append(physical_offset)
-                deltas[section]["logical"].append(logical_offset)
-    ic(deltas)
-
-    new_physical_source = "https://israels.tt.di.huc.knaw.nl/textrepo/rest/versions/physical-intro-id/contents"
-    new_logical_source = "https://israels.tt.di.huc.knaw.nl/textrepo/rest/versions/logical-intro-id/contents"
-    for section in sections:
-        intro_annotations = _intro_div_annotations(
-            section,
-            intro_text_metadata_list,
-            deltas[section],
-            new_physical_source,
-            new_logical_source
-        )
-        ic(intro_annotations[:1])
-        ic(intro_annotations[-1])
-        web_annotations.extend(intro_annotations)
-    # intro_file_annotation = None
-    # web_annotations.extend(intro_file_annotation)
-
-    web_annotations_with_intro_targets = [wa for wa in web_annotations if _has_target_source_in(wa, target_sources)]
-    # ic(len(web_annotations_with_intro_targets))
-    return [a for a in web_annotations if a not in web_annotations_with_intro_targets]
-
-
-def _offsets(
-        web_annotations,
-        body_type: str,
-        physical_source: str,
-        logical_source: str,
-        lang: str
-) -> tuple[None, None] | tuple[Offset, Offset]:
-    relevant_annotations = [
-        a for a in web_annotations if
-        _has_nested_field_with_value(a, "body.type", body_type)
-        and _has_nested_field_with_value(a, "body.metadata.lang", lang)
-        and _has_target_source_in(a, [physical_source])
-    ]
-
-    i = len(relevant_annotations)
-    if i > 1:
-        raise Exception(f"expected one <{body_type} xml:lang=\"{lang}\"/>>, found {i}")
-    elif i == 0:
-        return None, None
-
-    physical_target = [
-        t for t in (relevant_annotations[0]["target"])
-        if _has_nested_field_with_value(t, "source", physical_source)
-    ][0]
-    physical_selector = physical_target["selector"]
-    logical_target = [
-        t for t in (relevant_annotations[0]["target"])
-        if _has_nested_field_with_value(t, "source", logical_source)
-    ][0]
-    logical_selector = logical_target["selector"]
-    return (Offset(physical_selector["start"], physical_selector["end"]),
-            Offset(logical_selector["start"], logical_selector["end"]))
-
-
-def _annotations_within_range(
-        web_annotations: list[dict[str, Any]],
-        source: str,
-        offset: Optional[Offset]
-) -> list[dict[str, Any]]:
-    if offset:
-        return [a for a in web_annotations if _has_target_in_range(a, source, offset)]
-    else:
-        return []
-
-
-def _has_target_in_range(wa: dict[str, Any], source: str, offset: Offset) -> bool:
-    target = [
-        t for t in (wa["target"])
-        if _has_nested_field_with_value(t, "source", source)
-    ][0]
-    selector = target["selector"]
-    start = selector["start"]
-    end = selector["end"]
-    return offset.start <= start <= offset.end and offset.start <= end <= offset.end
-
-
-def _file_annotation(web_annotations: list[dict[str, Any]], intro_file: str) -> dict[str, Any]:
-    file_annotations = [a for a in web_annotations if
-                        _has_nested_field_with_value(a, "body.type", "tf:File") and
-                        _has_nested_field_with_value(a, "body.metadata.file", intro_file)
-                        ]
-    if len(file_annotations) != 1:
-        raise Exception("unexpected situation: multiple file annotations, or none")
-    else:
-        return file_annotations[0]
-
-
 def _has_nested_field_with_value(d: dict[str, Any], nested_field: str, value: Any) -> bool:
-    def loop(d: dict[str, Any], field_path: list[str], expected_value: Any) -> bool:
+    def loop(ld: dict[str, Any], field_path: list[str], expected_value: Any) -> bool:
         field_name = field_path[0]
         if len(field_path) == 1:
-            return field_name in d and d[field_name] == expected_value
-        elif field_name in d and isinstance(d[field_name], dict):
-            return loop(d[field_name], field_path[1:], expected_value)
+            return field_name in ld and ld[field_name] == expected_value
+        elif field_name in ld and isinstance(ld[field_name], dict):
+            return loop(ld[field_name], field_path[1:], expected_value)
         else:
             return False
 
     return loop(d, nested_field.split("."), value)
-
-
-def _has_target_source_in(wa: dict[str, Any], target_sources: list[str]) -> bool:
-    targets = wa["target"]
-    if isinstance(targets, list):
-        sources = [t["source"] for t in targets]
-        return bool(set(sources) & set(target_sources))
-    else:
-        if "source" in targets:
-            return targets["source"] in target_sources
-        else:
-            return targets in target_sources
-
-
-def _intro_div_annotations(
-        div_type: str,
-        metadata_list: list[IntroTextMetadata],
-        deltas: dict[str, list[int]],
-        new_physical_source: str,
-        new_logical_source: str,
-) -> list[dict[str, Any]]:
-    new_annotations = []
-    new_physical_source_base = new_physical_source.replace("/contents", "")
-    new_logical_source_base = new_logical_source.replace("/contents", "")
-    for i, md in enumerate(metadata_list):
-        physical_source_base = md.physical_source.replace("/contents", "")
-        logical_source_base = md.logical_source.replace("/contents", "")
-        new_annotations.extend([
-            _with_adjusted_target(
-                a,
-                physical_source_base,
-                new_physical_source_base,
-                deltas["physical"][i],
-                logical_source_base,
-                new_logical_source_base,
-                deltas["logical"][i],
-            )
-            for a in md.sections[div_type].annotations
-        ])
-    lang = div_type.split("-")[-1]
-    div_annotation = {
-        "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
-            {
-                "nlp": "https://ns.tt.di.huc.knaw.nl/nlp",
-                "pagexml": "https://ns.tt.di.huc.knaw.nl/pagexml",
-                "tf": "https://ns.tt.di.huc.knaw.nl/tf",
-                "tt": "https://ns.tt.di.huc.knaw.nl/tt",
-                "tei": "https://ns.tt.di.huc.knaw.nl/tei"
-            }
-        ],
-        "type": "Annotation",
-        "id": f"urn:israels:annotation:{div_type}",
-        "purpose": "tagging",
-        "generated": datetime.today().isoformat(),
-        "body": {
-            "id": f"urn:israels:div:{div_type}",
-            "type": "tei:Div",
-            "metadata": {
-                "type": "tt:DivMetadata",
-                "lang": lang,
-                "tei:type": div_type
-            }
-        },
-        "target": [
-            {
-                "source": f"{new_physical_source_base}/contents",
-                "type": "Text",
-                "selector": {
-                    "type": "tt:TextAnchorSelector",
-                    "start": 95,
-                    "end": 208
-                }
-            },
-            {
-                "source": f"{new_physical_source_base}/segments/index/95/208",
-                "type": "Text"
-            },
-            {
-                "source": f"{new_logical_source_base}/contents",
-                "type": "LogicalText",
-                "selector": {
-                    "type": "tt:TextAnchorSelector",
-                    "start": 18,
-                    "end": 26,
-                    "beginCharOffset": 0,
-                    "endCharOffset": 13
-                }
-            },
-            {
-                "source": f"{new_logical_source_base}/segments/index/18/0/26/13",
-                "type": "LogicalText"
-            }
-        ]
-    }
-    new_annotations.append(div_annotation)
-
-    return new_annotations
-
-
-def _with_adjusted_target(
-        original_annotation: dict[str, Any],
-        original_physical_source_base: str,
-        new_physical_source_base: str,
-        physical_delta: int,
-        original_logical_source_base: str,
-        new_logical_source_base: str,
-        logical_delta: int
-) -> dict[str, Any]:
-    new_annotation = copy.deepcopy(original_annotation)
-    targets = new_annotation["target"]
-    new_targets = []
-    for t in targets:
-        if _has_nested_field_with_value(t, "source", original_physical_source_base + "/contents"):
-            new_target = _new_target_with_selector(t, new_physical_source_base, physical_delta)
-            new_targets.append(new_target)
-        elif _has_nested_field_with_value(t, "source", original_logical_source_base + "/contents"):
-            new_target = _new_target_with_selector(t, new_logical_source_base, logical_delta)
-            new_targets.append(new_target)
-        elif "source" in t and t["source"].startswith(original_physical_source_base):
-            new_target = _new_target_without_selector(t, original_physical_source_base, new_physical_source_base,
-                                                      physical_delta)
-            new_targets.append(new_target)
-        elif "source" in t and t["source"].startswith(original_logical_source_base):
-            new_target = _new_target_without_selector(t, original_logical_source_base, new_logical_source_base,
-                                                      logical_delta)
-            new_targets.append(new_target)
-        else:
-            new_targets.append(t)
-    new_annotation["target"] = new_targets
-    return new_annotation
-
-
-def _new_target_without_selector(
-        original_target: dict[str, Any],
-        original_source_base: str,
-        new_source_base: str,
-        delta: int
-) -> dict[str, Any]:
-    new_target = copy.deepcopy(original_target)
-    coords = original_target["source"].removeprefix(original_source_base + "/segments/index/").split("/")
-    if len(coords) == 2:
-        new_start = coords[0] + delta
-        new_end = coords[1] + delta
-        new_target["source"] = f"{new_source_base}/segments/index/{new_start}/{new_end}"
-    elif len(coords) == 4:
-        new_start = coords[0] + delta
-        new_end = coords[2] + delta
-        new_target["source"] = f"{new_source_base}/segments/index/{new_start}/{coords[1]}/{new_end}/{coords[3]}"
-    return new_target
-
-
-def _new_target_with_selector(original_target: dict[str, Any], new_source_base: str, delta: int) -> dict[str, Any]:
-    new_target = copy.deepcopy(original_target)
-    new_target["source"] = new_source_base + "/contents"
-    new_target["selector"]["start"] = new_target["selector"]["start"] + delta
-    new_target["selector"]["end"] = new_target["selector"]["end"] + delta
-    return new_target
 
 
 def _sanity_check1(web_annotations: list, tier0_type: str, expect_manifest: bool) -> list[str]:
