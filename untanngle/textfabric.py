@@ -381,7 +381,7 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
 
     textrepo_external_url = config.textrepo_base_uri_external if config.textrepo_base_uri_external else config.textrepo_base_uri_internal
     assert textrepo_external_url is not None
-    web_annotations = _tf_annotations_to_web_annotations(
+    web_annotations, conversion_errors = _tf_annotations_to_web_annotations(
         tf_annos=tf_annos,
         ref_links=ref_links,
         target_links=target_links,
@@ -395,6 +395,7 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
         tier0_type=config.tier0_type,
         entity_for_ref=entity_for_ref
     )
+    errors.extend(conversion_errors)
 
     sanity_check_errors = _sanity_check1(web_annotations, config.tier0_type, config.with_facsimiles)
     errors.extend(sanity_check_errors)
@@ -714,6 +715,7 @@ def _tf_annotations_to_web_annotations(
         tier0_type: Optional[str] = None,
         entity_for_ref: dict[str, Any] = field(default_factory=dict),
 ):
+    errors = []
     at = AnnotationTransformer(
         project=project,
         textrepo_url=textrepo_url,
@@ -761,8 +763,9 @@ def _tf_annotations_to_web_annotations(
         logger.error("there were conversion errors:")
         for e in sorted(at.errors):
             logger.error(e)
+            errors.append(e)
     logger.info("keys_to_camel_case")
-    return [cc.keys_to_camel_case(a) for a in web_annotations]
+    return [cc.keys_to_camel_case(a) for a in web_annotations], errors
 
 
 def _debug_paragraphs(paragraph_ranges, tokens_per_text):
