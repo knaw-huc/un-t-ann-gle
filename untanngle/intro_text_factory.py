@@ -34,19 +34,19 @@ class IntroTextFactory:
                 root = tree.getroot()
 
                 elements[0].extend(
-                    [self._with_adjusted_note_ids(e, i + 1) for e in (root.find(".//div[@xml:lang='nl']", self.ns))]
+                    [self._with_adjusted_ids(e, i + 1) for e in (root.find(".//div[@xml:lang='nl']", self.ns))]
                 )
                 elements[1].extend(
-                    [self._with_adjusted_note_ids(e, i + 1) for e in (root.find(".//div[@xml:lang='en']", self.ns))]
+                    [self._with_adjusted_ids(e, i + 1) for e in (root.find(".//div[@xml:lang='en']", self.ns))]
                 )
 
                 notes_nl = root.find(".//listAnnotation[@xml:lang='nl']", self.ns)
                 if notes_nl:
-                    elements[2].extend([self._with_adjusted_note_ids(e, i + 1) for e in notes_nl])
+                    elements[2].extend([self._with_adjusted_ids(e, i + 1) for e in notes_nl])
 
                 notes_en = root.find(".//listAnnotation[@xml:lang='en']", self.ns)
                 if notes_en:
-                    elements[3].extend([self._with_adjusted_note_ids(e, i + 1) for e in notes_en])
+                    elements[3].extend([self._with_adjusted_ids(e, i + 1) for e in notes_en])
             else:
                 self.errors.append(f"expected file {path} not found")
 
@@ -90,12 +90,18 @@ class IntroTextFactory:
             div.append(element)
         return div
 
-    def _with_adjusted_note_ids(self, e: ET.Element, i: int) -> ET.Element:
+    def _with_adjusted_ids(self, e: ET.Element, i: int) -> ET.Element:
         for ptr in e.findall(".//ptr", namespaces=self.ns):
-            ptr.set("target", ptr.attrib["target"].replace("note", f"note.{i}"))
+            ptr.set("target", ptr.attrib["target"].replace("note", f"section.{i}.note"))
         if self.xml_id_attrib in e.attrib:
-            e.set(self.xml_id_attrib,
-                  e.attrib[self.xml_id_attrib].replace("note", f"note.{i}"))
+            e.set(self.xml_id_attrib, f"section.{i}." + e.attrib[self.xml_id_attrib])
             if "n" in e.attrib and "note" in e.attrib[self.xml_id_attrib]:
                 e.set("n", f"{i}-{e.attrib['n']}")
+        for element in e.findall(".//*[@xml:id]", namespaces=self.ns):
+            element.set(self.xml_id_attrib, f"section.{i}." + element.attrib[self.xml_id_attrib])
+        if "corresp" in e.attrib:
+            e.set("corresp", e.attrib["corresp"].replace('#', f"#section.{i}."))
+        for element in e.findall(".//*[@corresp]", namespaces=self.ns):
+            element.set("corresp", element.attrib["corresp"].replace('#', f"#section.{i}."))
+
         return e
