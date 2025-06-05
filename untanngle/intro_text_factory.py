@@ -22,6 +22,7 @@ class IntroTextFactory:
             "xml": "http://www.w3.org/XML/1998/namespace",
             "": "http://www.tei-c.org/ns/1.0"
         }
+        self.xml_id_attrib = "{http://www.w3.org/XML/1998/namespace}id"
 
     def merge_intro_text_files(self) -> list[str]:
         elements = [[], [], [], []]
@@ -92,9 +93,9 @@ class IntroTextFactory:
     def _with_adjusted_note_ids(self, e: ET.Element, i: int) -> ET.Element:
         for ptr in e.findall(".//ptr", namespaces=self.ns):
             ptr.set("target", ptr.attrib["target"].replace("note", f"note.{i}"))
-        if "{http://www.w3.org/XML/1998/namespace}id" in e.attrib:
-            e.set("{http://www.w3.org/XML/1998/namespace}id",
-                  e.attrib["{http://www.w3.org/XML/1998/namespace}id"].replace("note", f"note.{i}"))
-            if "n" in e.attrib and "note" in e.attrib["{http://www.w3.org/XML/1998/namespace}id"]:
+        if self.xml_id_attrib in e.attrib:
+            e.set(self.xml_id_attrib,
+                  e.attrib[self.xml_id_attrib].replace("note", f"note.{i}"))
+            if "n" in e.attrib and "note" in e.attrib[self.xml_id_attrib]:
                 e.set("n", f"{i}-{e.attrib['n']}")
         return e
