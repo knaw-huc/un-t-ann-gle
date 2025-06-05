@@ -59,7 +59,6 @@ class TFUntangleConfig:
     log_file_path: Optional[str] = None
     editem_project: bool = False
     apparatus_data_directory: Optional[str] = None
-    intro_files: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -340,13 +339,6 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
     ref_links, target_links, tf_annos = _merge_raw_tf_annotations(raw_tf_annotations, anno2node_path, tokens_per_file,
                                                                   config.show_progress)
 
-    intro_xml_file_nums = {}
-    for intro_file in config.intro_files:
-        a = [a.text_num for a in tf_annos if _has_file_value(a, intro_file)]
-        intro_xml_file_nums[intro_file] = a[0]
-    ic(intro_xml_file_nums)
-    intro_segments = {}
-
     out_files = []
     text_nums = []
     for tsv in text_files:
@@ -354,9 +346,6 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
         text_nums += text_num
         json_path = f"{export_dir}/textfile-physical-{text_num}.json"
         segments = _read_tokens(tsv)
-        if text_num in intro_xml_file_nums.values():
-            intro_file = [k for k in intro_xml_file_nums if intro_xml_file_nums[k] == text_num][0]
-            intro_segments[intro_file] = segments
         _store_segmented_text(segments=segments, store_path=json_path)
         out_files.append(json_path)
 
@@ -412,10 +401,6 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
 
     _print_report(config, text_files, filtered_web_annotations, start, end)
     return errors
-
-
-def _has_file_value(a: IAnnotation, intro_file: str) -> bool:
-    return "file" in a.metadata and a.metadata['file'] == intro_file
 
 
 def _load_entities(path: str) -> (dict[str, dict[str, Any]], list[str]):
