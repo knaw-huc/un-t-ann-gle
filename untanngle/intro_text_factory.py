@@ -68,6 +68,7 @@ class IntroTextFactory:
 
         text = ET.SubElement(tei, "text")
         body = ET.SubElement(text, "body")
+        standoff = ET.SubElement(tei, "standOff")
 
         div_intro_nl = self._build_section_div("intro-nl", "nl", elements[0])
         body.append(div_intro_nl)
@@ -75,17 +76,24 @@ class IntroTextFactory:
         div_intro_en = self._build_section_div("intro-en", "en", elements[1])
         body.append(div_intro_en)
 
-        div_notes_nl = self._build_section_div("notes-nl", "nl", elements[2])
-        body.append(div_notes_nl)
+        list_annotation_notes_nl = self._build_list_annotation("nl", elements[2])
+        standoff.append(list_annotation_notes_nl)
 
-        div_notes_en = self._build_section_div("notes-en", "en", elements[3])
-        body.append(div_notes_en)
+        list_annotation_notes_en = self._build_list_annotation("en", elements[3])
+        standoff.append(list_annotation_notes_en)
 
         return tei
 
     @staticmethod
     def _build_section_div(div_type: str, lang: str, elements: list[ET.Element]):
         div = ET.Element("div", attrib={"xml:lang": lang, "type": div_type})
+        for element in elements:
+            div.append(element)
+        return div
+
+    @staticmethod
+    def _build_list_annotation(lang: str, elements: list[ET.Element]):
+        div = ET.Element("listAnnotation", attrib={"xml:lang": lang, "type": "notes"})
         for element in elements:
             div.append(element)
         return div
