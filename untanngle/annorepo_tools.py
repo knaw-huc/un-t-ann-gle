@@ -124,7 +124,7 @@ def process_web_annotations_file(
     input_file_name_base = input_file.split("/")[-1].replace(".json", "")
     outfile = f"{out_path}/{input_file_name_base}-annotation_ids.json"
     annotation_id_mapping = {a["id"]: f"{annorepo_base_url}/w3c/{b['containerName']}/{b['annotationName']}"
-                             for a, b in zip(annotation_list, annotation_ids)}
+                             for a, b in zip(annotation_list, annotation_ids) if "id" in a}
     print(f"=> {outfile}")
     with open(outfile, "w") as f:
         json.dump(annotation_id_mapping, fp=f)
@@ -136,13 +136,14 @@ def preload_distinct_body_type_cache(ca):
 
 def print_report(body_type_counter, container_url):
     counts = [c for c in body_type_counter.items()]
-    sorted_counts = sorted(counts, key=lambda x: x[1])
-    print(f"container: {container_url}")
-    print(f"typed annotations: {body_type_counter.total()}")
-    print()
-    print("Annotation types:")
-    max_type_name_size = max([len(t[0]) for t in counts])
-    for t in sorted_counts:
-        body_type = t[0]
-        print(f"{body_type :{max_type_name_size}}: {t[1]}")
-    print()
+    if counts:
+        sorted_counts = sorted(counts, key=lambda x: x[1])
+        print(f"container: {container_url}")
+        print(f"typed annotations: {body_type_counter.total()}")
+        print()
+        print("Annotation types:")
+        max_type_name_size = max([len(t[0]) for t in counts])
+        for t in sorted_counts:
+            body_type = t[0]
+            print(f"{body_type :{max_type_name_size}}: {t[1]}")
+        print()
