@@ -21,9 +21,6 @@ def main(version: str):
         show_progress=True,
         editem_project=True,
         apparatus_data_directory=f"/Users/bram/workspaces/editem/editem-apparatus/out/israels",
-        intro_files=["Inleiding_introduction", "Verantwoording_Notes_for_the_reader", "colofon",
-                     "woord-van-dank"]
-
     )
     errors = tf.untangle_tf_export(config)
     if errors:

@@ -100,6 +100,7 @@ class AnnotationTransformer:
     logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]]
     entity_metadata: dict[str, dict[str, str]]
     entity_for_ref: dict[str, dict[str, Any]] = field(default_factory=dict)
+    letter_id_for_tf_node: dict[int, str] = field(default_factory=dict)
 
     errors = set()
 
@@ -108,7 +109,11 @@ class AnnotationTransformer:
         text_num = ia.text_num
         textrepo_physical_version = self.textrepo_versions[text_num]['physical']
         textrepo_logical_version = self.textrepo_versions[text_num]['logical']
-        body_id = f"urn:{self.project}:{ia.type}:{ia.tf_node}"
+        if ia.type == "letter":
+            body_id = f"urn:{self.project}:{ia.type}:{ia.metadata["file"]}"
+        else:
+            body_id = f"urn:{self.project}:{ia.type}:{ia.tf_node}"
+
         logical_text_coords = self._calculate_logical_text_coords(ia)
         anno = {
             "@context": [
@@ -202,11 +207,15 @@ class AnnotationTransformer:
             if "prev" in ia.metadata:
                 prev_node = ia.metadata["prev"]
                 metadata.pop("prev")
+                if prev_node in self.letter_id_for_tf_node:
+                    prev_node = self.letter_id_for_tf_node[prev_node]
                 metadata[f"prev{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{prev_node}"
 
             if "next" in ia.metadata:
                 next_node = ia.metadata["next"]
                 metadata.pop("next")
+                if next_node in self.letter_id_for_tf_node:
+                    next_node = self.letter_id_for_tf_node[next_node]
                 metadata[f"next{ia.type.capitalize()}"] = f"urn:{self.project}:{ia.type}:{next_node}"
 
             if "eid" in ia.metadata:
@@ -301,6 +310,11 @@ class AnnotationTransformer:
             return {ref: None}
 
 
+def _map_tf_node_to_letter_id(tf_annos: list[IAnnotation]) -> dict[int, str]:
+    letter_annos = [a for a in tf_annos if a.type == "letter"]
+    return {a.tf_node: a.metadata["file"] for a in letter_annos}
+
+
 def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
     errors = []
     start = time.perf_counter()
@@ -339,6 +353,7 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
     ref_links, target_links, tf_annos = _merge_raw_tf_annotations(raw_tf_annotations, anno2node_path, tokens_per_file,
                                                                   config.show_progress)
 
+    letter_id_for_tf_node = _map_tf_node_to_letter_id(tf_annos)
     out_files = []
     text_nums = []
     for tsv in text_files:
@@ -382,7 +397,8 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
         entity_metadata=entity_metadata,
         project_is_editem_project=config.editem_project,
         tier0_type=config.tier0_type,
-        entity_for_ref=entity_for_ref
+        entity_for_ref=entity_for_ref,
+        letter_id_for_tf_node=letter_id_for_tf_node
     )
     errors.extend(conversion_errors)
 
@@ -699,6 +715,7 @@ def _tf_annotations_to_web_annotations(
         project_is_editem_project: bool = False,
         tier0_type: Optional[str] = None,
         entity_for_ref: dict[str, Any] = field(default_factory=dict),
+        letter_id_for_tf_node: dict[int, str] = field(default_factory=dict),
 ):
     errors = []
     at = AnnotationTransformer(
@@ -708,7 +725,8 @@ def _tf_annotations_to_web_annotations(
         text_in_body=text_in_body,
         logical_coords_for_physical_anchor_per_text=logical_coords_for_physical_anchor_per_text,
         entity_metadata=entity_metadata,
-        entity_for_ref=entity_for_ref
+        entity_for_ref=entity_for_ref,
+        letter_id_for_tf_node=letter_id_for_tf_node
     )
     logger.info("as_web_annotation")
 
