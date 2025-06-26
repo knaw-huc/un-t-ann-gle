@@ -93,7 +93,7 @@ class IntroTextFactory:
 
     @staticmethod
     def _build_list_annotation(lang: str, elements: list[ET.Element]):
-        div = ET.Element("listAnnotation", attrib={"xml:lang": lang, "type": "notes"})
+        div = ET.Element("listAnnotation", attrib={"xml:lang": lang, "type": "intro-notes"})
         for element in elements:
             div.append(element)
         return div
