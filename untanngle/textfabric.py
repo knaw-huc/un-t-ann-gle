@@ -119,11 +119,11 @@ class AnnotationTransformer:
             "@context": [
                 "http://www.w3.org/ns/anno.jsonld",
                 {
-                    "nlp": "https://humanities.knaw.nl/def/nlp",
-                    "pagexml": "https://humanities.knaw.nl/def/pagexml",
-                    "tf": "https://humanities.knaw.nl/def/text-fabric",
-                    "tt": "https://humanities.knaw.nl/def/team-text",
-                    "tei": "https://humanities.knaw.nl/def/tei"
+                    "nlp": "https://humanities.knaw.nl/def/nlp#",
+                    "pagexml": "https://humanities.knaw.nl/def/pagexml#",
+                    "tf": "https://humanities.knaw.nl/def/text-fabric#",
+                    "tt": "https://humanities.knaw.nl/def/team-text#",
+                    "tei": "https://humanities.knaw.nl/def/tei#"
                 }
             ],
             "type": "Annotation",
