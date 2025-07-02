@@ -34,13 +34,15 @@ paragraph_types = {
     "idno",
     "institution",
     "name",
-    "note",
+    # "note",
     "num",
     "p",
     "person",
     "resp",
     "settlement",
     "title",
+    "l",
+    # "lg",
 }
 
 
@@ -823,7 +825,7 @@ def _store_logical_text_files(
     return file_paths, logical_coords_for_physical_anchor_per_text
 
 
-def _determine_paragraphs(
+def     _determine_paragraphs(
         tf_annos: list[IAnnotation],
         tokens_per_text: dict[str, list[str]]
 ) -> dict[str, list[tuple[int, int]]]:
