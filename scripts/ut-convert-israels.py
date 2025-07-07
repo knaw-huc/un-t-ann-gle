@@ -7,6 +7,15 @@ import untanngle.textfabric as tf
 
 project_name = "israels"
 
+iiif_base_url = f"https://preview.dev.diginfra.org/iiif/3/{project_name}|HuygensING|{project_name}|scans|"
+
+
+def graphic_url_to_iiif_base_url(url: str) -> str:
+    if url.startswith("ii"):
+        return f"{iiif_base_url}illustrations|{url}.jpg"
+    else:
+        return f"{iiif_base_url}pages|{url}.jpg"
+
 
 @logger.catch()
 def main(version: str):
@@ -20,7 +29,8 @@ def main(version: str):
         tier0_type='tf:Letter',
         show_progress=True,
         editem_project=True,
-        apparatus_data_directory=f"/Users/bram/workspaces/editem/editem-apparatus/out/israels",
+        apparatus_data_directory=f"/Users/bram/workspaces/editem/editem-apparatus/out/{project_name}",
+        graphic_url_mapper=graphic_url_to_iiif_base_url
     )
     errors = tf.untangle_tf_export(config)
     if errors:

@@ -10,7 +10,7 @@ import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, Callable
 
 from icecream import ic
 from intervaltree import IntervalTree
@@ -61,6 +61,7 @@ class TFUntangleConfig:
     log_file_path: Optional[str] = None
     editem_project: bool = False
     apparatus_data_directory: Optional[str] = None
+    graphic_url_mapper: Optional[Callable[[str], str]] = None
 
 
 @dataclass
@@ -99,10 +100,11 @@ class AnnotationTransformer:
     textrepo_url: str
     textrepo_versions: dict[str, dict[str, str]]
     text_in_body: bool
-    logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]]
+    logical_coords_for_physical_anchor_per_text: dict[str, dict[str, TextCoords]]
     entity_metadata: dict[str, dict[str, str]]
     entity_for_ref: dict[str, dict[str, Any]] = field(default_factory=dict)
     letter_id_for_tf_node: dict[int, str] = field(default_factory=dict)
+    graphic_url_mapper: Callable[[str], str] = staticmethod(lambda s: s)
 
     errors = set()
 
@@ -229,6 +231,13 @@ class AnnotationTransformer:
                         for mk, mv
                         in self.entity_metadata[entity_id].items()
                     ]
+
+            # if "url" in ia.metadata:
+            #     ic(ia)
+            #     ic(self.graphic_url_mapper)
+
+            if "url" in ia.metadata and ia.type == "graphic" and self.graphic_url_mapper:
+                metadata["url"] = self.graphic_url_mapper(ia.metadata["url"])
 
             anno["body"]["metadata"] = metadata
 
@@ -400,7 +409,8 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
         project_is_editem_project=config.editem_project,
         tier0_type=config.tier0_type,
         entity_for_ref=entity_for_ref,
-        letter_id_for_tf_node=letter_id_for_tf_node
+        letter_id_for_tf_node=letter_id_for_tf_node,
+        graphic_url_mapper=config.graphic_url_mapper
     )
     errors.extend(conversion_errors)
 
@@ -712,12 +722,13 @@ def _tf_annotations_to_web_annotations(
         text_in_body: bool,
         textrepo_url: str,
         textrepo_file_versions: dict[str, dict[str, str]],
-        logical_coords_for_physical_anchor_per_text: dict[str, dict[int, TextCoords]],
+        logical_coords_for_physical_anchor_per_text: dict[str, dict[str, TextCoords]],
         entity_metadata: dict[str, dict[str, str]],
         project_is_editem_project: bool = False,
         tier0_type: Optional[str] = None,
         entity_for_ref: dict[str, Any] = field(default_factory=dict),
         letter_id_for_tf_node: dict[int, str] = field(default_factory=dict),
+        graphic_url_mapper: Callable[[str], str] = None
 ):
     errors = []
     at = AnnotationTransformer(
@@ -728,7 +739,8 @@ def _tf_annotations_to_web_annotations(
         logical_coords_for_physical_anchor_per_text=logical_coords_for_physical_anchor_per_text,
         entity_metadata=entity_metadata,
         entity_for_ref=entity_for_ref,
-        letter_id_for_tf_node=letter_id_for_tf_node
+        letter_id_for_tf_node=letter_id_for_tf_node,
+        graphic_url_mapper=graphic_url_mapper
     )
     logger.info("as_web_annotation")
 
@@ -825,7 +837,7 @@ def _store_logical_text_files(
     return file_paths, logical_coords_for_physical_anchor_per_text
 
 
-def     _determine_paragraphs(
+def _determine_paragraphs(
         tf_annos: list[IAnnotation],
         tokens_per_text: dict[str, list[str]]
 ) -> dict[str, list[tuple[int, int]]]:
