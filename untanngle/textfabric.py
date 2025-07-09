@@ -115,6 +115,8 @@ class AnnotationTransformer:
         textrepo_logical_version = self.textrepo_versions[text_num]['logical']
         if ia.type == "letter":
             body_id = f"urn:{self.project}:{ia.type}:{ia.metadata["file"]}"
+        elif ia.type == "file" and ia.metadata["file"] == "introduction":
+            body_id = f"urn:{self.project}:{ia.type}:intro"
         else:
             body_id = f"urn:{self.project}:{ia.type}:{ia.tf_node}"
 
