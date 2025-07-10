@@ -42,6 +42,8 @@ paragraph_types = {
     "settlement",
     "title",
     "l",
+    "label",
+    "item"
     # "lg",
 }
 
