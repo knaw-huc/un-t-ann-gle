@@ -248,6 +248,8 @@ class AnnotationTransformer:
                     "nl": ia.metadata["titleNl"],
                     "en": ia.metadata["titleEn"]
                 }
+                metadata.pop("titleNl")
+                metadata.pop("titleEn")
 
             anno["body"]["metadata"] = metadata
 
