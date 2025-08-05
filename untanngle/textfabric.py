@@ -42,8 +42,8 @@ paragraph_types = {
     "settlement",
     "title",
     "l",
-    "label",
-    "item"
+    # "label",
+    # "item"
     # "lg",
 }
 
@@ -848,8 +848,15 @@ def _determine_paragraphs(
     paragraph_ranges = {}
     current_text_num = -1
     expected_begin_anchor = 0
-    for ia in tf_annos:
-        if ia.type in paragraph_types:
+    label_item_begin_anchor = 0
+    sorted_tf_annos = sorted(tf_annos, key=lambda a: (a.text_num, a.begin_anchor, -a.end_anchor))
+    for ia in sorted_tf_annos:
+        if ia.type == "label":
+            label_item_begin_anchor = ia.begin_anchor
+        elif ia.type == "item":
+            paragraph_ranges[current_text_num].append((label_item_begin_anchor, ia.end_anchor))
+            expected_begin_anchor = ia.end_anchor + 1
+        elif ia.type in paragraph_types:
             # print(ia.text_num, ia.begin_anchor, ia.end_anchor)
             if ia.text_num != current_text_num:
                 if current_text_num in tokens_per_text:
