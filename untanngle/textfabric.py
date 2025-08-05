@@ -657,6 +657,23 @@ def _modify_note_annotations(ia: list[IAnnotation], node_parents: dict[str, str]
     return ia
 
 
+def _modify_graphic_header_order(ia: list[IAnnotation]) -> list[IAnnotation]:
+    in_figure = False
+    head_start = 0
+    new_iannotations = []
+    for a in ia:
+        if a.type == 'figure':
+            in_figure = True
+        elif in_figure and a.type == 'head':
+            head_start = a.begin_anchor
+        elif in_figure and a.type == 'graphic':
+            a.begin_anchor = head_start
+            a.end_anchor = head_start
+            in_figure = False
+        new_iannotations.append(a)
+    return new_iannotations
+
+
 def _merge_raw_tf_annotations(
         tf_annotations: list[TFAnnotation],
         anno2node_path: str,
@@ -710,6 +727,7 @@ def _merge_raw_tf_annotations(
     # ic(node_parents)
     logger.info("modify_note_annotations")
     tf_annos = _modify_note_annotations(tf_annos, node_parents)
+    tf_annos = _modify_graphic_header_order(tf_annos)
     # TODO: convert ptr annotations to annotation linking the ptr target to the body.id of the m:Note with the corresponding id
     # TODO: convert rs annotations to annotation linking the rkd url in metadata.anno to the rd target
     # TODO: convert ref annotations
