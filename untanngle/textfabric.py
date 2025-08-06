@@ -243,6 +243,14 @@ class AnnotationTransformer:
             if "url" in ia.metadata and ia.type == "graphic" and self.graphic_url_mapper:
                 metadata["url"] = self.graphic_url_mapper(ia.metadata["url"])
 
+            if "titleEn" in ia.metadata and "titleNl" in ia.metadata:
+                metadata["title"] = {
+                    "nl": ia.metadata["titleNl"],
+                    "en": ia.metadata["titleEn"]
+                }
+                metadata.pop("titleNl")
+                metadata.pop("titleEn")
+
             anno["body"]["metadata"] = metadata
 
             if 'canvasUrl' in ia.metadata:
