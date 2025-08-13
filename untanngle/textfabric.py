@@ -49,6 +49,12 @@ paragraph_types = {
 
 
 @dataclass
+class Dimensions:
+    width: int
+    height: int
+
+
+@dataclass
 class TFUntangleConfig:
     project_name: str
     data_path: str
@@ -64,6 +70,8 @@ class TFUntangleConfig:
     editem_project: bool = False
     apparatus_data_directory: Optional[str] = None
     graphic_url_mapper: Optional[Callable[[str], str]] = None
+    illustration_sizes_file: Optional[str] = None
+    page_sizes_file: Optional[str] = None
 
 
 @dataclass
@@ -107,6 +115,7 @@ class AnnotationTransformer:
     entity_for_ref: dict[str, dict[str, Any]] = field(default_factory=dict)
     letter_id_for_tf_node: dict[int, str] = field(default_factory=dict)
     graphic_url_mapper: Callable[[str], str] = staticmethod(lambda s: s)
+    graphic_dimensions: dict[str, Dimensions] = field(default_factory=dict)
 
     errors = set()
 
@@ -241,7 +250,11 @@ class AnnotationTransformer:
             #     ic(self.graphic_url_mapper)
 
             if "url" in ia.metadata and ia.type == "graphic" and self.graphic_url_mapper:
-                metadata["url"] = self.graphic_url_mapper(ia.metadata["url"])
+                raw_url = ia.metadata["url"]
+                metadata["url"] = self.graphic_url_mapper(raw_url)
+                dimensions = self.graphic_dimensions[raw_url]
+                metadata["width"] = dimensions.width
+                metadata["height"] = dimensions.height
 
             if "titleEn" in ia.metadata and "titleNl" in ia.metadata:
                 metadata["title"] = {
@@ -338,6 +351,19 @@ def _map_tf_node_to_letter_id(tf_annos: list[IAnnotation]) -> dict[int, str]:
     return {a.tf_node: a.metadata["file"] for a in letter_annos}
 
 
+def _load_graphic_dimensions(illustration_sizes_file: str, page_sizes_file: str) -> dict[str, Dimensions]:
+    graphic_dimensions: dict[str, Dimensions] = {}
+    if illustration_sizes_file is not None:
+        with open(illustration_sizes_file, encoding='utf8') as f:
+            for record in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE):
+                graphic_dimensions[record["file"]] = Dimensions(int(record["width"]), int(record["height"]))
+    if page_sizes_file is not None:
+        with open(page_sizes_file, encoding='utf8') as f:
+            for record in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE):
+                graphic_dimensions[record["file"]] = Dimensions(int(record["width"]), int(record["height"]))
+    return graphic_dimensions
+
+
 def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
     errors = []
     start = time.perf_counter()
@@ -347,6 +373,7 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
     entity_meta_path = f"{config.data_path}/entitymeta.json"
     logical_pairs_path = f"{config.data_path}/logicalpairs.tsv"
     pos_to_node_path = f"{config.data_path}/pos2node.tsv"
+    graphic_dimensions = _load_graphic_dimensions(config.illustration_sizes_file, config.page_sizes_file)
     export_dir = f"{config.export_path}/{config.project_name}"
     os.makedirs(name=export_dir, exist_ok=True)
 
@@ -422,7 +449,8 @@ def untangle_tf_export(config: TFUntangleConfig) -> list[str]:
         tier0_type=config.tier0_type,
         entity_for_ref=entity_for_ref,
         letter_id_for_tf_node=letter_id_for_tf_node,
-        graphic_url_mapper=config.graphic_url_mapper
+        graphic_url_mapper=config.graphic_url_mapper,
+        graphic_dimensions=graphic_dimensions
     )
     errors.extend(conversion_errors)
 
@@ -758,7 +786,8 @@ def _tf_annotations_to_web_annotations(
         tier0_type: Optional[str] = None,
         entity_for_ref: dict[str, Any] = field(default_factory=dict),
         letter_id_for_tf_node: dict[int, str] = field(default_factory=dict),
-        graphic_url_mapper: Callable[[str], str] = None
+        graphic_url_mapper: Callable[[str], str] = None,
+        graphic_dimensions: dict[str, Dimensions] = field(default_factory=dict),
 ):
     errors = []
     at = AnnotationTransformer(
@@ -770,7 +799,8 @@ def _tf_annotations_to_web_annotations(
         entity_metadata=entity_metadata,
         entity_for_ref=entity_for_ref,
         letter_id_for_tf_node=letter_id_for_tf_node,
-        graphic_url_mapper=graphic_url_mapper
+        graphic_url_mapper=graphic_url_mapper,
+        graphic_dimensions=graphic_dimensions
     )
     logger.info("as_web_annotation")
 

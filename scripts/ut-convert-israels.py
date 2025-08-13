@@ -30,7 +30,9 @@ def main(version: str):
         show_progress=True,
         editem_project=True,
         apparatus_data_directory=f"/Users/bram/workspaces/editem/editem-apparatus/out/{project_name}",
-        graphic_url_mapper=graphic_url_to_iiif_base_url
+        graphic_url_mapper=graphic_url_to_iiif_base_url,
+        illustration_sizes_file="/Users/bram/workspaces/editem/editem/data/project/israels/scans/sizes_illustrations.tsv",
+        page_sizes_file = "/Users/bram/workspaces/editem/editem/data/project/israels/scans/sizes_pages.tsv"
     )
     errors = tf.untangle_tf_export(config)
     if errors:
