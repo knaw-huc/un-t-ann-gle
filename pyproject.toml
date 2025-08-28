@@ -25,6 +25,7 @@ stam = "^0.10.2"
 textrepo-client = "^0.6.0"
 #uri = "^3.0.0"
 uri = { git = "https://github.com/marrow/uri.git", rev = "5b58db87451ca4680004a8993a56bfc4dafff4d4" }
+jsonpath-ng = "^1.7.0"
 
 [tool.poetry.group.dev.dependencies]
 annorepo-client = { path = "/Users/bram/workspaces/annorepo/annorepo-client", develop = true }
