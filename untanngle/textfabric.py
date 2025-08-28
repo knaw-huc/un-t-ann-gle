@@ -268,7 +268,7 @@ class AnnotationTransformer:
 
             if 'canvasUrl' in ia.metadata:
                 canvas_target = {
-                    "@context": "https://knaw-huc.github.io/ns/huc-di-tt.jsonld",
+                    "@context": "https://ns.huc.knaw.nl/huc-di-tt.jsonld",
                     "source": ia.metadata['canvasUrl'],
                     "type": "Canvas"
                 }
