@@ -4,16 +4,16 @@ import os
 from collections import Counter
 
 import progressbar
-import requests
 from annorepo.client import AnnoRepoClient, ContainerAdapter
 
 import untanngle.utils as uu
 
 
 def get_etag(ca: ContainerAdapter) -> str:
-    ar_base_url = ca.client.base_url
-    response = requests.head(url=f'{ar_base_url}/w3c/{ca.container_name}')
-    return response.headers['etag']
+    return ca.read().etag
+    # ar_base_url = ca.client.base_url
+    # response = requests.head(url=f'{ar_base_url}/w3c/{ca.container_name}')
+    # return response.headers['etag']
 
 
 def upload(
