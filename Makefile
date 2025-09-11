@@ -80,6 +80,17 @@ editem-docker-image:
 	docker build --tag $(EDITEM_TAG) -f docker/editem/Dockerfile .
 	docker push $(EDITEM_TAG)
 
+.PHONY: custom-field-inventory
+custom-field-inventory:
+	poetry run scripts/ut-list-custom-annotation-fields.py Gobalise   out/globalise/web-annotations.json  > out/globalise/custom-field-inventory.md
+	poetry run scripts/ut-list-custom-annotation-fields.py Israels    out/israels/web-annotations.json    > out/israels/custom-field-inventory.md
+	poetry run scripts/ut-list-custom-annotation-fields.py Mondriaan  out/mondriaan/web-annotations.json  > out/mondriaan/custom-field-inventory.md
+	poetry run scripts/ut-list-custom-annotation-fields.py Republic   out/republic/web-annotations.json   > out/republic/custom-field-inventory.md
+	poetry run scripts/ut-list-custom-annotation-fields.py Suriano    out/suriano/web-annotations.json    > out/suriano/custom-field-inventory.md
+	poetry run scripts/ut-list-custom-annotation-fields.py Translatin out/translatin/web-annotations.json > out/translatin/custom-field-inventory.md
+	poetry run scripts/ut-list-custom-annotation-fields.py VanGogh    out/vangogh/web-annotations.json    > out/vangogh/custom-field-inventory.md
+	poetry run scripts/ut-list-custom-annotation-fields.py all        out/*/web-annotations.json          > out/combined-custom-field-inventory.md
+
 .PHONY: help
 help:
 	@echo "make-tools for untanngle"
@@ -102,6 +113,7 @@ help:
 	@echo "  israels-untangle             - to untangle the textfabric export for israels ($(ISRAELS_VERSION))"
 	@echo "  israels-upload-annotations   - to upload the web annotations for israels ($(ISRAELS_VERSION))"
 	@echo
+	@echo "  custom-field-inventory - to generate lists of custom fields used in the web annotations of israels, mondriaan, suriano, translatin and vangogh"
 #	@echo "  editem-docker-image          - to build a docker image for the conversion of editem TextFabric WATM output"
 #	@echo "                                 to records in TextRepo and AnnoRepo and push it to registry.diginfra.net"
 	@echo "NB: set version in .local/.env"

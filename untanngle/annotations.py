@@ -1174,12 +1174,17 @@ def svg_selector(coords_list):
     return {'type': "SvgSelector", 'value': f"""<svg height="{height}" width="{width}">{path}</svg>"""}
 
 
-def recursively_get_fields(d: dict) -> Set[str]:
+def recursively_get_jsonld_fields(d: dict) -> Set[str]:
     fields = set()
     for (key, value) in d.items():
-        fields.add(key)
-        if isinstance(value, Dict):
-            fields = fields.union(recursively_get_fields(value))
+        if not key.startswith("@"):
+            fields.add(key)
+            if isinstance(value, dict):
+                fields = fields.union(recursively_get_jsonld_fields(value))
+            elif isinstance(value, list):
+                for v in value:
+                    if isinstance(v, dict):
+                        fields = fields.union(recursively_get_jsonld_fields(v))
     return fields
 
 

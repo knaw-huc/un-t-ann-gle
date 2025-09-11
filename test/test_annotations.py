@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from annotations import recursively_get_jsonld_fields
 from untanngle.annotations import force_iri_values, is_iri, resource_target, selection_view_target
 
 
@@ -88,3 +89,26 @@ class Test(TestCase):
                                        begin_anchor=1, end_anchor=1,
                                        begin_char_offset=10, end_char_offset=42)
         self.assertDictEqual(expected_target, target)
+
+    def test_recursively_get_fields(self):
+        dict_in = {
+            "@context": [
+                "http://www.w3.org/ns/json-ld#context",
+                {"tt": "http://www.w3.org/ns/json-ld#type"}
+            ],
+            "key": "value",
+            "id": "some-identifier",
+            "object": {
+                "a": 1,
+                "b": 2,
+                "c": 3
+            },
+            "subs": [
+                {"xml:id": "http://example.com/id"},
+                {"xml:id": "http://example.com/id2"},
+            ]
+        }
+        expected_fields = {"key", "id", "object", "a", "b", "c", "subs", "xml:id"}
+        fields = recursively_get_jsonld_fields(dict_in)
+
+        self.assertSetEqual(expected_fields, fields)

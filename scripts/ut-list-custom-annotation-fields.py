@@ -7,7 +7,7 @@ from pathlib import Path
 from jsonpath_ng import parse
 from loguru import logger
 
-from untanngle.annotations import recursively_get_fields
+from untanngle.annotations import recursively_get_jsonld_fields
 
 anno_jsonld_namespaces = [
     "oa",
@@ -167,14 +167,16 @@ anno_jsonld_fields = [
 
 
 @logger.catch()
-def main(web_annotations_path: str):
-    web_annotations_path = Path(web_annotations_path)
-    with web_annotations_path.open() as f:
-        web_annotations = json.load(f)
+def main(project: str, web_annotations_paths: list[str]):
+    web_annotations = []
+    for path in web_annotations_paths:
+        web_annotations_path = Path(path)
+        with web_annotations_path.open() as f:
+            web_annotations = web_annotations + json.load(f)
     fields_per_type = defaultdict(set)
     custom_types = set()
     for web_annotation in web_annotations:
-        if "type" in web_annotation["body"]:
+        if "body" in web_annotation and "type" in web_annotation["body"]:
             atype = web_annotation["body"]["type"]
         else:
             atype = ":untyped"
@@ -186,16 +188,22 @@ def main(web_annotations_path: str):
     for atype, fields in fields_per_type.items():
         for field in fields:
             types_for_field[field].add(atype)
-    print_md_report(fields_per_type, types_for_field, custom_types)
+    print_md_report(project, fields_per_type, types_for_field, custom_types)
 
 
-def print_md_report(fields_per_type, types_for_field, types):
-    print("## Project: Israels")
+def print_md_report(project, fields_per_type, types_for_field, types):
+    print(f"## Project: {project}")
+    print()
+    print("### Custom types")
+    print()
+    for custom_type in sorted(types):
+        print("- " + custom_type)
+
     print()
 
     print("### Custom Fields, per Annotation Type")
     print()
-    print("|type|custom fields|")
+    print("|body.type|custom fields|")
     print("|--|--|")
     for atype in sorted(fields_per_type.keys()):
         print(f"|{atype} | " + ", ".join(sorted(fields_per_type[atype])) + "|")
@@ -204,41 +212,41 @@ def print_md_report(fields_per_type, types_for_field, types):
     print("### Annotation Types using custom fields")
     print()
 
-    print("|field|in types|")
+    print("|field|in body.type|")
     print("|--|--|")
     for field in sorted(types_for_field.keys()):
         print(f"|{field} | " + ", ".join(sorted(types_for_field[field])) + "|")
 
     print()
-    print("### Custom types")
-    print()
-    for custom_type in sorted(types):
-        print("- " + custom_type)
-    print()
 
 
 def extract_custom_fields_and_values(web_annotation):
-    return [f for f in recursively_get_fields(web_annotation)
+    return [f for f in recursively_get_jsonld_fields(web_annotation)
             if not f in anno_jsonld_fields and not f.startswith("@") and not f == 'metadata']
 
 
+jsonpath_expression = parse('$..type')
+
+
 def extract_custom_types(web_annotation):
-    jsonpath_expression = parse('$..type')
     matches = jsonpath_expression.find(web_annotation)
-    return [m.value for m in matches if
-            m.value not in anno_jsonld_types and not m.value.startswith("tt:") and not m.value.endswith("Metadata:")]
+    return [m.value
+            for m in matches
+            if m.value not in anno_jsonld_types
+            # and not m.value.startswith("tt:")
+            and not m.value.endswith("Metadata")
+            ]
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2:])
 
-# projects:
-# - republic
-# - globalise
+    # projects:
+    # - republic
+    # - globalise
 
-# - israels
-# - mondriaan
-# - vangogh
-# - suriano
-# - translatin
-# - vangogh
+    # - israels
+    # - mondriaan
+    # - suriano
+    # - translatin
+    # - vangogh
