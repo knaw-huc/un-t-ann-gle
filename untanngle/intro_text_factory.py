@@ -64,10 +64,11 @@ class IntroTextFactory:
         if not os.path.exists(self.output_xml_directory):
             os.makedirs(self.output_xml_directory)
 
-        path = f"{self.output_xml_directory}/introduction.xml"
-        logger.info(f"=> {path}")
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(merged_xml)
+        if merged_xml:
+            path = f"{self.output_xml_directory}/introduction.xml"
+            logger.info(f"=> {path}")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(merged_xml)
 
         return self.errors
 
