@@ -34,7 +34,7 @@ class IntroTextFactory:
             self.section = i + 1
             path = f"{self.input_xml_directory}/{name}.xml"
             if os.path.exists(path):
-                logger.info(f"<= {path}")
+                # logger.info(f"<= {path}")
                 tree = ET.parse(path)
                 root = tree.getroot()
 
@@ -66,7 +66,7 @@ class IntroTextFactory:
 
         if merged_xml:
             path = f"{self.output_xml_directory}/introduction.xml"
-            logger.info(f"=> {path}")
+            # logger.info(f"=> {path}")
             with open(path, "w", encoding="utf-8") as f:
                 f.write(merged_xml)
 
