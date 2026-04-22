@@ -4,11 +4,11 @@ elucidate-python-client
 flask-restplus~=0.13.0
 flask~=2.1.3
 icecream~=2.1.3
-lxml==4.9.1
+lxml==6.1.0
 progressbar2
 rdflib==6.2.0
-requests~=2.32.4
+requests~=2.33.1
 rfc3987~=1.3.8
 setuptools==78.1.1
 uri~=2.0.1
-werkzeug~=3.0.6
+werkzeug~=3.1.8
